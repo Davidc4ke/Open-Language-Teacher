@@ -49,6 +49,28 @@ So the app owns the *schema and the score*; the AI owns the *content and the ped
 | `get_next_lesson` / `complete_lesson` | pull today's lesson; mark done with notes |
 | `log_session` | store a session summary for plan iteration |
 
+## Run it
+
+```bash
+npm install
+npm start          # UI at http://localhost:3000, MCP at http://localhost:3000/mcp
+```
+
+The server (`server.js`) keeps the learner's state (seeded from `seed.mjs`, persisted to `data/state.json`) and exposes it two ways: the web app at `/` (which polls `/api/state`, so tool calls from your AI appear in the UI within seconds) and an **MCP server over Streamable HTTP at `/mcp`** with the full tool surface. `POST /api/reset` restores the demo seed.
+
+Deployed instance: **https://open-language-teacher-production.up.railway.app** (MCP endpoint: `https://open-language-teacher-production.up.railway.app/mcp`).
+
+### Connect ChatGPT
+
+1. ChatGPT → **Settings → Apps & Connectors → Advanced settings** → enable **Developer mode**.
+2. **Create connector**: name it *Open Language Teacher*, MCP server URL `https://open-language-teacher-production.up.railway.app/mcp`, authentication *None*.
+3. In a new chat (with the connector enabled), say: *“Link my Open Language Teacher profile — code OLT-4F2K.”* Then: *“Start my next Chinese lesson.”*
+4. Keep the web app open next to it — the maps update live as ChatGPT calls the tools.
+
+### Connect Claude
+
+Settings → Connectors → **Add custom connector** with the same `/mcp` URL.
+
 ## This repo
 
 `index.html` — an interactive, self-contained mockup of the web app: pan/zoom node maps for Skills and Plan (with a canvas background switcher), a topbar that becomes the selection header, and a lean slide-in detail panel. It includes a "Your AI · voice mode" panel that simulates ChatGPT driving the app over MCP: play the **onboarding** or **voice lesson** scenario and watch tool calls stream in while the app's data updates live. Open the file in any browser; no build step.
