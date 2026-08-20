@@ -420,7 +420,7 @@
         <button class="clear" id="searchClear">✕</button>
       </div>
     </div>
-    <div class="sk-body rv" id="skillsBody">
+    <div class="sk-body" id="skillsBody">
       <div class="mapcanvas" id="skillMap">
         <svg class="maplines" id="skillLines"></svg>
         <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
@@ -434,7 +434,7 @@
 
   <!-- ================ PLAN ================ -->
   <section data-view="plan">
-    <div class="sk-body rv" id="planBody" style="margin-top:8px">
+    <div class="sk-body" id="planBody" style="margin-top:8px">
       <div class="mapcanvas" id="planMap">
         <svg class="maplines" id="planLines"></svg>
         <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
@@ -1161,8 +1161,7 @@
     }
 
     box.innerHTML =
-      '<button class="backlink" data-back="all">← close</button>' +
-      '<h3>' + sk.label + '</h3>' +
+      '<h3 style="margin-top:6px; padding-right:26px">' + sk.label + '</h3>' +
       '<div class="bigpct">' + sk.pct + '<small>%</small></div>' +
       '<p class="desc">' + sk.desc + '</p>' +
       '<span class="mono">Subtopics · created by your AI</span>' +
