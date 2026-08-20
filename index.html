@@ -214,9 +214,10 @@
   .mapcanvas.grabbing { cursor: grabbing; }
   .maphint { position: absolute; right: 18px; bottom: 14px; text-align: right; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
   .maplines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-  .maplines line { stroke: var(--line); stroke-width: 2; }
-  .maplines line.act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
-  .maplines line.faint { stroke-dasharray: 3 7; opacity: .7; }
+  .maplines line, .maplines path { fill: none; stroke: color-mix(in srgb, var(--faint) 50%, transparent); stroke-width: 2; stroke-linecap: round; }
+  .maplines .act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
+  .maplines .done { stroke: var(--green); stroke-dasharray: 2 9; stroke-width: 2.5; animation: dashflow 1.8s linear infinite; }
+  .maplines .faint { stroke-dasharray: 3 7; opacity: .8; }
   @keyframes dashflow { to { stroke-dashoffset: -26; } }
 
   .fnode {
@@ -439,7 +440,7 @@
     .bub, .toolcall, .sysline { animation: none; }
     .orb, .ai.speak-ai .orb { animation: none; }
     .aibtn .live { animation: none; }
-    .maplines line.act { animation: none; }
+    .maplines .act, .maplines .done { animation: none; }
     main::before { animation: none; }
     .nring .f, .sidebar-bar i { transition: none; }
     .flash { animation: none; background: var(--green-soft); }
@@ -630,7 +631,7 @@
         focus: 'restaurant & travel basics',
         result: 'completed 5/5 · 9 pieces mastered · reading +6',
         lessons: [
-          { n: 1, title: 'Menu survival', mins: 12, done: true,
+          { n: 1, title: 'Menu survival', mins: 12, done: true, icon: 'coffee', color: 'amber',
             obj: 'Read a real menu without panic.',
             steps: [
               { k: 'vocab', name: 'New: la cuenta, el desayuno, rico', min: 4, d: 'menu pieces in context' },
@@ -640,7 +641,7 @@
             mats: [{ t: 'story', name: 'La terraza', d: 'generated from your vocabulary' }],
             words: ['la cuenta', 'el desayuno', 'rico'], grammar: ['gender & articles'],
             log: ['3/3 new pieces recalled next day', 'gender of “la cuenta” corrected twice'] },
-          { n: 2, title: 'Ordering & paying', mins: 14, done: true,
+          { n: 2, title: 'Ordering & paying', mins: 14, done: true, icon: 'chat', color: 'coral',
             obj: 'Hold a full restaurant exchange by voice.',
             steps: [
               { k: 'warm', name: 'Recall menu pieces aloud', min: 3, d: '' },
@@ -650,7 +651,7 @@
             mats: [{ t: 'audio', name: 'Waiter dialogue (0.8×)', d: 'slowed native audio' }],
             words: ['quisiera', 'me trae'], grammar: ['present tense'],
             log: ['ordering fluent', 'numbers above 30 still slow'] },
-          { n: 3, title: 'Directions & transport', mins: 15, done: true,
+          { n: 3, title: 'Directions & transport', mins: 15, done: true, icon: 'globe', color: 'teal',
             obj: 'Never be lost in a Spanish city again.',
             steps: [
               { k: 'vocab', name: 'New: el tren, la ciudad, girar', min: 4, d: '' },
@@ -660,7 +661,7 @@
             mats: [{ t: 'story', name: 'El último tren', d: 'A2, past-tense seeds' }],
             words: ['el tren', 'la ciudad'], grammar: ['pretérito (preview)'],
             log: ['gist 100%', 'detail questions 1/2'] },
-          { n: 4, title: 'Hotel check-in', mins: 12, done: true,
+          { n: 4, title: 'Hotel check-in', mins: 12, done: true, icon: 'tag', color: 'violet',
             obj: 'Survive reception, complaints included.',
             steps: [
               { k: 'talk', name: 'Roleplay: check-in with a problem', min: 8, d: 'the room is wrong — fix it politely' },
@@ -669,7 +670,7 @@
             mats: [{ t: 'pack', name: 'Hotel pack · 6 pieces', d: '' }],
             words: ['la llave', 'la habitación'], grammar: ['ser vs estar'],
             log: ['complaint handled with humour', '“estar” used correctly 4/5'] },
-          { n: 5, title: 'Review & exam', mins: 18, done: true,
+          { n: 5, title: 'Review & exam', mins: 18, done: true, icon: 'star', color: 'blue',
             obj: 'Prove week 33 stuck; seed week 34.',
             steps: [
               { k: 'cards', name: 'All 11 practice pieces', min: 6, d: '' },
@@ -683,7 +684,7 @@
       { id: 'w34', title: 'Week 34', range: '18 – 24 Aug', status: 'current', pos: [13, 47],
         focus: 'news, slang & conversation',
         lessons: [
-          { n: 1, title: 'Greetings & recall', mins: 10, done: true,
+          { n: 1, title: 'Greetings & recall', mins: 10, done: true, icon: 'chat', color: 'blue',
             obj: 'Re-activate what you already own before the new week begins.',
             steps: [
               { k: 'warm', name: 'Rapid recall: 10 known pieces', min: 3, d: 'AI prompts in English, you answer by voice' },
@@ -693,7 +694,7 @@
             mats: [{ t: 'pack', name: 'Greetings pack · 8 pieces', d: 'from week 32' }],
             words: ['hola', 'gracias'], grammar: ['present tense'],
             log: ['10/10 recalled', 'pronunciation of “gracias” now solid'] },
-          { n: 2, title: 'First news words', mins: 15, done: true,
+          { n: 2, title: 'First news words', mins: 15, done: true, icon: 'news', color: 'violet',
             obj: 'Meet the five core news pieces — in context, never as a list.',
             steps: [
               { k: 'vocab', name: 'New: noticia, titular, gobierno, encuesta, huelga', min: 5, d: 'each inside a real sentence' },
@@ -707,7 +708,7 @@
             ],
             words: ['la noticia', 'el titular', 'el gobierno', 'la encuesta', 'la huelga'], grammar: ['gender & articles'],
             log: ['4/5 recalled next day', '“encuesta” shaky — flagged for lesson 3'] },
-          { n: 3, title: 'News in conversation', mins: 15, done: false, today: true,
+          { n: 3, title: 'News in conversation', mins: 15, done: false, today: true, icon: 'mic', color: 'coral',
             obj: 'Push the news pieces from recognition into speech.',
             steps: [
               { k: 'warm', name: 'Review lesson-2 words aloud', min: 3, d: 'open with “encuesta” — it was shaky' },
@@ -721,7 +722,7 @@
             ],
             words: ['la noticia', 'el titular', 'la encuesta', 'sin embargo'], grammar: ['pretérito (intro)'],
             note: 'From lesson 2: “encuesta still shaky — open with it.”' },
-          { n: 4, title: 'Slang starter', mins: 15, done: false,
+          { n: 4, title: 'Slang starter', mins: 15, done: false, icon: 'tag', color: 'rose',
             obj: 'First real slang — sound like a person, not a textbook.',
             steps: [
               { k: 'vocab', name: 'New: guay, vale, tío, flipar', min: 4, d: 'register notes: with friends, not bosses' },
@@ -734,7 +735,7 @@
               { t: 'pack', name: 'Slang pack · 4 pieces', d: 'goal: “real slang, not textbook stuff”' }
             ],
             words: ['guay', 'vale', 'tío / tía', 'flipar'], grammar: [] },
-          { n: 5, title: 'Review & mini exam', mins: 20, done: false,
+          { n: 5, title: 'Review & mini exam', mins: 20, done: false, icon: 'star', color: 'amber',
             obj: 'Prove the week stuck — then let the AI write the next one.',
             steps: [
               { k: 'cards', name: 'All 12 practice pieces', min: 5, d: 'three solid recalls each to graduate' },
@@ -910,8 +911,18 @@
       const lines = opts.getLines ? opts.getLines(f) : [];
       if (!lines.length) { svg.innerHTML = ''; return; }
       svg.setAttribute('viewBox', '0 0 ' + canvas.clientWidth + ' ' + canvas.clientHeight);
-      svg.innerHTML = lines.map(l =>
-        '<line class="' + (l.cls || '') + '" x1="' + l.x1 + '" y1="' + l.y1 + '" x2="' + l.x2 + '" y2="' + l.y2 + '"></line>').join('');
+      svg.innerHTML = lines.map(l => {
+        if (l.wave) {
+          const dx = l.x2 - l.x1, dy = l.y2 - l.y1;
+          const len = Math.hypot(dx, dy) || 1;
+          const w = l.wave * Math.min(38, len * 0.28) * f.zoom;
+          const px = -dy / len * w, py = dx / len * w;
+          const c1x = l.x1 + dx * 0.32 + px, c1y = l.y1 + dy * 0.32 + py;
+          const c2x = l.x2 - dx * 0.32 - px, c2y = l.y2 - dy * 0.32 - py;
+          return '<path class="' + (l.cls || '') + '" d="M ' + l.x1 + ' ' + l.y1 + ' C ' + c1x + ' ' + c1y + ', ' + c2x + ' ' + c2y + ', ' + l.x2 + ' ' + l.y2 + '"></path>';
+        }
+        return '<line class="' + (l.cls || '') + '" x1="' + l.x1 + '" y1="' + l.y1 + '" x2="' + l.x2 + '" y2="' + l.y2 + '"></line>';
+      }).join('');
     }
 
     function tick(t) {
@@ -1102,18 +1113,27 @@
       for (let i = 0; i < ws.length - 1; i++) out.push({
         x1: ws[i].rx || ws[i].bx, y1: ws[i].ry || ws[i].by,
         x2: ws[i + 1].rx || ws[i + 1].bx, y2: ws[i + 1].ry || ws[i + 1].by,
-        cls: 'faint'
+        cls: 'faint', wave: i % 2 ? -0.5 : 0.5
       });
-      if (plWeek && state.plans.find(x => x.id === plWeek && x.status !== 'future')) {
+      const p = plWeek ? state.plans.find(x => x.id === plWeek && x.status !== 'future') : null;
+      if (p) {
         const parent = ws.find(n => n.key === plWeek);
         if (parent) {
           const days = f.nodes.filter(n => n.kind === 'day' && !n.dead).sort((a, b) => a.idx - b.idx);
           const pts = [parent].concat(days);
-          for (let i = 0; i < pts.length - 1; i++) out.push({
-            x1: pts[i].rx || pts[i].bx, y1: pts[i].ry || pts[i].by,
-            x2: pts[i + 1].rx || pts[i + 1].bx, y2: pts[i + 1].ry || pts[i + 1].by,
-            cls: (typeof plSel === 'number' && pts[i + 1].idx === plSel) ? 'act' : ''
-          });
+          const next = p.status === 'current' ? p.lessons.find(x => !x.done) : null;
+          for (let i = 0; i < pts.length - 1; i++) {
+            const l = p.lessons[pts[i + 1].idx];
+            let cls = '';
+            if (l && l.done) cls = 'done';
+            if (l && next && l.n === next.n) cls = 'act';
+            if (typeof plSel === 'number' && pts[i + 1].idx === plSel) cls = 'act';
+            out.push({
+              x1: pts[i].rx || pts[i].bx, y1: pts[i].ry || pts[i].by,
+              x2: pts[i + 1].rx || pts[i + 1].bx, y2: pts[i + 1].ry || pts[i + 1].by,
+              cls, wave: i % 2 ? -1 : 1
+            });
+          }
         }
       }
       return out;
@@ -1165,9 +1185,10 @@
         fromX: parent.bx, fromY: parent.by,
         pct: l.done ? 100 : 0,
         text: l.done ? '✓' : l.n,
+        icon: l.icon, color: l.color,
         label: l.title,
         sub: 'day ' + l.n + ' · ' + l.mins + ' min',
-        cls: l.done ? 'done-n' : (next && l.n === next.n ? 'sel' : '')
+        cls: next && l.n === next.n ? 'sel' : ''
       });
     });
     renderPlanSide();
@@ -1420,7 +1441,7 @@
       '<span class="mono">Lessons · click for full detail</span>' +
       '<ul class="siderows">' + p.lessons.map((l, i) => {
         const isNext = p.status === 'current' && nextLesson() && nextLesson().n === l.n;
-        return '<li data-lesson="' + i + '"><button class="siderow"><span class="dotc" style="background:' + (l.done ? 'var(--green)' : isNext ? 'var(--blue)' : 'var(--faint)') + '"></span><span class="t">' + l.title + '<small>day ' + l.n + ' · ' + l.mins + ' min' + (isNext ? ' · today' : '') + '</small></span></button></li>';
+        return '<li data-lesson="' + i + '"><button class="siderow"><span class="dotc" style="background:var(--c-' + (l.color || 'blue') + ')' + (l.done || isNext ? '' : '; opacity:.4') + '"></span><span class="t">' + l.title + '<small>day ' + l.n + ' · ' + l.mins + ' min' + (l.done ? ' · done' : isNext ? ' · today' : '') + '</small></span></button></li>';
       }).join('') + '</ul>' +
       '<div class="aitip"><b>Plans stay short — always.</b> One week, then your AI reviews what stuck and writes the next. No grand curricula.</div>';
   }
