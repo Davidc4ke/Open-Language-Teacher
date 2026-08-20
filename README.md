@@ -56,20 +56,26 @@ npm install
 npm start          # UI at http://localhost:3000, MCP at http://localhost:3000/mcp
 ```
 
-The server (`server.js`) keeps the learner's state (seeded from `seed.mjs`, persisted to `data/state.json`) and exposes it two ways: the web app at `/` (which polls `/api/state`, so tool calls from your AI appear in the UI within seconds) and an **MCP server over Streamable HTTP at `/mcp`** with the full tool surface. `POST /api/reset` restores the demo seed.
+The server (`server.js`) is multi-account, backed by **SQLite** (`better-sqlite3`): users with scrypt-hashed passwords and cookie sessions, per-user versioned state, and a **personal MCP endpoint per learner** at `/mcp/<pair-code>` (Streamable HTTP, official MCP SDK). The web app polls `/api/state`, so tool calls from your AI appear in the UI within seconds.
 
-Deployed instance: **https://open-language-teacher-production.up.railway.app** (MCP endpoint: `https://open-language-teacher-production.up.railway.app/mcp`).
+Deployed instance: **https://open-language-teacher-production.up.railway.app**
+
+### Accounts
+
+- Visiting the site requires sign-in. Seeded accounts: **admin / TestTest123!** (account console at `/admin`: overview with pair codes, MCP endpoints and live sync status; create and delete learner accounts) and **demo / TestTest123!** (a learner preloaded with the full Mandarin dataset, already synced).
+- Learners created by the admin start blank. On first login they see a **sync popup** with their pair code, personal MCP URL and connector instructions; it disappears automatically the moment their AI makes its first MCP call. Onboarding (language, level, goals, first plan) then happens in their AI.
+- The **Your AI** button opens a prompt library: copyable prompts for onboarding, starting a lesson, planning next week, updating the skills map, adding word packs and logging sessions.
 
 ### Connect ChatGPT
 
 1. ChatGPT → **Settings → Apps & Connectors → Advanced settings** → enable **Developer mode**.
-2. **Create connector**: name it *Open Language Teacher*, MCP server URL `https://open-language-teacher-production.up.railway.app/mcp`, authentication *None*.
-3. In a new chat (with the connector enabled), say: *“Link my Open Language Teacher profile — code OLT-4F2K.”* Then: *“Start my next Chinese lesson.”*
+2. **Create connector**: name it *Open Language Teacher*, MCP server URL = **your personal URL from the sync popup** (`…/mcp/OLT-XXXX`), authentication *None*.
+3. In a new chat (connector enabled), say: *“Run my Open Language Teacher onboarding.”* Later: *“Start my next lesson.”*
 4. Keep the web app open next to it — the maps update live as ChatGPT calls the tools.
 
 ### Connect Claude
 
-Settings → Connectors → **Add custom connector** with the same `/mcp` URL.
+Settings → Connectors → **Add custom connector** with the same personal `/mcp/<code>` URL.
 
 ## This repo
 
