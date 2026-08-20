@@ -215,10 +215,14 @@
   .sk-side .backlink:hover { color: var(--blue); }
   .sk-side .bigpct { font-size: 44px; font-weight: 900; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
   .sk-side .bigpct small { font-size: 20px; color: var(--faint); font-weight: 800; }
-  .sk-side h3 { margin: 0 0 2px; font-size: 19px; font-weight: 900; letter-spacing: -.01em; }
-  .sk-side .desc { margin: 8px 0 6px; font-size: 13px; color: var(--muted); }
+  .sk-side h3 { margin: 0 0 2px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; }
+  .sk-side .desc { margin: 8px 0 6px; font-size: 13.5px; color: var(--muted); }
   .sk-side .desc b { color: var(--ink); }
-  .sk-side .mono { display: block; margin: 14px 0 4px; }
+  .sk-side .mono {
+    display: block; margin: 18px 0 6px;
+    font-family: var(--sans); font-size: 11px; font-weight: 800;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+  }
   .siderows { list-style: none; margin: 0; padding: 0; }
   .siderows li { border-radius: 12px; }
   .siderow {
@@ -240,17 +244,20 @@
     background: var(--chip); font-size: 12.5px; color: var(--muted); flex: none;
   }
   .aitip b { color: var(--ink); }
-  .aitag { font-family: var(--mono); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  .aitag { font-family: var(--sans); font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
 
   /* step timeline (lesson detail) */
-  .steps { list-style: none; margin: 4px 0 0; padding: 0; }
-  .steps li { display: flex; gap: 11px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .steps li:last-child { border-bottom: 0; }
-  .steps .kind { font-family: var(--mono); font-size: 7.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--blue); background: var(--chip); border-radius: 999px; padding: 3px 8px; flex: none; height: fit-content; margin-top: 2px; }
-  .steps .st { flex: 1; min-width: 0; font-weight: 700; font-size: 12.5px; }
-  .steps .st small { display: block; font-weight: 600; font-size: 11.5px; color: var(--faint); }
-  .steps .min { font-family: var(--mono); font-size: 10px; color: var(--faint); flex: none; }
+  .steps { list-style: none; margin: 2px 0 0; padding: 0; }
+  .steps li { display: flex; gap: 13px; padding: 9px 0; position: relative; }
+  .steps li:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 40px; bottom: -4px; width: 2px; background: var(--line); }
+  .steps .num {
+    width: 27px; height: 27px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; position: relative; z-index: 1;
+    background: var(--chip); color: var(--blue); font-weight: 800; font-size: 12.5px;
+  }
+  .steps .st { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 800; line-height: 1.35; padding-top: 3px; }
+  .steps .st small { display: block; font-weight: 600; font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+  .steps .min { font-size: 11.5px; font-weight: 700; color: var(--faint); flex: none; padding-top: 6px; }
   .wchip { display: inline-block; background: var(--chip); border-radius: 999px; padding: 3px 11px;
     font-size: 12px; font-weight: 700; margin: 3px 4px 0 0; }
   .wchip.g { color: var(--green); } .wchip.c { color: var(--coral); }
@@ -519,7 +526,7 @@
         ] }
     },
     plans: [
-      { id: 'w33', title: 'Week 33', range: '11 – 17 Aug', status: 'past', pos: [22, 38],
+      { id: 'w33', title: 'Week 33', range: '11 – 17 Aug', status: 'past', pos: [18, 44],
         focus: 'restaurant & travel basics',
         result: 'completed 5/5 · 9 pieces mastered · reading +6',
         lessons: [
@@ -573,7 +580,7 @@
             words: [], grammar: [],
             log: ['9/11 mastered', 'fluency +4', 'goal shift logged: “more news, more slang”'] }
         ] },
-      { id: 'w34', title: 'Week 34', range: '18 – 24 Aug', status: 'current', pos: [52, 52],
+      { id: 'w34', title: 'Week 34', range: '18 – 24 Aug', status: 'current', pos: [50, 44],
         focus: 'news, slang & conversation',
         lessons: [
           { n: 1, title: 'Greetings & recall', mins: 10, done: true,
@@ -638,13 +645,13 @@
             mats: [{ t: 'rubric', name: 'CEFR-lite exam rubric', d: 'the same five spoken-language aspects' }],
             words: [], grammar: ['pretérito (past)'] }
         ] },
-      { id: 'w35', title: 'Week 35', range: '25 – 31 Aug', status: 'future', pos: [80, 40] }
+      { id: 'w35', title: 'Week 35', range: '25 – 31 Aug', status: 'future', pos: [82, 44] }
     ]
   };
 
   const SKILL_KEYS = ['vocab', 'grammar', 'speaking', 'listening', 'reading', 'writing'];
   const TOPICS = ['News', 'Slang', 'Conversation', 'Travel', 'Basics', 'Food'];
-  const KINDS = { warm: 'warm-up', vocab: 'new vocab', story: 'story', talk: 'conversation', cards: 'flashcards', exam: 'exam', plan: 'plan' };
+  const KINDS = { warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
   const CIRC = 163.4;
 
   let state = deepCopy(DEFAULT);
@@ -939,11 +946,15 @@
       if (plWeek && state.plans.find(x => x.id === plWeek && x.status !== 'future')) {
         const parent = f.nodes.find(n => n.kind === 'week' && n.key === plWeek);
         if (!parent) return [];
-        return f.nodes.filter(n => n.kind === 'day' && !n.dead).map(n => ({
-          x1: parent.rx || parent.bx, y1: parent.ry || parent.by,
-          x2: n.rx || n.bx, y2: n.ry || n.by,
-          cls: n.idx === plLesson ? 'act' : ''
-        }));
+        const days = f.nodes.filter(n => n.kind === 'day' && !n.dead).sort((a, b) => a.idx - b.idx);
+        const pts = [parent].concat(days);
+        const out = [];
+        for (let i = 0; i < pts.length - 1; i++) out.push({
+          x1: pts[i].rx || pts[i].bx, y1: pts[i].ry || pts[i].by,
+          x2: pts[i + 1].rx || pts[i + 1].bx, y2: pts[i + 1].ry || pts[i + 1].by,
+          cls: pts[i + 1].idx === plLesson ? 'act' : ''
+        });
+        return out;
       }
       const ws = f.nodes.filter(n => n.kind === 'week' && !n.dead && !n.el.classList.contains('hid'));
       const out = [];
@@ -988,18 +999,22 @@
     const parent = PL.nodes.find(n => n.kind === 'week' && n.key === id);
     PL.nodes.forEach(n => {
       if (n.kind !== 'week') return;
-      if (n.key === id) { n.px = 50; n.py = 46; n.ts = 1.12; n.el.classList.add('open'); n.el.classList.remove('hid'); }
+      if (n.key === id) { n.px = 8; n.py = 44; n.ts = 1.05; n.el.classList.add('open'); n.el.classList.remove('hid'); }
       else { n.ts = 0; n.el.classList.add('hid'); n.el.classList.remove('open'); }
     });
     const next = p.status === 'current' ? p.lessons.find(l => !l.done) : null;
-    bloom(PL, parent, p.lessons, (l, i) => ({
-      kind: 'day', key: id, idx: i,
-      pct: l.done ? 100 : 0,
-      text: l.done ? '✓' : l.n,
-      label: l.title,
-      sub: 'day ' + l.n + ' · ' + l.mins + ' min',
-      cls: l.done ? 'done-n' : (next && l.n === next.n ? 'sel' : '')
-    }));
+    p.lessons.forEach((l, i) => {
+      PL.makeNode({
+        kind: 'day', key: id, idx: i, small: true,
+        px: 22 + i * 15, py: 44,
+        fromX: parent.bx, fromY: parent.by,
+        pct: l.done ? 100 : 0,
+        text: l.done ? '✓' : l.n,
+        label: l.title,
+        sub: 'day ' + l.n + ' · ' + l.mins + ' min',
+        cls: l.done ? 'done-n' : (next && l.n === next.n ? 'sel' : '')
+      });
+    });
     renderPlanSide();
   }
 
@@ -1168,10 +1183,10 @@
 
   /* ---- plan sidebar ---- */
   function stepRows(l) {
-    return '<ul class="steps">' + l.steps.map(s =>
-      '<li><span class="kind">' + (KINDS[s.k] || s.k) + '</span>' +
-      '<span class="st">' + s.name + (s.d ? '<small>' + s.d + '</small>' : '') + '</span>' +
-      '<span class="min">' + s.min + 'm</span></li>').join('') + '</ul>';
+    return '<ul class="steps">' + l.steps.map((s, i) =>
+      '<li><span class="num">' + (i + 1) + '</span>' +
+      '<span class="st">' + s.name + '<small>' + (KINDS[s.k] || s.k) + (s.d ? ' — ' + s.d : '') + '</small></span>' +
+      '<span class="min">' + s.min + ' min</span></li>').join('') + '</ul>';
   }
 
   function renderPlanSide() {
@@ -1379,9 +1394,9 @@
   function freshPlans() {
     const w34 = deepCopy(DEFAULT.plans.find(p => p.id === 'w34'));
     w34.lessons.forEach(l => { l.done = false; delete l.log; });
-    w34.pos = [38, 46];
+    w34.pos = [34, 44];
     const w35 = deepCopy(DEFAULT.plans.find(p => p.id === 'w35'));
-    w35.pos = [68, 42];
+    w35.pos = [68, 44];
     return [w34, w35];
   }
 
