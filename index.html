@@ -100,8 +100,7 @@
   @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(124,242,164,.55); } 70% { box-shadow: 0 0 0 7px rgba(124,242,164,0); } 100% { box-shadow: 0 0 0 0 rgba(124,242,164,0); } }
 
   /* ---------- main ---------- */
-  main { max-width: 1060px; margin: 0 auto; padding: 16px 20px 80px; position: relative; }
-  .narrow { max-width: 720px; margin: 0 auto; }
+  main { margin: 0; padding: 0; position: relative; }
   main::before {
     content: ""; position: fixed; top: -180px; left: 50%; width: 720px; height: 480px;
     transform: translateX(-50%);
@@ -114,18 +113,15 @@
   section[data-view] { display: none; }
   section[data-view].active { display: block; }
 
-  h1.hero { font-size: clamp(38px, 7vw, 60px); font-weight: 900; letter-spacing: -.025em; line-height: 1.04; }
-  .sub { margin: 14px 0 0; font-size: 16px; color: var(--muted); max-width: 46ch; }
-  .sub b { color: var(--ink); }
   .card {
     background: var(--card); border-radius: 24px; box-shadow: var(--shadow);
-    transition: background-color .35s ease, transform .25s ease, box-shadow .25s ease;
+    transition: background-color .35s ease;
   }
 
   /* =========================================================
-     SKILLS — floating node field + sidebar
+     NODE FIELDS (skills + plan)
      ========================================================= */
-  .sk-head { display: flex; align-items: center; gap: 20px; margin-bottom: 12px; }
+  .sk-head { display: flex; align-items: center; gap: 20px; max-width: 1060px; margin: 12px auto; padding: 0 20px; }
   .searchpill {
     flex: 1; display: flex; align-items: center; gap: 12px;
     background: var(--card);
@@ -135,8 +131,7 @@
     padding: 4px 8px 4px 20px;
     transition: box-shadow .25s, background-color .35s, border-color .25s;
   }
-  .searchpill:focus-within { border-color: var(--blue); }
-  .searchpill:focus-within { box-shadow: 0 2px 3px rgba(23,32,58,.05), 0 18px 44px rgba(23,32,58,.13), 0 0 0 2px var(--glow); }
+  .searchpill:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px var(--glow); }
   .searchpill .glyph { color: var(--faint); font-size: 15px; flex: none; }
   .searchpill input {
     flex: 1; min-width: 0; border: 0; outline: 0; background: none;
@@ -151,26 +146,28 @@
   .searchpill .clear:hover { background: var(--chip); color: var(--ink); }
   .searchpill.hasq .clear { display: grid; }
 
-  .sk-body {
-    display: grid; grid-template-columns: minmax(0, 1fr) 0px; gap: 0;
-    height: clamp(430px, calc(100vh - 220px), 640px);
-    transition: grid-template-columns .45s cubic-bezier(.3,.8,.3,1), gap .45s cubic-bezier(.3,.8,.3,1);
+  .sk-body { position: relative; height: calc(100vh - 90px); min-height: 420px; }
+  section[data-view="skills"] .sk-body { height: calc(100vh - 152px); }
+  .sk-side {
+    position: absolute; top: 14px; right: 14px; bottom: 14px; z-index: 5;
+    width: min(324px, calc(100vw - 28px));
+    opacity: 0; transform: translateX(18px); pointer-events: none;
+    box-shadow: 0 2px 4px rgba(23,32,58,.06), 0 24px 60px rgba(23,32,58,.16);
+    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.2,.4,1), background-color .35s ease;
   }
-  .sk-body.withside { grid-template-columns: minmax(0, 1fr) 316px; gap: 18px; }
-  .sk-side { min-width: 0; opacity: 0; transform: translateX(14px); pointer-events: none;
-    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.2,.4,1), background-color .35s ease; }
   .sk-body.withside .sk-side { opacity: 1; transform: none; pointer-events: auto; }
+
   .mapcanvas {
-    position: relative; overflow: hidden; border-radius: 24px;
+    position: absolute; inset: 0; overflow: hidden;
     touch-action: none; cursor: grab;
     transition: opacity .3s;
   }
   .mapcanvas.grabbing { cursor: grabbing; }
-  .maphint { position: absolute; right: 16px; bottom: 12px; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
-  .mapcanvas.dim { opacity: .35; }
-  #mapLines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-  #mapLines line { stroke: var(--line); stroke-width: 2; }
-  #mapLines line.act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
+  .maphint { position: absolute; right: 18px; bottom: 14px; text-align: right; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
+  .maplines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .maplines line { stroke: var(--line); stroke-width: 2; }
+  .maplines line.act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
+  .maplines line.faint { stroke-dasharray: 3 7; opacity: .7; }
   @keyframes dashflow { to { stroke-dashoffset: -26; } }
 
   .fnode {
@@ -178,11 +175,10 @@
     display: flex; flex-direction: column; align-items: center; gap: 6px;
     cursor: grab; user-select: none; -webkit-user-select: none;
     will-change: transform;
+    transition: opacity .35s;
   }
   .fnode:active { cursor: grabbing; }
-  .fnode.dimmed { opacity: .35; }
   .fnode.hid { opacity: 0; pointer-events: none; }
-  .fnode { transition: opacity .35s; }
   .nring { position: relative; width: 84px; height: 84px; pointer-events: none; }
   .fnode.child .nring { width: 62px; height: 62px; }
   .nring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -206,6 +202,8 @@
   .nsub { letter-spacing: .14em; font-size: 8px; color: var(--faint); pointer-events: none; white-space: nowrap; }
   .fnode.sel .nring .f, .fnode.open .nring .f { stroke: var(--blue); }
   .fnode.sel .nring b, .fnode.open .nring b { color: var(--blue); box-shadow: 0 0 0 6px var(--glow), var(--shadow); }
+  .fnode.done-n .nring .f { stroke: var(--green); }
+  .fnode.done-n .nring b { color: var(--green); }
   .fnode.ghost .nring b { background: transparent; box-shadow: none; border: 2px dashed var(--faint); color: var(--faint); font-size: 18px; font-weight: 600; }
   .fnode.ghost .nring .t, .fnode.ghost .nring .f { stroke: transparent; }
   .fnode.ghost:hover .nring b { border-color: var(--blue); color: var(--blue); }
@@ -218,6 +216,7 @@
   .sk-side .bigpct small { font-size: 20px; color: var(--faint); font-weight: 800; }
   .sk-side h3 { margin: 0 0 2px; font-size: 19px; font-weight: 900; letter-spacing: -.01em; }
   .sk-side .desc { margin: 8px 0 6px; font-size: 13px; color: var(--muted); }
+  .sk-side .desc b { color: var(--ink); }
   .sk-side .mono { display: block; margin: 14px 0 4px; }
   .siderows { list-style: none; margin: 0; padding: 0; }
   .siderows li { border-radius: 12px; }
@@ -233,14 +232,30 @@
   .siderow .p { font-variant-numeric: tabular-nums; font-weight: 900; color: var(--muted); flex: none; }
   .siderow.ghostrow { color: var(--faint); font-weight: 700; }
   .siderow.ghostrow:hover { color: var(--blue); }
-  .sidebar-bar { height: 6px; border-radius: 999px; background: var(--chip); overflow: hidden; margin: 10px 0 4px; }
+  .sidebar-bar { height: 6px; border-radius: 999px; background: var(--chip); overflow: hidden; margin: 10px 0 4px; flex: none; }
   .sidebar-bar i { display: block; height: 100%; border-radius: 999px; background: var(--blue); width: 0; transition: width 1s cubic-bezier(.3,.8,.3,1); }
   .aitip {
     margin-top: 14px; padding: 12px 14px; border-radius: 14px;
-    background: var(--chip); font-size: 12.5px; color: var(--muted);
+    background: var(--chip); font-size: 12.5px; color: var(--muted); flex: none;
   }
   .aitip b { color: var(--ink); }
   .aitag { font-family: var(--mono); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+
+  /* step timeline (lesson detail) */
+  .steps { list-style: none; margin: 4px 0 0; padding: 0; }
+  .steps li { display: flex; gap: 11px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .steps li:last-child { border-bottom: 0; }
+  .steps .kind { font-family: var(--mono); font-size: 7.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--blue); background: var(--chip); border-radius: 999px; padding: 3px 8px; flex: none; height: fit-content; margin-top: 2px; }
+  .steps .st { flex: 1; min-width: 0; font-weight: 700; font-size: 12.5px; }
+  .steps .st small { display: block; font-weight: 600; font-size: 11.5px; color: var(--faint); }
+  .steps .min { font-family: var(--mono); font-size: 10px; color: var(--faint); flex: none; }
+  .wchip { display: inline-block; background: var(--chip); border-radius: 999px; padding: 3px 11px;
+    font-size: 12px; font-weight: 700; margin: 3px 4px 0 0; }
+  .wchip.g { color: var(--green); } .wchip.c { color: var(--coral); }
+  .loglines { list-style: none; margin: 4px 0 0; padding: 0; font-size: 12.5px; color: var(--muted); }
+  .loglines li { padding: 3px 0 3px 16px; position: relative; }
+  .loglines li::before { content: ""; position: absolute; left: 2px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 
   .dots { display: flex; gap: 4px; flex: none; }
   .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .4s; }
@@ -266,32 +281,6 @@
   li.open .ex { grid-template-rows: 1fr; }
   .more { padding: 8px 10px; font-size: 11.5px; color: var(--faint); font-weight: 600; }
   .empty { padding: 18px 10px; font-size: 13px; color: var(--muted); font-style: italic; }
-
-  /* ---------- plan ---------- */
-  .stripcard { overflow-x: auto; margin-top: 30px; }
-  .strip { display: flex; min-width: 600px; padding: 34px 22px 28px; position: relative; }
-  .strip::before {
-    content: ""; position: absolute; left: 66px; right: 66px; top: 92px; height: 2px;
-    background: var(--line); transform-origin: left; transform: scaleX(0);
-  }
-  .rv-run .strip::before { animation: drawline 1s .25s cubic-bezier(.2,.7,.3,1) both; }
-  @keyframes drawline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  .stop { flex: 1; min-width: 112px; text-align: center; position: relative; padding: 0 8px; }
-  .stop .mono { display: block; margin-bottom: 16px; }
-  .node {
-    width: 54px; height: 54px; border-radius: 50%; margin: 0 auto 12px;
-    display: grid; place-items: center; position: relative; z-index: 1;
-    font-weight: 900; font-size: 15px; font-variant-numeric: tabular-nums;
-    border: 2.5px solid var(--line); background: var(--card); color: var(--faint);
-    transition: border-color .4s, background-color .4s, color .4s;
-  }
-  .stop.done .node { border-color: var(--green); background: var(--green-soft); color: var(--green); }
-  .stop.today .node { border-color: var(--blue); background: var(--card); color: var(--blue); animation: nodepulse 2.6s ease-out infinite; }
-  @keyframes nodepulse { 0% { box-shadow: 0 0 0 0 var(--glow); } 60% { box-shadow: 0 0 0 12px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
-  .stop.queued { opacity: .5; }
-  .stop .st { font-size: 12.5px; font-weight: 800; line-height: 1.3; }
-  .plannote { margin: 26px 6px 0; font-size: 14px; color: var(--muted); }
-  .plannote b { color: var(--ink); }
 
   .flash { animation: flashbg 1.5s ease both; }
   @keyframes flashbg { 0% { background-color: var(--green-soft); } 100% { background-color: transparent; } }
@@ -363,29 +352,20 @@
 
   @media (prefers-reduced-motion: reduce) {
     .rv, .rv-run { opacity: 1; animation: none; }
-    .rv-run .strip::before { animation: none; transform: scaleX(1); }
     .bub, .toolcall, .sysline { animation: none; }
     .orb, .ai.speak-ai .orb { animation: none; }
-    .stop.today .node { animation: none; }
     .aibtn .live { animation: none; }
-    #mapLines line.act { animation: none; }
+    .maplines line.act { animation: none; }
     main::before { animation: none; }
     .nring .f, .sidebar-bar i { transition: none; }
     .flash { animation: none; background: var(--green-soft); }
     .ai { transition: opacity .2s; transform: none; }
   }
 
-  @media (max-width: 900px) {
-    .sk-body, .sk-body.withside { grid-template-columns: 1fr; height: auto; }
-    .mapcanvas { height: 400px; }
-    .sk-side { display: none; max-height: 420px; }
-    .sk-body.withside .sk-side { display: flex; }
-  }
   @media (max-width: 640px) {
     .topbar { margin: 12px 12px 0; }
     .brand span { display: none; }
     .sk-head { flex-wrap: wrap; }
-    .mapcanvas { height: 340px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
   }
 </style>
@@ -412,9 +392,9 @@
         <button class="clear" id="searchClear">✕</button>
       </div>
     </div>
-    <div class="sk-body rv">
+    <div class="sk-body rv" id="skillsBody">
       <div class="mapcanvas" id="skillMap">
-        <svg id="mapLines"></svg>
+        <svg class="maplines" id="skillLines"></svg>
         <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
       </div>
       <aside class="card sk-side" id="skillSide"></aside>
@@ -423,15 +403,12 @@
 
   <!-- ================ PLAN ================ -->
   <section data-view="plan">
-    <div class="narrow">
-      <h1 class="hero rv">This week.</h1>
-      <p class="sub rv">Five short lessons around your goals — news, slang, conversation.</p>
-
-      <div class="rv">
-        <div class="card stripcard"><div class="strip" id="planStrip"></div></div>
+    <div class="sk-body rv" id="planBody" style="margin-top:8px">
+      <div class="mapcanvas" id="planMap">
+        <svg class="maplines" id="planLines"></svg>
+        <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
       </div>
-
-      <p class="plannote rv"><b>Plans stay short — always.</b> One week, then your AI reviews what stuck and writes the next one. No grand curricula.</p>
+      <aside class="card sk-side" id="planSide"></aside>
     </div>
   </section>
 
@@ -463,7 +440,7 @@
 (function () {
   'use strict';
 
-  /* ---------------- state ---------------- */
+  /* ================= state ================= */
   const DEFAULT = {
     connected: true,
     knownExtra: 202,
@@ -538,31 +515,297 @@
           { name: 'Spelling & accents', pct: 18, note: 'qué vs que — the little hats matter' }
         ] }
     },
-    plan: {
-      lessons: [
-        { n: 1, title: 'Greetings & recall',   done: true },
-        { n: 2, title: 'First news words',     done: true },
-        { n: 3, title: 'News in conversation', done: false, desc: 'Review yesterday\'s words aloud, talk through this week\'s headlines, close with voice flashcards.' },
-        { n: 4, title: 'Slang starter',        done: false, desc: 'Meet guay, vale, tío and flipar in a dialogue, then flashcards Spanish → English.' },
-        { n: 5, title: 'Review & mini exam',   done: false, desc: 'All twelve practice pieces, a free conversation, and your AI writes next week\'s plan.' }
-      ]
-    }
+    plans: [
+      { id: 'w33', title: 'Week 33', range: '11 – 17 Aug', status: 'past', pos: [22, 38],
+        focus: 'restaurant & travel basics',
+        result: 'completed 5/5 · 9 pieces mastered · reading +6',
+        lessons: [
+          { n: 1, title: 'Menu survival', mins: 12, done: true,
+            obj: 'Read a real menu without panic.',
+            steps: [
+              { k: 'vocab', name: 'New: la cuenta, el desayuno, rico', min: 4, d: 'menu pieces in context' },
+              { k: 'story', name: 'Story: “La terraza”', min: 4, d: '68 pieces, 95% already known' },
+              { k: 'cards', name: 'Voice flashcards', min: 4, d: 'hear English, answer in Spanish' }
+            ],
+            mats: [{ t: 'story', name: 'La terraza', d: 'generated from your vocabulary' }],
+            words: ['la cuenta', 'el desayuno', 'rico'], grammar: ['gender & articles'],
+            log: ['3/3 new pieces recalled next day', 'gender of “la cuenta” corrected twice'] },
+          { n: 2, title: 'Ordering & paying', mins: 14, done: true,
+            obj: 'Hold a full restaurant exchange by voice.',
+            steps: [
+              { k: 'warm', name: 'Recall menu pieces aloud', min: 3, d: '' },
+              { k: 'talk', name: 'Roleplay: order a full dinner', min: 7, d: 'AI plays the waiter, at slow pace' },
+              { k: 'cards', name: 'Flashcards: polite forms', min: 4, d: 'quisiera, me trae…' }
+            ],
+            mats: [{ t: 'audio', name: 'Waiter dialogue (0.8×)', d: 'slowed native audio' }],
+            words: ['quisiera', 'me trae'], grammar: ['present tense'],
+            log: ['ordering fluent', 'numbers above 30 still slow'] },
+          { n: 3, title: 'Directions & transport', mins: 15, done: true,
+            obj: 'Never be lost in a Spanish city again.',
+            steps: [
+              { k: 'vocab', name: 'New: el tren, la ciudad, girar', min: 4, d: '' },
+              { k: 'story', name: 'Story: “El último tren”', min: 5, d: 'with two comprehension questions' },
+              { k: 'talk', name: 'Ask & give directions', min: 6, d: 'AI describes, you navigate' }
+            ],
+            mats: [{ t: 'story', name: 'El último tren', d: 'A2, past-tense seeds' }],
+            words: ['el tren', 'la ciudad'], grammar: ['pretérito (preview)'],
+            log: ['gist 100%', 'detail questions 1/2'] },
+          { n: 4, title: 'Hotel check-in', mins: 12, done: true,
+            obj: 'Survive reception, complaints included.',
+            steps: [
+              { k: 'talk', name: 'Roleplay: check-in with a problem', min: 8, d: 'the room is wrong — fix it politely' },
+              { k: 'cards', name: 'Flashcards: hotel pack', min: 4, d: '' }
+            ],
+            mats: [{ t: 'pack', name: 'Hotel pack · 6 pieces', d: '' }],
+            words: ['la llave', 'la habitación'], grammar: ['ser vs estar'],
+            log: ['complaint handled with humour', '“estar” used correctly 4/5'] },
+          { n: 5, title: 'Review & exam', mins: 18, done: true,
+            obj: 'Prove week 33 stuck; seed week 34.',
+            steps: [
+              { k: 'cards', name: 'All 11 practice pieces', min: 6, d: '' },
+              { k: 'exam', name: 'Free conversation exam', min: 8, d: 'graded on the CEFR speaking aspects' },
+              { k: 'plan', name: 'AI writes week 34', min: 2, d: 'create_plan → news & slang' }
+            ],
+            mats: [{ t: 'rubric', name: 'CEFR-lite exam rubric', d: '' }],
+            words: [], grammar: [],
+            log: ['9/11 mastered', 'fluency +4', 'goal shift logged: “more news, more slang”'] }
+        ] },
+      { id: 'w34', title: 'Week 34', range: '18 – 24 Aug', status: 'current', pos: [52, 52],
+        focus: 'news, slang & conversation',
+        lessons: [
+          { n: 1, title: 'Greetings & recall', mins: 10, done: true,
+            obj: 'Re-activate what you already own before the new week begins.',
+            steps: [
+              { k: 'warm', name: 'Rapid recall: 10 known pieces', min: 3, d: 'AI prompts in English, you answer by voice' },
+              { k: 'talk', name: 'Micro-conversation: introduce yourself', min: 4, d: 'name, city, why Spanish' },
+              { k: 'cards', name: 'Flashcards: greetings pack', min: 3, d: '' }
+            ],
+            mats: [{ t: 'pack', name: 'Greetings pack · 8 pieces', d: 'from week 32' }],
+            words: ['hola', 'gracias'], grammar: ['present tense'],
+            log: ['10/10 recalled', 'pronunciation of “gracias” now solid'] },
+          { n: 2, title: 'First news words', mins: 15, done: true,
+            obj: 'Meet the five core news pieces — in context, never as a list.',
+            steps: [
+              { k: 'vocab', name: 'New: noticia, titular, gobierno, encuesta, huelga', min: 5, d: 'each inside a real sentence' },
+              { k: 'story', name: 'Micro-story: “Huelga de trenes”', min: 4, d: '72 pieces, 96% already known' },
+              { k: 'warm', name: 'Repeat-after-me drill', min: 3, d: 'shadowing at 0.9× speed' },
+              { k: 'cards', name: 'Voice flashcards EN→ES', min: 3, d: '' }
+            ],
+            mats: [
+              { t: 'story', name: 'Huelga de trenes', d: 'generated from your vocabulary + 5 new pieces' },
+              { t: 'pack', name: 'News pack · 5 pieces', d: 'suggested by goal: “follow Spanish news”' }
+            ],
+            words: ['la noticia', 'el titular', 'el gobierno', 'la encuesta', 'la huelga'], grammar: ['gender & articles'],
+            log: ['4/5 recalled next day', '“encuesta” shaky — flagged for lesson 3'] },
+          { n: 3, title: 'News in conversation', mins: 15, done: false, today: true,
+            obj: 'Push the news pieces from recognition into speech.',
+            steps: [
+              { k: 'warm', name: 'Review lesson-2 words aloud', min: 3, d: 'open with “encuesta” — it was shaky' },
+              { k: 'story', name: 'Story recall: questions on the huelga story', min: 4, d: 'gist first, then two detail questions' },
+              { k: 'talk', name: 'Conversation: ¿qué noticia leíste esta semana?', min: 5, d: 'AI corrects gently, keeps the flow' },
+              { k: 'cards', name: 'Voice flashcards to close', min: 3, d: 'all five news pieces + sin embargo' }
+            ],
+            mats: [
+              { t: 'story', name: 'Huelga de trenes (reprise)', d: 'same story, harder questions' },
+              { t: 'news', name: '3 real headlines · El País', d: 'scan for the one about transport' }
+            ],
+            words: ['la noticia', 'el titular', 'la encuesta', 'sin embargo'], grammar: ['pretérito (intro)'],
+            note: 'From lesson 2: “encuesta still shaky — open with it.”' },
+          { n: 4, title: 'Slang starter', mins: 15, done: false,
+            obj: 'First real slang — sound like a person, not a textbook.',
+            steps: [
+              { k: 'vocab', name: 'New: guay, vale, tío, flipar', min: 4, d: 'register notes: with friends, not bosses' },
+              { k: 'story', name: 'Dialogue: running into a friend', min: 4, d: 'street pace, real fillers' },
+              { k: 'talk', name: 'Roleplay the dialogue, swap roles', min: 5, d: 'you start the second run' },
+              { k: 'cards', name: 'Flashcards ES→EN', min: 2, d: '' }
+            ],
+            mats: [
+              { t: 'audio', name: 'Street-pace dialogue (1.0×)', d: 'first full-speed material this week' },
+              { t: 'pack', name: 'Slang pack · 4 pieces', d: 'goal: “real slang, not textbook stuff”' }
+            ],
+            words: ['guay', 'vale', 'tío / tía', 'flipar'], grammar: [] },
+          { n: 5, title: 'Review & mini exam', mins: 20, done: false,
+            obj: 'Prove the week stuck — then let the AI write the next one.',
+            steps: [
+              { k: 'cards', name: 'All 12 practice pieces', min: 5, d: 'three solid recalls each to graduate' },
+              { k: 'talk', name: 'Free conversation using ≥8 pieces', min: 8, d: 'topic of your choice' },
+              { k: 'exam', name: 'AI grades the week', min: 4, d: 'recall, fluency, coherence — CEFR-lite' },
+              { k: 'plan', name: 'AI writes week 35', min: 2, d: 'create_plan, after reviewing results' }
+            ],
+            mats: [{ t: 'rubric', name: 'CEFR-lite exam rubric', d: 'the same five spoken-language aspects' }],
+            words: [], grammar: ['pretérito (past)'] }
+        ] },
+      { id: 'w35', title: 'Week 35', range: '25 – 31 Aug', status: 'future', pos: [80, 40] }
+    ]
   };
 
   const SKILL_KEYS = ['vocab', 'grammar', 'speaking', 'listening', 'reading', 'writing'];
   const TOPICS = ['News', 'Slang', 'Conversation', 'Travel', 'Basics', 'Food'];
+  const KINDS = { warm: 'warm-up', vocab: 'new vocab', story: 'story', talk: 'conversation', cards: 'flashcards', exam: 'exam', plan: 'plan' };
   const CIRC = 163.4;
 
   let state = deepCopy(DEFAULT);
-  let expanded = null;          // skill key whose children are shown
-  let selChild = null;          // index of selected child, or 'ghost'
   let query = '';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
   const $ = (id) => document.getElementById(id);
 
-  /* ---------------- derived data ---------------- */
+  function setRing(el, pct) {
+    const f = el.querySelector('.f');
+    if (f) f.style.strokeDashoffset = CIRC * (1 - pct / 100);
+  }
+
+  /* ================= node field factory ================= */
+  function nodeField(canvas, svg, opts) {
+    const f = {
+      canvas, svg, nodes: [],
+      cam: { x: 0, y: 0 }, tcam: { x: 0, y: 0 }, zoom: 1, tzoom: 1,
+      rafId: null
+    };
+
+    f.makeNode = function (o) {
+      const el = document.createElement('div');
+      el.className = 'fnode' + (o.small ? ' child' : '') + (o.ghost ? ' ghost' : '') + (o.cls ? ' ' + o.cls : '');
+      el.innerHTML =
+        '<span class="nring"><svg viewBox="0 0 60 60">' +
+        '<circle class="t" cx="30" cy="30" r="26"></circle>' +
+        '<circle class="f" cx="30" cy="30" r="26"></circle></svg>' +
+        '<b>' + (o.ghost ? '+' : (o.text != null ? o.text : o.pct + '%')) + '</b></span>' +
+        (o.label ? '<span class="nlabel">' + o.label + '</span>' : '') +
+        (o.sub ? '<span class="nsub mono">' + o.sub + '</span>' : '');
+      canvas.appendChild(el);
+      const x = o.px / 100 * canvas.clientWidth, y = o.py / 100 * canvas.clientHeight;
+      const n = Object.assign({}, o, {
+        el,
+        bx: o.fromX != null ? o.fromX : x, by: o.fromY != null ? o.fromY : y,
+        s: 0.01, ts: 1,
+        amp: o.small ? 5 : 8,
+        sp: 0.06 + Math.random() * 0.06, ph: Math.random() * 6.28,
+        dead: false
+      });
+      setRing(el, o.ghost ? 0 : (o.pct || 0));
+      attach(n);
+      f.nodes.push(n);
+      return n;
+    };
+
+    f.clear = function () { f.nodes.forEach(n => n.el.remove()); f.nodes = []; };
+
+    f.removeDead = function (delay) {
+      setTimeout(() => {
+        f.nodes.filter(n => n.dead).forEach(n => n.el.remove());
+        f.nodes = f.nodes.filter(n => !n.dead);
+      }, delay || 500);
+    };
+
+    function attach(n) {
+      let sx, sy, moved;
+      n.el.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        sx = e.clientX; sy = e.clientY; moved = false;
+        const move = ev => {
+          if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 6) moved = true;
+          if (!moved) return;
+          const r = canvas.getBoundingClientRect();
+          const wx = (ev.clientX - r.left - f.cam.x) / f.zoom;
+          const wy = (ev.clientY - r.top - f.cam.y) / f.zoom;
+          n.px = Math.max(4, Math.min(96, wx / r.width * 100));
+          n.py = Math.max(6, Math.min(94, wy / r.height * 100));
+        };
+        const up = () => {
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up);
+          if (!moved && opts.onClick) opts.onClick(n);
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+      });
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      if (e.target.closest('.fnode')) return;
+      const sx = e.clientX, sy = e.clientY, cx0 = f.tcam.x, cy0 = f.tcam.y;
+      let moved = false;
+      canvas.classList.add('grabbing');
+      const move = ev => {
+        const dx = ev.clientX - sx, dy = ev.clientY - sy;
+        if (Math.hypot(dx, dy) > 6) moved = true;
+        if (moved) { f.tcam.x = cx0 + dx; f.tcam.y = cy0 + dy; }
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        canvas.classList.remove('grabbing');
+        if (!moved && opts.onBgClick) opts.onBgClick();
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const r = canvas.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      const nz = Math.max(0.45, Math.min(2.4, f.tzoom * Math.exp(-e.deltaY * 0.0012)));
+      const wx = (mx - f.tcam.x) / f.tzoom, wy = (my - f.tcam.y) / f.tzoom;
+      f.tcam.x = mx - wx * nz;
+      f.tcam.y = my - wy * nz;
+      f.tzoom = nz;
+    }, { passive: false });
+
+    canvas.addEventListener('dblclick', () => { f.tcam.x = 0; f.tcam.y = 0; f.tzoom = 1; });
+
+    function updateLines() {
+      const lines = opts.getLines ? opts.getLines(f) : [];
+      if (!lines.length) { svg.innerHTML = ''; return; }
+      svg.setAttribute('viewBox', '0 0 ' + canvas.clientWidth + ' ' + canvas.clientHeight);
+      svg.innerHTML = lines.map(l =>
+        '<line class="' + (l.cls || '') + '" x1="' + l.x1 + '" y1="' + l.y1 + '" x2="' + l.x2 + '" y2="' + l.y2 + '"></line>').join('');
+    }
+
+    function tick(t) {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      f.cam.x += (f.tcam.x - f.cam.x) * 0.14;
+      f.cam.y += (f.tcam.y - f.cam.y) * 0.14;
+      f.zoom += (f.tzoom - f.zoom) * 0.14;
+      f.nodes.forEach(n => {
+        const tx = n.px / 100 * w, ty = n.py / 100 * h;
+        n.bx += (tx - n.bx) * 0.085;
+        n.by += (ty - n.by) * 0.085;
+        n.s += (n.ts - n.s) * 0.12;
+        const fx = reduced ? 0 : Math.sin(t / 1000 * n.sp + n.ph) * n.amp * n.s;
+        const fy = reduced ? 0 : Math.cos(t / 1000 * n.sp * 0.83 + n.ph * 1.3) * n.amp * n.s;
+        n.rx = (n.bx + fx) * f.zoom + f.cam.x;
+        n.ry = (n.by + fy) * f.zoom + f.cam.y;
+        n.el.style.transform = 'translate(' + n.rx + 'px,' + n.ry + 'px) translate(-50%,-50%) scale(' + (Math.max(0.01, n.s) * f.zoom) + ')';
+      });
+      updateLines();
+      f.rafId = requestAnimationFrame(tick);
+    }
+    f.start = function () {
+      if (f.rafId != null) return;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      f.nodes.forEach(n => { if (n.bx === 0 && n.by === 0) { n.bx = n.px / 100 * w; n.by = n.py / 100 * h; } });
+      f.rafId = requestAnimationFrame(tick);
+    };
+    f.stop = function () { if (f.rafId != null) { cancelAnimationFrame(f.rafId); f.rafId = null; } };
+    return f;
+  }
+
+  function bloom(field, parent, kids, mkOpts) {
+    const rx = 32, ry = 30;
+    const total = kids.length;
+    kids.forEach((c, i) => {
+      const a = -Math.PI / 2 + i * (2 * Math.PI / total);
+      const px = Math.max(8, Math.min(92, 50 + Math.cos(a) * rx));
+      const py = Math.max(10, Math.min(88, 46 + Math.sin(a) * ry));
+      field.makeNode(Object.assign({ px, py, fromX: parent.bx, fromY: parent.by, small: true }, mkOpts(c, i)));
+    });
+  }
+
+  /* ================= derived data ================= */
   function allWords() {
     return state.learning.map(w => ({ w, k: false })).concat(state.known.map(w => ({ w, k: true })));
   }
@@ -588,238 +831,206 @@
     }
     return state.skills[k].meta || '—';
   }
+  function curPlan() { return state.plans.find(p => p.status === 'current'); }
+  function nextLesson() { const p = curPlan(); return p ? p.lessons.find(l => !l.done) : null; }
+  function planPct(p) { return p.lessons && p.lessons.length ? Math.round(p.lessons.filter(l => l.done).length / p.lessons.length * 100) : 0; }
 
-  /* ---------------- floating node field ---------------- */
-  const mapEl = $('skillMap');
-  const linesEl = $('mapLines');
-  let fnodes = [];   // {key, idx, type:'skill'|'child'|'ghost', el, px, py, bx, by, s, ts, amp, sp, ph, dead}
-  let rafId = null;
-  let cam = { x: 0, y: 0 }, tcam = { x: 0, y: 0 };
-  let zoom = 1, tzoom = 1;
+  /* ================= SKILLS field ================= */
+  let skExpanded = null, skChild = null;
 
-  function pxOf(n) { return [n.px / 100 * mapEl.clientWidth, n.py / 100 * mapEl.clientHeight]; }
+  const SK = nodeField($('skillMap'), $('skillLines'), {
+    onClick: n => {
+      if (n.kind === 'skill') { skExpanded === n.key ? skCollapse() : skExpand(n.key); }
+      else skSelect(n.idx);
+    },
+    onBgClick: () => { if (skExpanded) skCollapse(); },
+    getLines: f => {
+      if (!skExpanded) return [];
+      const parent = f.nodes.find(n => n.kind === 'skill' && n.key === skExpanded);
+      if (!parent) return [];
+      return f.nodes.filter(n => n.kind !== 'skill' && !n.dead).map(n => ({
+        x1: parent.rx || parent.bx, y1: parent.ry || parent.by,
+        x2: n.rx || n.bx, y2: n.ry || n.by,
+        cls: n.idx === skChild ? 'act' : ''
+      }));
+    }
+  });
 
-  function makeNode(opts) {
-    const el = document.createElement('div');
-    el.className = 'fnode' + (opts.type !== 'skill' ? ' child' : '') + (opts.type === 'ghost' ? ' ghost' : '');
-    el.innerHTML =
-      '<span class="nring"><svg viewBox="0 0 60 60">' +
-      '<circle class="t" cx="30" cy="30" r="26"></circle>' +
-      '<circle class="f" cx="30" cy="30" r="26"></circle></svg>' +
-      '<b>' + (opts.type === 'ghost' ? '+' : opts.pct + '%') + '</b></span>' +
-      (opts.label ? '<span class="nlabel">' + opts.label + '</span>' : '') +
-      (opts.sub ? '<span class="nsub mono">' + opts.sub + '</span>' : '');
-    mapEl.appendChild(el);
-    const [x, y] = [opts.px / 100 * mapEl.clientWidth, opts.py / 100 * mapEl.clientHeight];
-    const n = {
-      key: opts.key, idx: opts.idx, type: opts.type, el,
-      px: opts.px, py: opts.py,
-      bx: opts.fromX != null ? opts.fromX : x, by: opts.fromY != null ? opts.fromY : y,
-      s: opts.type === 'skill' ? 0 : 0.01, ts: 1,
-      amp: opts.type === 'skill' ? 8 : 5,
-      sp: 0.06 + Math.random() * 0.06, ph: Math.random() * 6.28,
-      dead: false
-    };
-    setRing(el, opts.type === 'ghost' ? 0 : opts.pct);
-    attachPointer(n);
-    fnodes.push(n);
-    return n;
-  }
-
-  function setRing(el, pct) {
-    const f = el.querySelector('.f');
-    if (f) f.style.strokeDashoffset = CIRC * (1 - pct / 100);
-  }
-
-  function buildMap() {
-    fnodes.forEach(n => n.el.remove());
-    fnodes = [];
-    expanded = null; selChild = null;
+  function skBuild() {
+    SK.clear();
+    skExpanded = null; skChild = null;
     SKILL_KEYS.forEach((k, i) => {
       const sk = state.skills[k];
-      const n = makeNode({ key: k, type: 'skill', px: sk.pos[0], py: sk.pos[1], pct: sk.pct, label: sk.label, sub: nodeSub(k) });
+      const n = SK.makeNode({ kind: 'skill', key: k, px: sk.pos[0], py: sk.pos[1], pct: sk.pct, label: sk.label, sub: nodeSub(k) });
       if (!reduced) { n.s = 0; n.ts = 0; setTimeout(() => { n.ts = 1; }, 80 * i); }
     });
-    updateLines();
   }
 
-  function updateMapValues() {
-    fnodes.forEach(n => {
-      if (n.type === 'skill') {
+  function skExpand(k) {
+    skCollapse(false);
+    skExpanded = k; skChild = null;
+    const parent = SK.nodes.find(n => n.kind === 'skill' && n.key === k);
+    SK.nodes.forEach(n => {
+      if (n.kind !== 'skill') return;
+      if (n.key === k) { n.px = 50; n.py = 46; n.ts = 1.12; n.el.classList.add('open'); n.el.classList.remove('hid'); }
+      else { n.ts = 0; n.el.classList.add('hid'); n.el.classList.remove('open'); }
+    });
+    const kids = childrenOf(k).map((c, i) => ({ c, i }));
+    kids.push({ ghost: true, i: kids.length });
+    bloom(SK, parent, kids, (o) => o.ghost
+      ? { kind: 'ghost', key: 'ghost', idx: o.i, ghost: true }
+      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, label: o.c.name });
+    renderSkillSide();
+  }
+
+  function skCollapse(rerender) {
+    const home = skExpanded ? state.skills[skExpanded].pos : null;
+    SK.nodes.filter(n => n.kind !== 'skill').forEach(n => {
+      n.dead = true; n.ts = 0;
+      if (home) { n.px = home[0]; n.py = home[1]; }
+      n.el.classList.add('hid');
+    });
+    SK.removeDead();
+    SK.nodes.filter(n => n.kind === 'skill').forEach(n => {
+      const sk = state.skills[n.key];
+      n.px = sk.pos[0]; n.py = sk.pos[1]; n.ts = 1;
+      n.el.classList.remove('hid', 'open', 'sel');
+    });
+    skExpanded = null; skChild = null;
+    if (rerender !== false) renderSkillSide();
+  }
+
+  function skSelect(i) {
+    skChild = i;
+    SK.nodes.forEach(n => n.el.classList.toggle('sel', n.kind !== 'skill' && n.idx === i));
+    renderSkillSide();
+  }
+
+  function skRefresh() {
+    SK.nodes.forEach(n => {
+      if (n.kind === 'skill') {
         const sk = state.skills[n.key];
         n.el.querySelector('.nring b').textContent = sk.pct + '%';
         const subEl = n.el.querySelector('.nsub'); if (subEl) subEl.textContent = nodeSub(n.key);
         setRing(n.el, sk.pct);
-      } else if (n.type === 'child' && expanded) {
-        const c = childrenOf(expanded)[n.idx];
+      } else if (n.kind === 'child' && skExpanded) {
+        const c = childrenOf(skExpanded)[n.idx];
         if (c) { n.el.querySelector('.nring b').textContent = c.pct + '%'; setRing(n.el, c.pct); }
       }
     });
   }
 
-  function expandSkill(k) {
-    collapse(false);
-    expanded = k; selChild = null;
-    const parent = fnodes.find(n => n.type === 'skill' && n.key === k);
-    fnodes.forEach(n => {
-      if (n.type !== 'skill') return;
-      if (n.key === k) {
-        n.px = 50; n.py = 46; n.ts = 1.12;
-        n.el.classList.add('open'); n.el.classList.remove('hid');
-      } else {
-        n.ts = 0;
-        n.el.classList.add('hid'); n.el.classList.remove('open');
+  /* ================= PLAN field ================= */
+  let plWeek = null, plLesson = null;
+
+  const PL = nodeField($('planMap'), $('planLines'), {
+    onClick: n => {
+      if (n.kind === 'week') {
+        const p = state.plans.find(x => x.id === n.key);
+        if (p.status === 'future') { plLesson = null; plWeek === n.key ? plCollapse() : plSelectFuture(n); }
+        else plWeek === n.key ? plCollapse() : plExpand(n.key);
+      } else if (n.kind === 'day') plSelect(n.idx);
+    },
+    onBgClick: () => { if (plWeek) plCollapse(); },
+    getLines: f => {
+      if (plWeek && state.plans.find(x => x.id === plWeek && x.status !== 'future')) {
+        const parent = f.nodes.find(n => n.kind === 'week' && n.key === plWeek);
+        if (!parent) return [];
+        return f.nodes.filter(n => n.kind === 'day' && !n.dead).map(n => ({
+          x1: parent.rx || parent.bx, y1: parent.ry || parent.by,
+          x2: n.rx || n.bx, y2: n.ry || n.by,
+          cls: n.idx === plLesson ? 'act' : ''
+        }));
       }
-    });
-    const kids = childrenOf(k);
-    const rx = 32, ry = 30;
-    const total = kids.length + 1; // + ghost
-    kids.concat([{ ghost: true }]).forEach((c, i) => {
-      const a = -Math.PI / 2 + i * (2 * Math.PI / total);
-      const px = Math.max(8, Math.min(92, 50 + Math.cos(a) * rx));
-      const py = Math.max(10, Math.min(88, 46 + Math.sin(a) * ry));
-      const [fx, fy] = parent ? [parent.bx, parent.by] : [null, null];
-      makeNode(c.ghost
-        ? { key: 'ghost', idx: i, type: 'ghost', px, py, pct: 0, label: '', fromX: fx, fromY: fy }
-        : { key: k, idx: i, type: 'child', px, py, pct: c.pct, label: c.name, fromX: fx, fromY: fy });
-    });
-    renderSide();
+      const ws = f.nodes.filter(n => n.kind === 'week' && !n.dead && !n.el.classList.contains('hid'));
+      const out = [];
+      for (let i = 0; i < ws.length - 1; i++) out.push({
+        x1: ws[i].rx || ws[i].bx, y1: ws[i].ry || ws[i].by,
+        x2: ws[i + 1].rx || ws[i + 1].bx, y2: ws[i + 1].ry || ws[i + 1].by,
+        cls: 'faint'
+      });
+      return out;
+    }
+  });
+
+  function weekNodeOpts(p) {
+    if (p.status === 'future') return { kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], ghost: true, label: p.title + ' · next', sub: p.range };
+    const pct = planPct(p);
+    return {
+      kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], pct,
+      text: p.status === 'past' ? '✓' : p.lessons.filter(l => l.done).length + '/' + p.lessons.length,
+      label: p.title + (p.status === 'current' ? ' · now' : ''),
+      sub: p.focus, cls: p.status === 'past' ? 'done-n' : ''
+    };
   }
 
-  function collapse(rerender) {
-    const home = expanded ? state.skills[expanded].pos : null;
-    fnodes.filter(n => n.type !== 'skill').forEach(n => {
+  function plBuild() {
+    PL.clear();
+    plWeek = null; plLesson = null;
+    if (!state.plans.length) {
+      PL.makeNode({ kind: 'none', key: 'none', px: 50, py: 46, ghost: true, label: 'No plan yet', sub: 'onboarding writes the first one' });
+      return;
+    }
+    state.plans.forEach((p, i) => {
+      const n = PL.makeNode(weekNodeOpts(p));
+      if (p.status === 'past') setRing(n.el, 100);
+      if (!reduced) { n.s = 0; n.ts = 0; setTimeout(() => { n.ts = 1; }, 90 * i); }
+    });
+  }
+
+  function plExpand(id) {
+    plCollapse(false);
+    plWeek = id; plLesson = null;
+    const p = state.plans.find(x => x.id === id);
+    const parent = PL.nodes.find(n => n.kind === 'week' && n.key === id);
+    PL.nodes.forEach(n => {
+      if (n.kind !== 'week') return;
+      if (n.key === id) { n.px = 50; n.py = 46; n.ts = 1.12; n.el.classList.add('open'); n.el.classList.remove('hid'); }
+      else { n.ts = 0; n.el.classList.add('hid'); n.el.classList.remove('open'); }
+    });
+    const next = p.status === 'current' ? p.lessons.find(l => !l.done) : null;
+    bloom(PL, parent, p.lessons, (l, i) => ({
+      kind: 'day', key: id, idx: i,
+      pct: l.done ? 100 : 0,
+      text: l.done ? '✓' : l.n,
+      label: l.title,
+      sub: 'day ' + l.n + ' · ' + l.mins + ' min',
+      cls: l.done ? 'done-n' : (next && l.n === next.n ? 'sel' : '')
+    }));
+    renderPlanSide();
+  }
+
+  function plCollapse(rerender) {
+    const p = plWeek ? state.plans.find(x => x.id === plWeek) : null;
+    PL.nodes.filter(n => n.kind === 'day').forEach(n => {
       n.dead = true; n.ts = 0;
-      if (home) { n.px = home[0]; n.py = home[1]; }
+      if (p) { n.px = p.pos[0]; n.py = p.pos[1]; }
       n.el.classList.add('hid');
     });
-    setTimeout(() => {
-      fnodes.filter(n => n.dead).forEach(n => n.el.remove());
-      fnodes = fnodes.filter(n => !n.dead);
-    }, 500);
-    fnodes.filter(n => n.type === 'skill').forEach(n => {
-      const sk = state.skills[n.key];
-      n.px = sk.pos[0]; n.py = sk.pos[1]; n.ts = 1;
-      n.el.classList.remove('dimmed', 'hid', 'open', 'sel');
+    PL.removeDead();
+    PL.nodes.filter(n => n.kind === 'week' || n.kind === 'none').forEach(n => {
+      const pp = state.plans.find(x => x.id === n.key);
+      if (pp) { n.px = pp.pos[0]; n.py = pp.pos[1]; }
+      n.ts = 1;
+      n.el.classList.remove('hid', 'open', 'sel');
     });
-    expanded = null; selChild = null;
-    if (rerender !== false) renderSide();
+    plWeek = null; plLesson = null;
+    if (rerender !== false) renderPlanSide();
   }
 
-  function selectChild(i) {
-    selChild = i;
-    fnodes.forEach(n => n.el.classList.toggle('sel', (n.type === 'child' || n.type === 'ghost') && n.idx === i));
-    renderSide();
+  function plSelectFuture(n) {
+    plWeek = n.key; plLesson = null;
+    PL.nodes.forEach(x => x.el.classList.toggle('sel', x === n));
+    renderPlanSide();
   }
 
-  function updateLines() {
-    if (!expanded) { linesEl.innerHTML = ''; return; }
-    const parent = fnodes.find(n => n.type === 'skill' && n.key === expanded);
-    if (!parent) { linesEl.innerHTML = ''; return; }
-    linesEl.setAttribute('viewBox', '0 0 ' + mapEl.clientWidth + ' ' + mapEl.clientHeight);
-    const px = parent.rx != null ? parent.rx : parent.bx, py = parent.ry != null ? parent.ry : parent.by;
-    linesEl.innerHTML = fnodes.filter(n => (n.type === 'child' || n.type === 'ghost') && !n.dead).map(n =>
-      '<line ' + (n.idx === selChild ? 'class="act" ' : '') +
-      'x1="' + px + '" y1="' + py + '" x2="' + (n.rx != null ? n.rx : n.bx) + '" y2="' + (n.ry != null ? n.ry : n.by) + '"></line>').join('');
+  function plSelect(i) {
+    plLesson = i;
+    PL.nodes.forEach(n => n.el.classList.toggle('sel', n.kind === 'day' && n.idx === i));
+    renderPlanSide();
   }
 
-  function tick(t) {
-    const w = mapEl.clientWidth, h = mapEl.clientHeight;
-    cam.x += (tcam.x - cam.x) * 0.14;
-    cam.y += (tcam.y - cam.y) * 0.14;
-    zoom += (tzoom - zoom) * 0.14;
-    fnodes.forEach(n => {
-      const tx = n.px / 100 * w, ty = n.py / 100 * h;
-      n.bx += (tx - n.bx) * 0.085;
-      n.by += (ty - n.by) * 0.085;
-      n.s += (n.ts - n.s) * 0.12;
-      const fx = reduced ? 0 : Math.sin(t / 1000 * n.sp + n.ph) * n.amp * n.s;
-      const fy = reduced ? 0 : Math.cos(t / 1000 * n.sp * 0.83 + n.ph * 1.3) * n.amp * n.s;
-      n.rx = (n.bx + fx) * zoom + cam.x;
-      n.ry = (n.by + fy) * zoom + cam.y;
-      n.el.style.transform = 'translate(' + n.rx + 'px,' + n.ry + 'px) translate(-50%,-50%) scale(' + (Math.max(0.01, n.s) * zoom) + ')';
-    });
-    updateLines();
-    rafId = requestAnimationFrame(tick);
-  }
-  function startLoop() {
-    if (rafId != null) return;
-    const w = mapEl.clientWidth, h = mapEl.clientHeight;
-    fnodes.forEach(n => {
-      if (n.bx === 0 && n.by === 0) { n.bx = n.px / 100 * w; n.by = n.py / 100 * h; }
-    });
-    rafId = requestAnimationFrame(tick);
-  }
-  function stopLoop() { if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } }
-
-  /* drag + click */
-  function attachPointer(n) {
-    let sx, sy, moved;
-    n.el.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      sx = e.clientX; sy = e.clientY; moved = false;
-      const move = ev => {
-        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 6) moved = true;
-        if (!moved) return;
-        const r = mapEl.getBoundingClientRect();
-        const wx = (ev.clientX - r.left - cam.x) / zoom;
-        const wy = (ev.clientY - r.top - cam.y) / zoom;
-        n.px = Math.max(4, Math.min(96, wx / r.width * 100));
-        n.py = Math.max(6, Math.min(94, wy / r.height * 100));
-      };
-      const up = () => {
-        window.removeEventListener('pointermove', move);
-        window.removeEventListener('pointerup', up);
-        if (!moved) nodeClick(n);
-      };
-      window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
-    });
-  }
-
-  function nodeClick(n) {
-    if (n.type === 'skill') {
-      if (expanded === n.key) collapse();
-      else expandSkill(n.key);
-    } else {
-      selectChild(n.idx);
-    }
-  }
-
-  /* pan (drag empty canvas), zoom (scroll), reset (double-click) */
-  mapEl.addEventListener('pointerdown', e => {
-    if (e.target.closest('.fnode')) return;
-    const sx = e.clientX, sy = e.clientY, cx0 = tcam.x, cy0 = tcam.y;
-    let moved = false;
-    mapEl.classList.add('grabbing');
-    const move = ev => {
-      const dx = ev.clientX - sx, dy = ev.clientY - sy;
-      if (Math.hypot(dx, dy) > 6) moved = true;
-      if (moved) { tcam.x = cx0 + dx; tcam.y = cy0 + dy; }
-    };
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      mapEl.classList.remove('grabbing');
-      if (!moved && expanded) collapse();
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  });
-  mapEl.addEventListener('wheel', e => {
-    e.preventDefault();
-    const r = mapEl.getBoundingClientRect();
-    const mx = e.clientX - r.left, my = e.clientY - r.top;
-    const nz = Math.max(0.45, Math.min(2.4, tzoom * Math.exp(-e.deltaY * 0.0012)));
-    const wx = (mx - tcam.x) / tzoom, wy = (my - tcam.y) / tzoom;
-    tcam.x = mx - wx * nz;
-    tcam.y = my - wy * nz;
-    tzoom = nz;
-  }, { passive: false });
-  mapEl.addEventListener('dblclick', () => { tcam.x = 0; tcam.y = 0; tzoom = 1; });
-  window.addEventListener('resize', () => { /* targets recompute in tick from % */ });
-
-  /* ---------------- sidebar ---------------- */
+  /* ================= sidebars ================= */
   function dotsHtml(p, k) {
     let h = '<span class="dots' + (k ? ' k' : '') + '">';
     for (let i = 1; i <= 3; i++) h += '<i class="' + (i <= p ? 'f' : '') + '"></i>';
@@ -842,10 +1053,11 @@
     });
   }
 
-  function renderSide() {
+  /* ---- skills sidebar ---- */
+  function renderSkillSide() {
     const box = $('skillSide');
-    mapEl.classList.toggle('dim', !!query);
-    document.querySelector('.sk-body').classList.toggle('withside', !!expanded || !!query);
+    $('skillMap').classList.toggle('dim', !!query);
+    $('skillsBody').classList.toggle('withside', !!skExpanded || !!query);
 
     if (query) {
       const q = query.toLowerCase();
@@ -869,22 +1081,12 @@
       return;
     }
 
-    if (!expanded) {
-      box.innerHTML =
-        '<span class="aitag">Español · A2 · six skills</span>' +
-        '<div class="bigpct" style="margin-top:8px">' + hubPct() + '<small>%</small></div>' +
-        '<p class="desc">One number, six skills underneath. Click a node to open it — every subtopic inside was created and is graded by <b>your AI</b> over MCP.</p>' +
-        '<span class="mono">The map</span>' +
-        '<ul class="siderows">' + SKILL_KEYS.map(k =>
-          '<li data-skill="' + k + '"><button class="siderow"><span class="dotc" style="background:var(--blue)"></span><span class="t">' + state.skills[k].label + '<small>' + nodeSub(k) + '</small></span><span class="p">' + state.skills[k].pct + '%</span></button></li>').join('') + '</ul>' +
-        '<div class="aitip">Drag the nodes around — they float. Click one and it blooms into subtopics.</div>';
-      return;
-    }
+    if (!skExpanded) { box.innerHTML = ''; return; }
 
-    const sk = state.skills[expanded];
-    const kids = childrenOf(expanded);
+    const sk = state.skills[skExpanded];
+    const kids = childrenOf(skExpanded);
 
-    if (selChild === kids.length || selChild === 'ghost') {
+    if (skChild === kids.length) {
       box.innerHTML =
         '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' +
         '<h3>A new subtopic</h3>' +
@@ -893,8 +1095,8 @@
       return;
     }
 
-    if (selChild != null && kids[selChild]) {
-      const c = kids[selChild];
+    if (skChild != null && kids[skChild]) {
+      const c = kids[skChild];
       let body = '';
       if (c.type === 'topic') {
         const s = topicStats(c.name);
@@ -920,7 +1122,7 @@
     }
 
     box.innerHTML =
-      '<button class="backlink" data-back="all">← all skills</button>' +
+      '<button class="backlink" data-back="all">← close</button>' +
       '<h3>' + sk.label + '</h3>' +
       '<div class="bigpct">' + sk.pct + '<small>%</small></div>' +
       '<p class="desc">' + sk.desc + '</p>' +
@@ -933,17 +1135,15 @@
 
   $('skillSide').addEventListener('click', e => {
     const back = e.target.closest('[data-back]');
-    if (back) { back.dataset.back === 'all' ? collapse() : (selChild = null, fnodes.forEach(n => n.el.classList.remove('sel')), renderSide()); return; }
-    const sk = e.target.closest('li[data-skill]');
-    if (sk) { expandSkill(sk.dataset.skill); return; }
+    if (back) { back.dataset.back === 'all' ? skCollapse() : (skChild = null, SK.nodes.forEach(n => n.el.classList.remove('sel')), renderSkillSide()); return; }
     const ch = e.target.closest('li[data-child]');
-    if (ch) { selectChild(ch.dataset.child === 'ghost' ? childrenOf(expanded).length : +ch.dataset.child); return; }
+    if (ch) { skSelect(ch.dataset.child === 'ghost' ? childrenOf(skExpanded).length : +ch.dataset.child); return; }
     const go = e.target.closest('li[data-goto]');
     if (go) {
-      const [k, i] = go.dataset.goto.split(':');
+      const parts = go.dataset.goto.split(':');
       $('skillSearch').value = ''; query = '';
       $('searchPill').classList.remove('hasq');
-      expandSkill(k); selectChild(+i);
+      skExpand(parts[0]); skSelect(+parts[1]);
       return;
     }
     const row = e.target.closest('.wordrow');
@@ -954,32 +1154,90 @@
   searchEl.addEventListener('input', () => {
     query = searchEl.value.trim();
     $('searchPill').classList.toggle('hasq', !!query);
-    renderSide();
+    renderSkillSide();
   });
   $('searchClear').addEventListener('click', () => {
     searchEl.value = ''; query = '';
     $('searchPill').classList.remove('hasq');
-    renderSide(); searchEl.focus();
+    renderSkillSide(); searchEl.focus();
   });
 
-  /* ---------------- plan & today ---------------- */
-  function nextLesson() { return state.plan ? state.plan.lessons.find(l => !l.done) : null; }
-
-  function renderPlan() {
-    const next = nextLesson();
-    $('planStrip').innerHTML = state.plan
-      ? state.plan.lessons.map(l => {
-          const isToday = next && l.n === next.n;
-          const cls = l.done ? 'done' : (isToday ? 'today' : 'queued');
-          return '<div class="stop ' + cls + '" data-lesson="' + l.n + '">' +
-            '<span class="mono">Day ' + l.n + '</span>' +
-            '<div class="node">' + (l.done ? '✓' : l.n) + '</div>' +
-            '<div class="st">' + l.title + '</div></div>';
-        }).join('')
-      : '<div class="empty" style="width:100%; text-align:center;">No plan yet — onboarding writes your first week.</div>';
+  /* ---- plan sidebar ---- */
+  function stepRows(l) {
+    return '<ul class="steps">' + l.steps.map(s =>
+      '<li><span class="kind">' + (KINDS[s.k] || s.k) + '</span>' +
+      '<span class="st">' + s.name + (s.d ? '<small>' + s.d + '</small>' : '') + '</span>' +
+      '<span class="min">' + s.min + 'm</span></li>').join('') + '</ul>';
   }
 
-  function renderAll() { buildMap(); renderSide(); renderPlan(); }
+  function renderPlanSide() {
+    const box = $('planSide');
+    $('planBody').classList.toggle('withside', !!plWeek);
+    if (!plWeek) { box.innerHTML = ''; return; }
+
+    const p = state.plans.find(x => x.id === plWeek);
+
+    if (p.status === 'future') {
+      box.innerHTML =
+        '<span class="aitag">' + p.range + '</span>' +
+        '<h3 style="margin-top:6px">' + p.title + ' — not written yet</h3>' +
+        '<p class="desc">Plans are <b>always short-term</b> — one week, then iterate. Your AI writes this one on Sunday, in lesson 5 of week 34, after reviewing what stuck and what didn’t.</p>' +
+        '<p class="desc">Likely focus, based on this week’s notes: <b>pretérito</b>, more news pieces, and “encuesta” until it behaves.</p>' +
+        '<div class="aitip">Impatient? Say <b>&ldquo;plan next week now&rdquo;</b> in voice mode — it calls <b>create_plan</b> whenever you ask.</div>';
+      return;
+    }
+
+    if (plLesson != null && p.lessons[plLesson]) {
+      const l = p.lessons[plLesson];
+      const status = l.done ? 'done' : (nextLesson() && nextLesson().n === l.n && p.status === 'current' ? 'today' : 'queued');
+      box.innerHTML =
+        '<button class="backlink" data-back="week">← ' + p.title + '</button>' +
+        '<span class="aitag">Day ' + l.n + ' · ' + status + ' · ~' + l.mins + ' min</span>' +
+        '<h3 style="margin-top:4px">' + l.title + '</h3>' +
+        '<p class="desc">' + l.obj + '</p>' +
+        '<span class="mono">Lesson flow</span>' + stepRows(l) +
+        (l.mats && l.mats.length ? '<span class="mono">Materials · prepared by your AI</span><ul class="siderows">' +
+          l.mats.map(m => '<li><div class="siderow" style="cursor:default"><span class="dotc" style="background:var(--blue)"></span><span class="t">' + m.name + (m.d ? '<small>' + m.d + '</small>' : '') + '</span></div></li>').join('') + '</ul>' : '') +
+        ((l.words && l.words.length) || (l.grammar && l.grammar.length)
+          ? '<span class="mono">Targets</span><div>' +
+            (l.words || []).map(w => '<span class="wchip c">' + w + '</span>').join('') +
+            (l.grammar || []).map(g => '<span class="wchip">' + g + '</span>').join('') + '</div>'
+          : '') +
+        (l.log ? '<span class="mono">Session log</span><ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') +
+        (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '') +
+        (!l.done && !l.log ? '<div class="aitip">Say <b>&ldquo;start my lesson&rdquo;</b> in voice mode — your AI pulls this exact script via <b>get_next_lesson</b>.</div>' : '');
+      return;
+    }
+
+    const done = p.lessons.filter(l => l.done).length;
+    box.innerHTML =
+      '<button class="backlink" data-back="all">← all plans</button>' +
+      '<span class="aitag">' + p.range + ' · written by ChatGPT via MCP</span>' +
+      '<h3 style="margin-top:4px">' + p.title + '</h3>' +
+      '<div class="bigpct">' + done + '<small>/' + p.lessons.length + '</small></div>' +
+      bar(planPct(p)) +
+      '<p class="desc">Focus: <b>' + p.focus + '</b>' + (p.result ? ' · ' + p.result : '') + '</p>' +
+      '<span class="mono">Lessons · click for full detail</span>' +
+      '<ul class="siderows">' + p.lessons.map((l, i) => {
+        const isNext = p.status === 'current' && nextLesson() && nextLesson().n === l.n;
+        return '<li data-lesson="' + i + '"><button class="siderow"><span class="dotc" style="background:' + (l.done ? 'var(--green)' : isNext ? 'var(--blue)' : 'var(--faint)') + '"></span><span class="t">' + l.title + '<small>day ' + l.n + ' · ' + l.mins + ' min' + (isNext ? ' · today' : '') + '</small></span></button></li>';
+      }).join('') + '</ul>' +
+      '<div class="aitip"><b>Plans stay short — always.</b> One week, then your AI reviews what stuck and writes the next. No grand curricula.</div>';
+  }
+
+  $('planSide').addEventListener('click', e => {
+    const back = e.target.closest('[data-back]');
+    if (back) {
+      if (back.dataset.back === 'all') plCollapse();
+      else { plLesson = null; PL.nodes.forEach(n => n.el.classList.remove('sel')); plExpand.reselect = true; renderPlanSide(); }
+      return;
+    }
+    const le = e.target.closest('li[data-lesson]');
+    if (le) plSelect(+le.dataset.lesson);
+  });
+
+  /* ================= shared render ================= */
+  function renderAll() { skBuild(); renderSkillSide(); plBuild(); renderPlanSide(); }
 
   function flash(el) {
     if (!el) return;
@@ -987,12 +1245,11 @@
     void el.offsetWidth;
     el.classList.add('flash');
   }
-  function flashNode(k) {
-    const n = fnodes.find(x => x.type === 'skill' && x.key === k);
+  function flashSkill(k) {
+    const n = SK.nodes.find(x => x.kind === 'skill' && x.key === k);
     if (n) flash(n.el.querySelector('.nring b'));
   }
 
-  /* ---------------- choreography ---------------- */
   function reveal(section) {
     if (reduced) { section.querySelectorAll('.rv').forEach(el => el.classList.add('rv-run')); return; }
     section.querySelectorAll('.rv').forEach((el, i) => {
@@ -1003,7 +1260,7 @@
     });
   }
 
-  /* ---------------- navigation ---------------- */
+  /* ================= navigation ================= */
   document.querySelectorAll('.topnav button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.topnav button').forEach(b => b.classList.remove('active'));
@@ -1013,8 +1270,8 @@
         s.classList.toggle('active', on);
         if (on) reveal(s);
       });
-      if (btn.dataset.target === 'skills') { startLoop(); requestAnimationFrame(() => fnodes.forEach(n => setRing(n.el, n.type === 'skill' ? state.skills[n.key].pct : 0))); }
-      else stopLoop();
+      if (btn.dataset.target === 'skills') { PL.stop(); SK.start(); }
+      else { SK.stop(); PL.start(); }
       window.scrollTo({ top: 0 });
     });
   });
@@ -1027,7 +1284,7 @@
     $('themeToggle').textContent = dark ? '☾' : '☀';
   });
 
-  /* ---------------- AI panel ---------------- */
+  /* ================= AI panel ================= */
   const panel = $('aiPanel');
   const transcript = $('transcript');
   let playing = false;
@@ -1115,6 +1372,14 @@
     });
     return sk;
   }
+  function freshPlans() {
+    const w34 = deepCopy(DEFAULT.plans.find(p => p.id === 'w34'));
+    w34.lessons.forEach(l => { l.done = false; delete l.log; });
+    w34.pos = [38, 46];
+    const w35 = deepCopy(DEFAULT.plans.find(p => p.id === 'w35'));
+    w35.pos = [68, 42];
+    return [w34, w35];
+  }
 
   const onboardingEvents = [
     { t: 'sys',  text: 'VOICE MODE · NEW PROFILE, NOTHING LINKED YET', d: 1600 },
@@ -1128,29 +1393,25 @@
       run: () => {
         state.knownExtra = 200;
         state.skills = deepCopy(DEFAULT.skills);
-        buildMap(); renderSide();
+        skBuild(); renderSkillSide();
       }, d: 2200 },
     { t: 'tool', name: 'get_plan_instructions', args: 'reads olt://guide/lesson-authoring', d: 2000 },
     { t: 'ai',   text: 'The app asks me to keep plans short — one week, then iterate. Five ±15-minute lessons around news, slang and conversation. Sound good?', d: 3000 },
     { t: 'user', text: '&ldquo;Perfect.&rdquo;', d: 1400 },
-    { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"] }', fx: 'plan written to the app',
-      run: () => {
-        state.plan = deepCopy(DEFAULT.plan);
-        state.plan.lessons.forEach(l => l.done = false);
-        renderPlan();
-      }, d: 2400 },
+    { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"] }', fx: 'plan written — check the Plan tab',
+      run: () => { state.plans = freshPlans(); plBuild(); renderPlanSide(); }, d: 2400 },
     { t: 'tool', name: 'add_subtopics', args: '{ vocabulary: ["News", "Slang"],\n  grammar: ["pretérito", "por vs para"],\n  words: ["la noticia", "el titular", …12] }', fx: 'new nodes on your map',
       run: () => {
         state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
-        buildMap(); renderSide(); flashNode('vocab');
+        skBuild(); renderSkillSide(); flashSkill('vocab');
       }, d: 2400 },
     { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. ¡Hasta pronto!', d: 2400 },
-    { t: 'sys',  text: 'ONBOARDING COMPLETE — THE MAP FILLED ITSELF IN', d: 1200 }
+    { t: 'sys',  text: 'ONBOARDING COMPLETE — THE MAPS FILLED THEMSELVES IN', d: 1200 }
   ];
 
   function playOnboard() {
     runScenario(onboardingEvents, () => {
-      state = { connected: false, knownExtra: 0, streak: 0, learning: [], known: [], plan: null, skills: zeroSkills() };
+      state = { connected: false, knownExtra: 0, streak: 0, learning: [], known: [], plans: [], skills: zeroSkills() };
     });
   }
   $('playOnboard').addEventListener('click', playOnboard);
@@ -1164,21 +1425,23 @@
       state.learning = state.learning.filter(x => x.es !== es);
       state.known.unshift(w);
     }
-    updateMapValues(); renderSide();
-    flash(document.querySelector('.wordlist li[data-word="' + es + '"]'));
+    skRefresh(); renderSkillSide();
+    flash(document.querySelector('#skillSide .wordlist li[data-word="' + es + '"]'));
   }
 
   function completeNext() {
+    const p = curPlan();
     const l = nextLesson();
-    if (!l) return;
+    if (!p || !l) return;
     l.done = true;
+    l.log = ['story gist: perfect', 'conversation: 2 self-corrections', '“encuesta” recalled once — one more to go'];
     state.streak += 1;
     state.skills.speaking.pct = Math.min(100, state.skills.speaking.pct + 4);
     state.skills.listening.pct = Math.min(100, state.skills.listening.pct + 3);
     state.skills.vocab.pct = Math.min(100, state.skills.vocab.pct + 1);
-    updateMapValues(); renderSide(); renderPlan();
-    flash(document.querySelector('.stop[data-lesson="' + l.n + '"]'));
-    flashNode('speaking'); flashNode('listening');
+    skRefresh(); renderSkillSide();
+    plBuild(); renderPlanSide();
+    flashSkill('speaking'); flashSkill('listening');
   }
 
   const lessonEvents = [
@@ -1194,22 +1457,22 @@
     { t: 'ai',   text: 'Great sentence. Flashcards to close — how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2400 },
     { t: 'user', text: '&ldquo;¡El titular!&rdquo;', d: 1600 },
     { t: 'tool', name: 'update_word_strength', args: '{ "la noticia": 3, "el titular": 2,\n  "la encuesta": 1 }', fx: '"la noticia" graduated to mastered',
-      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flashNode('vocab'); }, d: 2600 },
-    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · map updated',
+      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flashSkill('vocab'); }, d: 2600 },
+    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · maps updated',
       run: completeNext, d: 2400 },
     { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated, and your speaking node ticked up. Same time tomorrow for slang?', d: 2600 },
     { t: 'sys',  text: 'SESSION SYNCED — THE SCORE IS KEPT BEHIND ME', d: 1200 }
   ];
 
   function playLesson() {
-    if (!state.plan || !nextLesson()) state = deepCopy(DEFAULT);
+    if (!curPlan() || !nextLesson()) state = deepCopy(DEFAULT);
     runScenario(lessonEvents, null);
   }
   $('playLesson').addEventListener('click', playLesson);
 
-  /* ---------------- init ---------------- */
+  /* ================= init ================= */
   renderAll();
   reveal(document.querySelector('section.active'));
-  requestAnimationFrame(startLoop);
+  requestAnimationFrame(() => SK.start());
 })();
 </script>
