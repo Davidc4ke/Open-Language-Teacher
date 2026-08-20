@@ -210,9 +210,25 @@
   .fnode.ghost:hover .nring b { border-color: var(--blue); color: var(--blue); }
 
   /* ---------- sidebar ---------- */
-  .sk-side { overflow-y: auto; overflow-x: hidden; padding: 24px 22px; display: flex; flex-direction: column; gap: 4px; }
+  .sk-side { overflow: hidden; display: flex; flex-direction: column; }
+  .sidecontent { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 22px; display: flex; flex-direction: column; gap: 4px; }
+  .sideclose {
+    position: absolute; top: 12px; right: 12px; z-index: 3;
+    width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; color: var(--faint); font-size: 13px;
+    transition: background-color .2s, color .2s;
+  }
+  .sideclose:hover { background: var(--chip); color: var(--ink); }
   .sk-side .backlink { color: var(--faint); font-weight: 700; font-size: 12px; text-align: left; padding: 0 0 8px; transition: color .2s; }
   .sk-side .backlink:hover { color: var(--blue); }
+  .ptabs { display: flex; gap: 6px; margin: 14px 0 6px; flex: none; }
+  .ptabs button {
+    padding: 7px 15px; border-radius: 999px; font-weight: 800; font-size: 12.5px;
+    color: var(--muted); background: var(--chip);
+    transition: background-color .2s, color .2s, transform .15s;
+  }
+  .ptabs button:hover { color: var(--ink); transform: translateY(-1px); }
+  .ptabs button.on { background: var(--navy); color: var(--navy-ink); }
   .sk-side .bigpct { font-size: 44px; font-weight: 900; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
   .sk-side .bigpct small { font-size: 20px; color: var(--faint); font-weight: 800; }
   .sk-side h3 { margin: 0 0 2px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; }
@@ -258,8 +274,10 @@
   .steps .st { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 800; line-height: 1.35; padding-top: 3px; }
   .steps .st small { display: block; font-weight: 600; font-size: 12.5px; color: var(--muted); margin-top: 1px; }
   .steps .min { font-size: 11.5px; font-weight: 700; color: var(--faint); flex: none; padding-top: 6px; }
-  .wchip { display: inline-block; background: var(--chip); border-radius: 999px; padding: 3px 11px;
-    font-size: 12px; font-weight: 700; margin: 3px 4px 0 0; }
+  .wchip { display: inline-block; background: var(--chip); border-radius: 999px; padding: 5px 13px;
+    font-size: 12.5px; font-weight: 700; margin: 4px 5px 0 0; color: var(--ink);
+    cursor: pointer; transition: transform .15s, background-color .2s; }
+  .wchip:hover { transform: translateY(-1px); background: var(--blue-soft, var(--chip)); color: var(--blue); }
   .wchip.g { color: var(--green); } .wchip.c { color: var(--coral); }
   .loglines { list-style: none; margin: 4px 0 0; padding: 0; font-size: 12.5px; color: var(--muted); }
   .loglines li { padding: 3px 0 3px 16px; position: relative; }
@@ -407,7 +425,10 @@
         <svg class="maplines" id="skillLines"></svg>
         <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
       </div>
-      <aside class="card sk-side" id="skillSide"></aside>
+      <aside class="card sk-side" id="skillSide">
+        <button class="sideclose" id="skillClose" title="Close">✕</button>
+        <div class="sidecontent" id="skillSideContent"></div>
+      </aside>
     </div>
   </section>
 
@@ -418,7 +439,10 @@
         <svg class="maplines" id="planLines"></svg>
         <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
       </div>
-      <aside class="card sk-side" id="planSide"></aside>
+      <aside class="card sk-side" id="planSide">
+        <button class="sideclose" id="planClose" title="Close">✕</button>
+        <div class="sidecontent" id="planSideContent"></div>
+      </aside>
     </div>
   </section>
 
@@ -931,13 +955,13 @@
   }
 
   /* ================= PLAN field ================= */
-  let plWeek = null, plLesson = null;
+  let plWeek = null, plSel = null, plTab = 'agenda';
 
   const PL = nodeField($('planMap'), $('planLines'), {
     onClick: n => {
       if (n.kind === 'week') {
         const p = state.plans.find(x => x.id === n.key);
-        if (p.status === 'future') { plLesson = null; plWeek === n.key ? plCollapse() : plSelectFuture(n); }
+        if (p.status === 'future') { plWeek === n.key ? plCollapse() : plSelectFuture(n); }
         else plWeek === n.key ? plCollapse() : plExpand(n.key);
       } else if (n.kind === 'day') plSelect(n.idx);
     },
@@ -958,7 +982,7 @@
           for (let i = 0; i < pts.length - 1; i++) out.push({
             x1: pts[i].rx || pts[i].bx, y1: pts[i].ry || pts[i].by,
             x2: pts[i + 1].rx || pts[i + 1].bx, y2: pts[i + 1].ry || pts[i + 1].by,
-            cls: pts[i + 1].idx === plLesson ? 'act' : ''
+            cls: (typeof plSel === 'number' && pts[i + 1].idx === plSel) ? 'act' : ''
           });
         }
       }
@@ -979,7 +1003,7 @@
 
   function plBuild() {
     PL.clear();
-    plWeek = null; plLesson = null;
+    plWeek = null; plSel = null;
     if (!state.plans.length) {
       PL.makeNode({ kind: 'none', key: 'none', px: 50, py: 46, ghost: true, label: 'No plan yet', sub: 'onboarding writes the first one' });
       return;
@@ -993,7 +1017,7 @@
 
   function plExpand(id) {
     plCollapse(false);
-    plWeek = id; plLesson = null;
+    plWeek = id; plSel = 'week';
     const p = state.plans.find(x => x.id === id);
     const parent = PL.nodes.find(n => n.kind === 'week' && n.key === id);
     PL.nodes.forEach(n => {
@@ -1028,18 +1052,18 @@
       n.ts = 1;
       n.el.classList.remove('hid', 'open', 'sel');
     });
-    plWeek = null; plLesson = null;
+    plWeek = null; plSel = null;
     if (rerender !== false) renderPlanSide();
   }
 
   function plSelectFuture(n) {
-    plWeek = n.key; plLesson = null;
+    plWeek = n.key; plSel = 'week';
     PL.nodes.forEach(x => x.el.classList.toggle('sel', x === n));
     renderPlanSide();
   }
 
   function plSelect(i) {
-    plLesson = i;
+    plSel = i; plTab = 'agenda';
     PL.nodes.forEach(n => n.el.classList.toggle('sel', n.kind === 'day' && n.idx === i));
     renderPlanSide();
   }
@@ -1069,7 +1093,7 @@
 
   /* ---- skills sidebar ---- */
   function renderSkillSide() {
-    const box = $('skillSide');
+    const box = $('skillSideContent');
     $('skillMap').classList.toggle('dim', !!query);
     $('skillsBody').classList.toggle('withside', !!skExpanded || !!query);
     document.querySelector('.sk-head').classList.toggle('shrunk', !!skExpanded || !!query);
@@ -1186,9 +1210,9 @@
   }
 
   function renderPlanSide() {
-    const box = $('planSide');
-    $('planBody').classList.toggle('withside', !!plWeek);
-    if (!plWeek) { box.innerHTML = ''; return; }
+    const box = $('planSideContent');
+    $('planBody').classList.toggle('withside', plSel != null);
+    if (plSel == null || !plWeek) { box.innerHTML = ''; return; }
 
     const p = state.plans.find(x => x.id === plWeek);
 
@@ -1202,31 +1226,40 @@
       return;
     }
 
-    if (plLesson != null && p.lessons[plLesson]) {
-      const l = p.lessons[plLesson];
-      const status = l.done ? 'done' : (nextLesson() && nextLesson().n === l.n && p.status === 'current' ? 'today' : 'queued');
+    if (typeof plSel === 'number' && p.lessons[plSel]) {
+      const l = p.lessons[plSel];
+      let body = '';
+      if (plTab === 'agenda') {
+        body = stepRows(l) +
+          (l.log ? '<span class="mono">Session log</span><ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') +
+          (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '') +
+          (!l.done && !l.log ? '<div class="aitip">Say <b>&ldquo;start my lesson&rdquo;</b> in voice mode — your AI pulls this exact script via <b>get_next_lesson</b>.</div>' : '');
+      } else if (plTab === 'materials') {
+        body = (l.mats && l.mats.length
+          ? '<ul class="siderows">' + l.mats.map(m =>
+              '<li><div class="siderow" style="cursor:default"><span class="dotc" style="background:var(--blue)"></span><span class="t">' + m.name + (m.d ? '<small>' + m.d + '</small>' : '') + '</span></div></li>').join('') + '</ul>'
+          : '<div class="empty">No materials — this one is pure conversation.</div>') +
+          '<div class="aitip">Every material is <b>generated by your AI</b> — stories built from your own pieces, audio at your pace, real headlines when you&rsquo;re ready.</div>';
+      } else {
+        const hasW = l.words && l.words.length, hasG = l.grammar && l.grammar.length;
+        body =
+          (hasW ? '<span class="mono">Pieces</span><div>' + l.words.map(w => '<button class="wchip c" data-goword="' + w + '">' + w + '</button>').join('') + '</div>' : '') +
+          (hasG ? '<span class="mono">Grammar</span><div>' + l.grammar.map(g => '<button class="wchip" data-gogram="' + g + '">' + g + '</button>').join('') + '</div>' : '') +
+          (!hasW && !hasG ? '<div class="empty">This lesson reviews everything — no new nodes.</div>' : '') +
+          '<div class="aitip">These are the nodes this lesson feeds on your <b>skill map</b> — tap one to jump there.</div>';
+      }
       box.innerHTML =
-        '<button class="backlink" data-back="week">← ' + p.title + '</button>' +
-        '<span class="aitag">Day ' + l.n + ' · ' + status + ' · ~' + l.mins + ' min</span>' +
-        '<h3 style="margin-top:4px">' + l.title + '</h3>' +
+        '<h3 style="margin-top:6px; padding-right:26px">' + l.title + '</h3>' +
         '<p class="desc">' + l.obj + '</p>' +
-        '<span class="mono">Lesson flow</span>' + stepRows(l) +
-        (l.mats && l.mats.length ? '<span class="mono">Materials · prepared by your AI</span><ul class="siderows">' +
-          l.mats.map(m => '<li><div class="siderow" style="cursor:default"><span class="dotc" style="background:var(--blue)"></span><span class="t">' + m.name + (m.d ? '<small>' + m.d + '</small>' : '') + '</span></div></li>').join('') + '</ul>' : '') +
-        ((l.words && l.words.length) || (l.grammar && l.grammar.length)
-          ? '<span class="mono">Targets</span><div>' +
-            (l.words || []).map(w => '<span class="wchip c">' + w + '</span>').join('') +
-            (l.grammar || []).map(g => '<span class="wchip">' + g + '</span>').join('') + '</div>'
-          : '') +
-        (l.log ? '<span class="mono">Session log</span><ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') +
-        (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '') +
-        (!l.done && !l.log ? '<div class="aitip">Say <b>&ldquo;start my lesson&rdquo;</b> in voice mode — your AI pulls this exact script via <b>get_next_lesson</b>.</div>' : '');
+        '<div class="ptabs">' +
+          ['agenda', 'materials', 'nodes'].map(t =>
+            '<button data-ptab="' + t + '" class="' + (t === plTab ? 'on' : '') + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>').join('') +
+        '</div>' + body;
       return;
     }
 
     const done = p.lessons.filter(l => l.done).length;
     box.innerHTML =
-      '<button class="backlink" data-back="all">← all plans</button>' +
       '<span class="aitag">' + p.range + ' · written by ChatGPT via MCP</span>' +
       '<h3 style="margin-top:4px">' + p.title + '</h3>' +
       '<div class="bigpct">' + done + '<small>/' + p.lessons.length + '</small></div>' +
@@ -1240,15 +1273,48 @@
       '<div class="aitip"><b>Plans stay short — always.</b> One week, then your AI reviews what stuck and writes the next. No grand curricula.</div>';
   }
 
+  function switchView(name) {
+    const btn = document.querySelector('.topnav button[data-target="' + name + '"]');
+    if (btn) btn.click();
+  }
+  function gotoWordNode(es) {
+    const hit = allWords().find(x => x.w.es === es);
+    switchView('skills');
+    skExpand('vocab');
+    if (hit) { const ti = TOPICS.indexOf(hit.w.topic); if (ti >= 0) skSelect(ti); }
+  }
+  function gotoGrammarNode(name) {
+    switchView('skills');
+    skExpand('grammar');
+    const idx = (state.skills.grammar.concepts || []).findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+    if (idx >= 0) skSelect(idx);
+  }
+
   $('planSide').addEventListener('click', e => {
-    const back = e.target.closest('[data-back]');
-    if (back) {
-      if (back.dataset.back === 'all') plCollapse();
-      else { plLesson = null; PL.nodes.forEach(n => n.el.classList.remove('sel')); plExpand.reselect = true; renderPlanSide(); }
-      return;
-    }
+    const tb = e.target.closest('[data-ptab]');
+    if (tb) { plTab = tb.dataset.ptab; renderPlanSide(); return; }
+    const gw = e.target.closest('[data-goword]');
+    if (gw) { gotoWordNode(gw.dataset.goword); return; }
+    const gg = e.target.closest('[data-gogram]');
+    if (gg) { gotoGrammarNode(gg.dataset.gogram); return; }
     const le = e.target.closest('li[data-lesson]');
     if (le) plSelect(+le.dataset.lesson);
+  });
+
+  $('planClose').addEventListener('click', () => {
+    const p = plWeek ? state.plans.find(x => x.id === plWeek) : null;
+    if (p && p.status === 'future') { plWeek = null; }
+    plSel = null;
+    PL.nodes.forEach(n => n.el.classList.remove('sel'));
+    renderPlanSide();
+  });
+
+  $('skillClose').addEventListener('click', () => {
+    if (query) {
+      searchEl.value = ''; query = '';
+      $('searchPill').classList.remove('hasq');
+      renderSkillSide();
+    } else skCollapse();
   });
 
   /* ================= shared render ================= */
