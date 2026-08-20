@@ -100,7 +100,7 @@
   @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(124,242,164,.55); } 70% { box-shadow: 0 0 0 7px rgba(124,242,164,0); } 100% { box-shadow: 0 0 0 0 rgba(124,242,164,0); } }
 
   /* ---------- main ---------- */
-  main { max-width: 1060px; margin: 0 auto; padding: 36px 20px 80px; position: relative; }
+  main { max-width: 1060px; margin: 0 auto; padding: 16px 20px 80px; position: relative; }
   .narrow { max-width: 720px; margin: 0 auto; }
   main::before {
     content: ""; position: fixed; top: -180px; left: 50%; width: 720px; height: 480px;
@@ -117,54 +117,22 @@
   h1.hero { font-size: clamp(38px, 7vw, 60px); font-weight: 900; letter-spacing: -.025em; line-height: 1.04; }
   .sub { margin: 14px 0 0; font-size: 16px; color: var(--muted); max-width: 46ch; }
   .sub b { color: var(--ink); }
-  .statline { display: flex; gap: 26px; margin: 26px 0 34px; }
-  .statline div { font-size: 13px; color: var(--muted); font-weight: 600; }
-  .statline b { display: block; font-size: 26px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-
   .card {
     background: var(--card); border-radius: 24px; box-shadow: var(--shadow);
     transition: background-color .35s ease, transform .25s ease, box-shadow .25s ease;
   }
 
-  /* ---------- today ---------- */
-  .todaycard { display: flex; align-items: center; gap: 34px; padding: 34px 38px; }
-  .todaycard:hover { transform: translateY(-2px); box-shadow: 0 2px 3px rgba(23,32,58,.05), 0 22px 54px rgba(23,32,58,.12); }
-  .ringwrap { position: relative; width: 132px; height: 132px; flex: none; }
-  .ring { transform: rotate(-90deg); width: 100%; height: 100%; }
-  .ring circle { fill: none; stroke-width: 9; }
-  .ring .track { stroke: var(--chip); }
-  .ring .fill {
-    stroke: var(--blue); stroke-linecap: round;
-    stroke-dasharray: 326.7; stroke-dashoffset: 326.7;
-    transition: stroke-dashoffset 1.2s cubic-bezier(.3,.8,.3,1);
-  }
-  .ringcenter { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-  .ringcenter b { font-size: 25px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-  .ringcenter span { font-family: var(--mono); font-size: 8.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--faint); }
-  .todaybody { flex: 1; min-width: 0; }
-  .todaybody h2 { margin: 8px 0 4px; font-size: 23px; font-weight: 900; letter-spacing: -.015em; }
-  .todaybody p { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
-  .cta {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--navy); color: var(--navy-ink);
-    font-weight: 800; font-size: 15px;
-    border-radius: 999px; padding: 13px 26px;
-    transition: transform .15s, box-shadow .2s, filter .2s;
-  }
-  .cta:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 12px 30px rgba(23,32,58,.18); }
-  .cta:active { transform: translateY(0) scale(.98); }
-  .ctahint { display: block; margin-top: 12px; font-size: 12px; color: var(--faint); }
-
   /* =========================================================
      SKILLS — floating node field + sidebar
      ========================================================= */
-  .sk-head { display: flex; align-items: center; gap: 20px; margin-bottom: 14px; }
-  .sk-head h1 { font-size: 34px; font-weight: 900; letter-spacing: -.02em; flex: none; }
+  .sk-head { display: flex; align-items: center; gap: 20px; margin-bottom: 12px; }
   .searchpill {
     flex: 1; display: flex; align-items: center; gap: 12px;
-    background: var(--card); border-radius: 999px; box-shadow: var(--shadow);
+    background: var(--chip);
+    background: color-mix(in srgb, var(--blue) 6%, var(--chip));
+    border-radius: 999px;
     padding: 4px 8px 4px 20px;
-    transition: box-shadow .25s;
+    transition: box-shadow .25s, background-color .35s;
   }
   .searchpill:focus-within { box-shadow: 0 2px 3px rgba(23,32,58,.05), 0 18px 44px rgba(23,32,58,.13), 0 0 0 2px var(--glow); }
   .searchpill .glyph { color: var(--faint); font-size: 15px; flex: none; }
@@ -399,7 +367,7 @@
     .aibtn .live { animation: none; }
     #mapLines line.act { animation: none; }
     main::before { animation: none; }
-    .ring .fill, .nring .f, .sidebar-bar i { transition: none; }
+    .nring .f, .sidebar-bar i { transition: none; }
     .flash { animation: none; background: var(--green-soft); }
     .ai { transition: opacity .2s; transform: none; }
   }
@@ -413,8 +381,6 @@
   @media (max-width: 640px) {
     .topbar { margin: 12px 12px 0; }
     .brand span { display: none; }
-    .todaycard { flex-direction: column; text-align: center; gap: 22px; padding: 28px 22px; }
-    .statline { gap: 18px; flex-wrap: wrap; }
     .sk-head { flex-wrap: wrap; }
     .mapcanvas { height: 340px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
@@ -424,8 +390,7 @@
 <header class="topbar">
   <div class="brand"><span class="mark"></span><span>Open Language Teacher</span></div>
   <nav class="topnav">
-    <button data-target="today" class="active">Today</button>
-    <button data-target="skills">Skills</button>
+    <button data-target="skills" class="active">Skills</button>
     <button data-target="plan">Plan</button>
   </nav>
   <div class="spacer"></div>
@@ -435,41 +400,9 @@
 
 <main>
 
-  <!-- ================ TODAY ================ -->
-  <section data-view="today" class="active">
-    <div class="narrow">
-      <h1 class="hero rv" id="greeting">Hola, David.</h1>
-      <p class="sub rv" id="subline"><b>la noticia</b> is one recall away from mastered. Fifteen minutes today keeps the streak alive.</p>
-
-      <div class="statline rv">
-        <div><b id="kNum">214</b>pieces mastered</div>
-        <div><b id="lNum">12</b>in practice</div>
-        <div><b id="sNum">6</b>day streak</div>
-      </div>
-
-      <div class="card todaycard rv">
-        <div class="ringwrap">
-          <svg class="ring" viewBox="0 0 120 120">
-            <circle class="track" cx="60" cy="60" r="52"></circle>
-            <circle class="fill" id="ringFill" cx="60" cy="60" r="52"></circle>
-          </svg>
-          <div class="ringcenter"><b id="ringNum">2/5</b><span>this week</span></div>
-        </div>
-        <div class="todaybody">
-          <span class="mono" id="todayEyebrow">Up next · ~15 min</span>
-          <h2 id="todayTitle">News words in conversation</h2>
-          <p id="todayDesc">Review yesterday's words aloud, talk through this week's headlines, close with voice flashcards.</p>
-          <button class="cta" id="startCta">▷&nbsp; Start in your AI</button>
-          <span class="ctahint">The lesson happens in ChatGPT voice mode — connected over MCP. This app just keeps the score.</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ================ SKILLS ================ -->
-  <section data-view="skills">
+  <section data-view="skills" class="active">
     <div class="sk-head rv">
-      <h1>Skills.</h1>
       <div class="searchpill" id="searchPill">
         <span class="glyph">⌕</span>
         <input id="skillSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Search anything — “titular”, “ser vs estar”, “fluency”">
@@ -621,7 +554,6 @@
   let expanded = null;          // skill key whose children are shown
   let selChild = null;          // index of selected child, or 'ghost'
   let query = '';
-  let booted = false;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
@@ -1000,40 +932,7 @@
       : '<div class="empty" style="width:100%; text-align:center;">No plan yet — onboarding writes your first week.</div>';
   }
 
-  function renderToday() {
-    const done = state.plan ? state.plan.lessons.filter(l => l.done).length : 0;
-    const total = state.plan ? state.plan.lessons.length : 0;
-    const pct = total ? done / total : 0;
-
-    $('kNum').textContent = state.known.length + state.knownExtra;
-    $('lNum').textContent = state.learning.length;
-    $('sNum').textContent = state.streak;
-    $('ringNum').textContent = total ? done + '/' + total : '—';
-    if (booted) $('ringFill').style.strokeDashoffset = 326.7 * (1 - pct);
-
-    const next = nextLesson();
-    if (next) {
-      $('todayEyebrow').textContent = 'Up next · Lesson ' + next.n + ' · ~15 min';
-      $('todayTitle').textContent = next.title;
-      $('todayDesc').textContent = next.desc || 'Warm-up recall, new pieces in context, and a short conversation.';
-      $('startCta').innerHTML = '▷&nbsp; Start in your AI';
-      $('subline').innerHTML = '<b>la noticia</b> is one recall away from mastered. Fifteen minutes today keeps the streak alive.';
-    } else if (state.plan) {
-      $('todayEyebrow').textContent = 'Week complete';
-      $('todayTitle').textContent = '¡Enhorabuena!';
-      $('todayDesc').textContent = 'All five lessons done. Your AI will review the week and write the next plan.';
-      $('startCta').innerHTML = '▷&nbsp; Plan next week';
-      $('subline').innerHTML = 'Every lesson done. <b>la noticia</b> is mastered.';
-    } else {
-      $('todayEyebrow').textContent = 'New profile';
-      $('todayTitle').textContent = 'Meet your teacher';
-      $('todayDesc').textContent = 'Open your AI and run onboarding — it interviews you, then writes your first week.';
-      $('startCta').innerHTML = '▷&nbsp; Open your AI';
-      $('subline').innerHTML = 'A blank map. Your AI fills it — this app keeps it.';
-    }
-  }
-
-  function renderAll() { buildMap(); renderSide(); renderPlan(); renderToday(); }
+  function renderAll() { buildMap(); renderSide(); renderPlan(); }
 
   function flash(el) {
     if (!el) return;
@@ -1055,16 +954,6 @@
       el.style.animationDelay = (i * 70) + 'ms';
       el.classList.add('rv-run');
     });
-  }
-
-  function countUp(el, to) {
-    if (reduced) { el.textContent = to; return; }
-    const t0 = performance.now(), dur = 1000;
-    (function step(t) {
-      const k = Math.min(1, (t - t0) / dur);
-      el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
-      if (k < 1) requestAnimationFrame(step);
-    })(t0);
   }
 
   /* ---------------- navigation ---------------- */
@@ -1102,11 +991,6 @@
   $('aiOpen').addEventListener('click', () => panel.classList.contains('open') ? closeAI() : openAI());
   $('aiClose').addEventListener('click', closeAI);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAI(); });
-
-  $('startCta').addEventListener('click', () => {
-    openAI();
-    if (!playing) setTimeout(() => state.plan ? playLesson() : playOnboard(), reduced ? 0 : 500);
-  });
 
   function addBubble(kind, html) {
     const div = document.createElement('div');
@@ -1197,8 +1081,7 @@
       run: () => {
         state.knownExtra = 200;
         state.skills = deepCopy(DEFAULT.skills);
-        buildMap(); renderSide(); renderToday();
-        flash($('kNum').parentElement);
+        buildMap(); renderSide();
       }, d: 2200 },
     { t: 'tool', name: 'get_plan_instructions', args: 'reads olt://guide/lesson-authoring', d: 2000 },
     { t: 'ai',   text: 'The app asks me to keep plans short — one week, then iterate. Five ±15-minute lessons around news, slang and conversation. Sound good?', d: 3000 },
@@ -1207,12 +1090,12 @@
       run: () => {
         state.plan = deepCopy(DEFAULT.plan);
         state.plan.lessons.forEach(l => l.done = false);
-        renderPlan(); renderToday();
+        renderPlan();
       }, d: 2400 },
     { t: 'tool', name: 'add_subtopics', args: '{ vocabulary: ["News", "Slang"],\n  grammar: ["pretérito", "por vs para"],\n  words: ["la noticia", "el titular", …12] }', fx: 'new nodes on your map',
       run: () => {
         state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
-        buildMap(); renderSide(); renderToday(); flash($('lNum').parentElement);
+        buildMap(); renderSide(); flashNode('vocab');
       }, d: 2400 },
     { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. ¡Hasta pronto!', d: 2400 },
     { t: 'sys',  text: 'ONBOARDING COMPLETE — THE MAP FILLED ITSELF IN', d: 1200 }
@@ -1234,7 +1117,7 @@
       state.learning = state.learning.filter(x => x.es !== es);
       state.known.unshift(w);
     }
-    updateMapValues(); renderSide(); renderToday();
+    updateMapValues(); renderSide();
     flash(document.querySelector('.wordlist li[data-word="' + es + '"]'));
   }
 
@@ -1246,8 +1129,7 @@
     state.skills.speaking.pct = Math.min(100, state.skills.speaking.pct + 4);
     state.skills.listening.pct = Math.min(100, state.skills.listening.pct + 3);
     state.skills.vocab.pct = Math.min(100, state.skills.vocab.pct + 1);
-    updateMapValues(); renderSide(); renderPlan(); renderToday();
-    flash($('sNum').parentElement);
+    updateMapValues(); renderSide(); renderPlan();
     flash(document.querySelector('.stop[data-lesson="' + l.n + '"]'));
     flashNode('speaking'); flashNode('listening');
   }
@@ -1265,7 +1147,7 @@
     { t: 'ai',   text: 'Great sentence. Flashcards to close — how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2400 },
     { t: 'user', text: '&ldquo;¡El titular!&rdquo;', d: 1600 },
     { t: 'tool', name: 'update_word_strength', args: '{ "la noticia": 3, "el titular": 2,\n  "la encuesta": 1 }', fx: '"la noticia" graduated to mastered',
-      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flash($('kNum').parentElement); flashNode('vocab'); }, d: 2600 },
+      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flashNode('vocab'); }, d: 2600 },
     { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · map updated',
       run: completeNext, d: 2400 },
     { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated, and your speaking node ticked up. Same time tomorrow for slang?', d: 2600 },
@@ -1281,11 +1163,6 @@
   /* ---------------- init ---------------- */
   renderAll();
   reveal(document.querySelector('section.active'));
-  requestAnimationFrame(() => {
-    countUp($('kNum'), state.known.length + state.knownExtra);
-    countUp($('lNum'), state.learning.length);
-    countUp($('sNum'), state.streak);
-    setTimeout(() => { booted = true; renderToday(); }, reduced ? 0 : 350);
-  });
+  requestAnimationFrame(startLoop);
 })();
 </script>
