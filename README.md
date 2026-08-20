@@ -13,7 +13,7 @@ A web app for learning any language — where **your data lives in the app, but 
 ### Onboarding (happens entirely in your AI)
 - Create a profile in the web app, get a pairing code.
 - Add the app's MCP server as a connector in your AI, then say *"link my Open Language Teacher profile"*.
-- The AI asks how many words you know and what your goals are (conversation, reading, news from the language's home country, slang, specific subjects…).
+- The AI asks how many words you know and what your goals are (conversation, reading, news from the language's home country, slang, specific subjects…). The mockup's worked example is an English speaker learning intermediate Mandarin (HSK 4 / B1).
 - It reads the app's **lesson-authoring guide** (an MCP resource) and writes a **short-term plan — always 3–7 days** — plus an initial learning queue of words.
 
 ### A lesson (chat or voice)

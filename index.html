@@ -17,7 +17,7 @@
     --chip: #F1F4F9;
     --glow: rgba(46, 99, 231, .14);
     --shadow: 0 1px 2px rgba(23,32,58,.04), 0 14px 40px rgba(23,32,58,.08);
-    --sans: 'Nunito Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --sans: 'Nunito Sans', 'Segoe UI', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
     /* standard node palette — settable per node over MCP */
     --c-blue: #2E63E7; --c-teal: #0F8C86; --c-violet: #7A4FD8;
@@ -92,6 +92,14 @@
   .topinfo.has { display: flex; }
   .topinfo b { font-size: 14.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .topinfo .p { color: var(--blue); font-weight: 800; font-size: 13px; white-space: nowrap; flex: none; }
+  .langchip {
+    display: inline-flex; align-items: center; gap: 8px; flex: none;
+    background: var(--chip); border-radius: 999px; padding: 6px 14px 6px 12px;
+    font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap;
+    margin-right: 4px;
+  }
+  .langchip b { font-size: 14px; font-weight: 900; color: var(--ink); }
+  .langchip .lvl { color: var(--blue); font-weight: 800; }
   .brand { display: flex; align-items: center; gap: 9px; font-weight: 900; font-size: 15px; white-space: nowrap; margin-right: 10px; }
   .mark { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--blue); display: grid; place-items: center; flex: none; }
   .mark::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
@@ -361,7 +369,7 @@
   .ex { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s cubic-bezier(.2,.7,.3,1); }
   .ex > div { overflow: hidden; }
   .ex p { margin: 0; padding: 0 10px 10px 20px; font-size: 12.5px; color: var(--muted); }
-  .ex .es { font-weight: 800; font-style: italic; color: var(--ink); }
+  .ex .es { font-weight: 800; color: var(--ink); }
   li.open { background: var(--chip); }
   li.open .ex { grid-template-rows: 1fr; }
   .more { padding: 8px 10px; font-size: 11.5px; color: var(--faint); font-weight: 600; }
@@ -420,7 +428,7 @@
   .bub .who { display: block; font-family: var(--mono); font-size: 8px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 4px; opacity: .55; }
   .bub.ai-b { align-self: flex-start; background: #1B2130; border-bottom-left-radius: 6px; }
   .bub.user { align-self: flex-end; background: #2E63E7; color: #fff; border-bottom-right-radius: 6px; }
-  .bub .es { font-weight: 800; font-style: italic; }
+  .bub .es { font-weight: 800; }
   .sysline { align-self: center; text-align: center; font-family: var(--mono); font-size: 9px; letter-spacing: .12em; color: #5A6378; padding: 3px 0 0; animation: pop .3s ease both; }
   .toolcall {
     align-self: stretch; font-family: var(--mono); font-size: 10.5px; line-height: 1.6;
@@ -452,7 +460,7 @@
     body.panelopen .topbar, body.panelopen .sk-head { margin-right: 12px; }
     .brand span { display: none; }
     .sk-head { flex-wrap: wrap; margin: 12px; }
-    .topinfo { display: none !important; }
+    .topinfo, .langchip { display: none !important; }
     .sk-side { top: 10px; right: 10px; bottom: 10px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
   }
@@ -466,6 +474,7 @@
   </nav>
   <div class="topinfo" id="topInfo"></div>
   <div class="spacer"></div>
+  <span class="langchip" title="Learning Mandarin Chinese from English"><b>中文</b> Mandarin · <span class="lvl">HSK 4</span></span>
   <button class="iconbtn" id="themeToggle" title="Toggle theme">☾</button>
   <button class="aibtn" id="aiOpen"><span class="live" id="liveDot"></span>Your AI</button>
 </header>
@@ -477,7 +486,7 @@
     <div class="sk-head rv">
       <div class="searchpill" id="searchPill">
         <span class="glyph">⌕</span>
-        <input id="skillSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Search anything — “titular”, “ser vs estar”, “fluency”">
+        <input id="skillSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Search anything — “标题”, “了”, “tones”">
         <button class="clear" id="searchClear">✕</button>
       </div>
     </div>
@@ -554,112 +563,113 @@
   /* ================= state ================= */
   const DEFAULT = {
     connected: true,
-    knownExtra: 202,
+    knownExtra: 612,
     streak: 6,
     learning: [
-      { es: 'la noticia',  en: 'the news (item)',     topic: 'News',         p: 2, ex: '¿Has visto la noticia de hoy?' },
-      { es: 'el titular',  en: 'headline',            topic: 'News',         p: 1, ex: 'El titular era muy dramático.' },
-      { es: 'la encuesta', en: 'survey, poll',        topic: 'News',         p: 1, ex: 'Según la encuesta, ganará el sí.' },
-      { es: 'la huelga',   en: 'strike (labour)',     topic: 'News',         p: 0, ex: 'Hay huelga de trenes mañana.' },
-      { es: 'el gobierno', en: 'government',          topic: 'News',         p: 2, ex: 'El gobierno anunció nuevas medidas.' },
-      { es: 'guay',        en: 'cool (slang)',        topic: 'Slang',        p: 1, ex: '¡Qué guay tu chaqueta!' },
-      { es: 'vale',        en: 'okay, deal (slang)',  topic: 'Slang',        p: 2, ex: 'Vale, nos vemos a las ocho.' },
-      { es: 'tío / tía',   en: 'dude / girl (slang)', topic: 'Slang',        p: 0, ex: '¿Qué pasa, tío?' },
-      { es: 'flipar',      en: 'to be amazed',        topic: 'Slang',        p: 0, ex: 'Vas a flipar con esta canción.' },
-      { es: 'sin embargo', en: 'however',             topic: 'Conversation', p: 1, ex: 'Sin embargo, no estoy de acuerdo.' },
-      { es: 'por cierto',  en: 'by the way',          topic: 'Conversation', p: 2, ex: 'Por cierto, ¿cómo fue tu viaje?' },
-      { es: 'quedar',      en: 'to meet up',          topic: 'Conversation', p: 1, ex: '¿Quedamos el sábado?' }
+      { es: '新闻',   en: 'xīnwén · the news (item)',      topic: 'News',         p: 2, ex: '你看了今天的新闻吗？' },
+      { es: '标题',   en: 'biāotí · headline',             topic: 'News',         p: 1, ex: '这个标题太夸张了。' },
+      { es: '调查',   en: 'diàochá · survey, poll',        topic: 'News',         p: 1, ex: '根据调查，大多数人同意。' },
+      { es: '罢工',   en: 'bàgōng · to strike (labour)',   topic: 'News',         p: 0, ex: '明天地铁要罢工。' },
+      { es: '政府',   en: 'zhèngfǔ · government',          topic: 'News',         p: 2, ex: '政府宣布了新政策。' },
+      { es: '给力',   en: 'gěilì · awesome (slang)',       topic: 'Slang',        p: 1, ex: '这首歌太给力了！' },
+      { es: '靠谱',   en: 'kàopǔ · reliable, legit',       topic: 'Slang',        p: 2, ex: '他这个人很靠谱。' },
+      { es: '老铁',   en: 'lǎotiě · buddy, mate',          topic: 'Slang',        p: 0, ex: '老铁，最近怎么样？' },
+      { es: '躺平',   en: 'tǎngpíng · to opt out, coast',  topic: 'Slang',        p: 0, ex: '我今天只想躺平。' },
+      { es: '不过',   en: 'búguò · however',               topic: 'Conversation', p: 1, ex: '不过我不太同意。' },
+      { es: '顺便说', en: 'shùnbiàn shuō · by the way',    topic: 'Conversation', p: 2, ex: '顺便说一下，你的旅行怎么样？' },
+      { es: '约',     en: 'yuē · to meet up, arrange',     topic: 'Conversation', p: 1, ex: '我们周六约吧？' }
     ],
     known: [
-      { es: 'hola',        en: 'hello',         topic: 'Basics', p: 3, ex: '¡Hola! ¿Qué tal?' },
-      { es: 'gracias',     en: 'thank you',     topic: 'Basics', p: 3, ex: 'Muchas gracias por todo.' },
-      { es: 'la cuenta',   en: 'the bill',      topic: 'Food',   p: 3, ex: 'La cuenta, por favor.' },
-      { es: 'viajar',      en: 'to travel',     topic: 'Travel', p: 3, ex: 'Me encanta viajar en tren.' },
-      { es: 'el tren',     en: 'the train',     topic: 'Travel', p: 3, ex: 'El tren sale a las diez.' },
-      { es: 'la playa',    en: 'the beach',     topic: 'Travel', p: 2, ex: 'Vamos a la playa mañana.' },
-      { es: 'la ciudad',   en: 'the city',      topic: 'Travel', p: 3, ex: 'La ciudad es preciosa de noche.' },
-      { es: 'el amigo',    en: 'friend',        topic: 'Conversation', p: 3, ex: 'Es un buen amigo mío.' },
-      { es: 'entender',    en: 'to understand', topic: 'Conversation', p: 2, ex: 'No entiendo — ¿puedes repetir?' }
+      { es: '你好', en: 'nǐ hǎo · hello',          topic: 'Basics', p: 3, ex: '你好！最近好吗？' },
+      { es: '谢谢', en: 'xièxie · thank you',      topic: 'Basics', p: 3, ex: '谢谢你的帮助。' },
+      { es: '买单', en: 'mǎidān · the bill',       topic: 'Food',   p: 3, ex: '服务员，买单！' },
+      { es: '旅行', en: 'lǚxíng · to travel',      topic: 'Travel', p: 3, ex: '我喜欢坐火车旅行。' },
+      { es: '火车', en: 'huǒchē · train',          topic: 'Travel', p: 3, ex: '火车十点出发。' },
+      { es: '海滩', en: 'hǎitān · beach',          topic: 'Travel', p: 2, ex: '我们明天去海滩吧。' },
+      { es: '城市', en: 'chéngshì · city',         topic: 'Travel', p: 3, ex: '这个城市的夜景很美。' },
+      { es: '朋友', en: 'péngyou · friend',        topic: 'Conversation', p: 3, ex: '他是我的好朋友。' },
+      { es: '明白', en: 'míngbai · to understand', topic: 'Conversation', p: 2, ex: '我不明白，可以再说一遍吗？' }
     ],
     skills: {
       vocab: { pct: 72, label: 'Vocabulary', icon: 'book', color: 'blue', pos: [24, 26],
-        desc: 'Every piece your AI has taught you, grouped by theme. The first 1,000 high-frequency words cover most of daily speech — that’s the race you’re running.' },
+        desc: 'Every piece your AI has taught you, grouped by theme. The 1,000 most common characters cover about 90% of everyday text — that’s the race you’re running.' },
       grammar: { pct: 41, label: 'Grammar', icon: 'branch', color: 'violet', pos: [64, 22],
         desc: 'The patterns that glue words together — graded like words, recall by recall, always inside real sentences.',
         concepts: [
-          { name: 'Present tense',     s: 3, ex: 'Hablo, comes, vive — regular verbs are solid.' },
-          { name: 'Gender & articles', s: 2, ex: 'el mapa, la mano — the tricky exceptions.' },
-          { name: 'Ser vs estar',      s: 2, ex: 'Soy holandés · estoy cansado.' },
-          { name: 'Pretérito (past)',  s: 1, ex: 'Ayer hablé con mi amigo.' },
-          { name: 'Por vs para',       s: 1, ex: 'Gracias por venir · esto es para ti.' },
-          { name: 'Subjunctive intro', s: 0, ex: 'Espero que tengas razón.' }
+          { name: 'Word order & time',   s: 3, ex: '我明天去北京 — time before the verb, always.' },
+          { name: 'Measure words',       s: 2, ex: '一本书、三个人、两杯茶。' },
+          { name: '了 (completed)',      s: 2, ex: '我已经吃了饭。' },
+          { name: '是…的 (emphasis)',    s: 1, ex: '我是坐火车来的。' },
+          { name: '把 construction',     s: 1, ex: '我把书放在桌子上。' },
+          { name: 'Resultative endings', s: 0, ex: '听懂 / 看完 / 找到 — verb plus result.' }
         ] },
       speaking: { pct: 55, label: 'Speaking', icon: 'mic', color: 'coral', meta: '34 conversations', pos: [42, 74],
         desc: 'Graded live in voice mode on the five CEFR aspects of spoken language.',
         subs: [
-          { name: 'Fluency',       pct: 55, note: 'keeping going without long pauses' },
-          { name: 'Pronunciation', pct: 48, note: 'phonological control — the rolled r lives here' },
-          { name: 'Accuracy',      pct: 52, note: 'right forms while speaking, not just on paper' },
-          { name: 'Interaction',   pct: 60, note: 'turn-taking, asking back, repair moves' },
-          { name: 'Coherence',     pct: 44, note: 'linking ideas — sin embargo, por cierto' }
+          { name: 'Fluency',     pct: 55, note: 'keeping going without long pauses' },
+          { name: 'Tones',       pct: 42, note: 'phonological control — the four tones in real speech' },
+          { name: 'Accuracy',    pct: 52, note: 'right patterns while speaking, not just on paper' },
+          { name: 'Interaction', pct: 60, note: 'turn-taking, asking back, repair moves' },
+          { name: 'Coherence',   pct: 44, note: 'linking ideas — 不过, 顺便说一下' }
         ] },
       listening: { pct: 63, label: 'Listening', icon: 'ear', color: 'teal', meta: '41 stories heard', pos: [86, 40],
         desc: 'Trained entirely by ear, split the way listening research splits it.',
         subs: [
-          { name: 'Gist',                 pct: 70, note: 'catch the overall meaning of a story' },
-          { name: 'Detail',               pct: 58, note: 'specific facts at native speed' },
-          { name: 'Inference',            pct: 45, note: 'what’s meant but never said' },
-          { name: 'Sound discrimination', pct: 66, note: 'pero vs perro, by ear alone' }
+          { name: 'Gist',                pct: 70, note: 'catch the overall meaning of a story' },
+          { name: 'Detail',              pct: 58, note: 'specific facts at native speed' },
+          { name: 'Inference',           pct: 45, note: 'what’s meant but never said' },
+          { name: 'Tone discrimination', pct: 61, note: 'mǎi vs mài, shū vs shú — by ear alone' }
         ] },
       reading: { pct: 48, label: 'Reading', icon: 'read', color: 'amber', meta: '12 stories read', pos: [14, 66],
         desc: 'Volume plus precision: lots of easy reading, a little hard reading.',
         subs: [
-          { name: 'Extensive reading', pct: 58, note: 'long easy stories built from your own pieces' },
-          { name: 'Scanning',          pct: 45, note: 'find the fact fast — real Spanish headlines' },
-          { name: 'Intensive reading', pct: 40, note: 'short hard texts, every word accounted for' }
+          { name: 'Character recognition', pct: 52, note: '~980 characters read on sight' },
+          { name: 'Extensive reading',     pct: 58, note: 'long easy stories built from your own pieces' },
+          { name: 'Scanning',              pct: 45, note: 'find the fact fast — real Chinese headlines' },
+          { name: 'Intensive reading',     pct: 40, note: 'short hard texts, every character accounted for' }
         ] },
       writing: { pct: 26, label: 'Writing', icon: 'pen', color: 'rose', meta: '9 notes written', pos: [76, 78],
         desc: 'The quiet skill — trained in chat mode, where your AI corrects as you type.',
         subs: [
-          { name: 'Messages & chat',   pct: 34, note: 'informal register, emoji-proof' },
-          { name: 'Sentence building', pct: 28, note: 'word order, connectors' },
-          { name: 'Spelling & accents', pct: 18, note: 'qué vs que — the little hats matter' }
+          { name: 'Pinyin typing',     pct: 41, note: 'picking the right character from the IME list' },
+          { name: 'Messages & chat',   pct: 34, note: 'informal register, WeChat-ready' },
+          { name: 'Sentence building', pct: 28, note: 'word order, connectors, particles' },
+          { name: 'Handwriting',       pct: 12, note: 'stroke order — the slow burn' }
         ] }
     },
     plans: [
-      { id: 'w33', title: 'Week 33', topic: 'Restaurant & travel', range: '11 – 17 Aug', status: 'past', pos: [13, 25],
+      { id: 'w33', title: 'Week 33', topic: 'Food & getting around', range: '11 – 17 Aug', status: 'past', pos: [13, 25],
         focus: 'restaurant & travel basics',
-        result: 'completed 5/5 · 9 pieces mastered · reading +6',
         lessons: [
           { n: 1, title: 'Menu survival', mins: 12, done: true, icon: 'coffee', color: 'amber',
-            obj: 'Read a real menu without panic.',
+            obj: 'Order in a small restaurant without switching to English.',
             steps: [
-              { k: 'vocab', name: 'New: la cuenta, el desayuno, rico', min: 4, d: 'menu pieces in context' },
-              { k: 'story', name: 'Story: “La terraza”', min: 4, d: '68 pieces, 95% already known' },
-              { k: 'cards', name: 'Voice flashcards', min: 4, d: 'hear English, answer in Spanish' }
+              { k: 'vocab', name: 'New: 点菜, 买单, 好吃', min: 4, d: 'menu pieces in context' },
+              { k: 'story', name: 'Story: 「在小饭馆」', min: 4, d: '68 pieces, 95% already known' },
+              { k: 'cards', name: 'Voice flashcards', min: 4, d: 'hear English, answer in Chinese' }
             ],
-            mats: [{ t: 'story', name: 'La terraza', d: 'generated from your vocabulary' }],
-            words: ['la cuenta', 'el desayuno', 'rico'], grammar: ['gender & articles'],
-            log: ['3/3 new pieces recalled next day', 'gender of “la cuenta” corrected twice'] },
+            mats: [{ t: 'story', name: '在小饭馆', d: 'generated from your vocabulary' }],
+            words: ['点菜', '买单', '好吃'], grammar: ['Measure words'],
+            log: ['3/3 new pieces recalled next day', 'tone on 买单 (mǎidān) drifted twice'] },
           { n: 2, title: 'Ordering & paying', mins: 14, done: true, icon: 'chat', color: 'coral',
             obj: 'Hold a full restaurant exchange by voice.',
             steps: [
               { k: 'warm', name: 'Recall menu pieces aloud', min: 3, d: '' },
-              { k: 'talk', name: 'Roleplay: order a full dinner', min: 7, d: 'AI plays the waiter, at slow pace' },
-              { k: 'cards', name: 'Flashcards: polite forms', min: 4, d: 'quisiera, me trae…' }
+              { k: 'talk', name: 'Roleplay: order dinner for two', min: 7, d: 'AI plays the waiter, at slow pace' },
+              { k: 'cards', name: 'Flashcards: polite forms', min: 4, d: '请、麻烦你、可以吗' }
             ],
             mats: [{ t: 'audio', name: 'Waiter dialogue (0.8×)', d: 'slowed native audio' }],
-            words: ['quisiera', 'me trae'], grammar: ['present tense'],
-            log: ['ordering fluent', 'numbers above 30 still slow'] },
+            words: ['请', '麻烦你'], grammar: ['Word order & time'],
+            log: ['ordering fluent', 'numbers above 100 still slow'] },
           { n: 3, title: 'Directions & transport', mins: 15, done: true, icon: 'globe', color: 'teal',
-            obj: 'Never be lost in a Spanish city again.',
+            obj: 'Never be lost in a Chinese city again.',
             steps: [
-              { k: 'vocab', name: 'New: el tren, la ciudad, girar', min: 4, d: '' },
-              { k: 'story', name: 'Story: “El último tren”', min: 5, d: 'with two comprehension questions' },
+              { k: 'vocab', name: 'New: 火车, 城市, 拐弯', min: 4, d: '' },
+              { k: 'story', name: 'Story: 「最后一班火车」', min: 5, d: 'with two comprehension questions' },
               { k: 'talk', name: 'Ask & give directions', min: 6, d: 'AI describes, you navigate' }
             ],
-            mats: [{ t: 'story', name: 'El último tren', d: 'A2, past-tense seeds' }],
-            words: ['el tren', 'la ciudad'], grammar: ['pretérito (preview)'],
+            mats: [{ t: 'story', name: '最后一班火车', d: 'HSK 3, 了-aspect seeds' }],
+            words: ['火车', '城市'], grammar: ['了 (completed)'],
             log: ['gist 100%', 'detail questions 1/2'] },
           { n: 4, title: 'Hotel check-in', mins: 12, done: true, icon: 'tag', color: 'violet',
             obj: 'Survive reception, complaints included.',
@@ -668,8 +678,8 @@
               { k: 'cards', name: 'Flashcards: hotel pack', min: 4, d: '' }
             ],
             mats: [{ t: 'pack', name: 'Hotel pack · 6 pieces', d: '' }],
-            words: ['la llave', 'la habitación'], grammar: ['ser vs estar'],
-            log: ['complaint handled with humour', '“estar” used correctly 4/5'] },
+            words: ['房间', '钥匙'], grammar: ['把 construction'],
+            log: ['complaint handled with humour', '把 used correctly 4/5'] },
           { n: 5, title: 'Review & exam', mins: 18, done: true, icon: 'star', color: 'blue',
             obj: 'Prove week 33 stuck; seed week 34.',
             steps: [
@@ -688,53 +698,53 @@
             obj: 'Re-activate what you already own before the new week begins.',
             steps: [
               { k: 'warm', name: 'Rapid recall: 10 known pieces', min: 3, d: 'AI prompts in English, you answer by voice' },
-              { k: 'talk', name: 'Micro-conversation: introduce yourself', min: 4, d: 'name, city, why Spanish' },
+              { k: 'talk', name: 'Micro-conversation: introduce yourself', min: 4, d: 'name, city, why Chinese' },
               { k: 'cards', name: 'Flashcards: greetings pack', min: 3, d: '' }
             ],
             mats: [{ t: 'pack', name: 'Greetings pack · 8 pieces', d: 'from week 32' }],
-            words: ['hola', 'gracias'], grammar: ['present tense'],
-            log: ['10/10 recalled', 'pronunciation of “gracias” now solid'] },
+            words: ['你好', '谢谢'], grammar: ['Word order & time'],
+            log: ['10/10 recalled', 'tone pair in 你好 (nǐ hǎo) now solid'] },
           { n: 2, title: 'First news words', mins: 15, done: true, icon: 'news', color: 'violet',
             obj: 'Meet the five core news pieces — in context, never as a list.',
             steps: [
-              { k: 'vocab', name: 'New: noticia, titular, gobierno, encuesta, huelga', min: 5, d: 'each inside a real sentence' },
-              { k: 'story', name: 'Micro-story: “Huelga de trenes”', min: 4, d: '72 pieces, 96% already known' },
-              { k: 'warm', name: 'Repeat-after-me drill', min: 3, d: 'shadowing at 0.9× speed' },
-              { k: 'cards', name: 'Voice flashcards EN→ES', min: 3, d: '' }
+              { k: 'vocab', name: 'New: 新闻、标题、政府、调查、罢工', min: 5, d: 'each inside a real sentence' },
+              { k: 'story', name: 'Micro-story: 「地铁罢工」', min: 4, d: '72 pieces, 96% already known' },
+              { k: 'warm', name: 'Repeat-after-me drill', min: 3, d: 'shadowing at 0.9× speed, tones marked' },
+              { k: 'cards', name: 'Voice flashcards EN→中文', min: 3, d: '' }
             ],
             mats: [
-              { t: 'story', name: 'Huelga de trenes', d: 'generated from your vocabulary + 5 new pieces' },
-              { t: 'pack', name: 'News pack · 5 pieces', d: 'suggested by goal: “follow Spanish news”' }
+              { t: 'story', name: '地铁罢工', d: 'generated from your vocabulary + 5 new pieces' },
+              { t: 'pack', name: 'News pack · 5 pieces', d: 'suggested by goal: “follow Chinese news”' }
             ],
-            words: ['la noticia', 'el titular', 'el gobierno', 'la encuesta', 'la huelga'], grammar: ['gender & articles'],
-            log: ['4/5 recalled next day', '“encuesta” shaky — flagged for lesson 3'] },
+            words: ['新闻', '标题', '政府', '调查', '罢工'], grammar: ['Measure words'],
+            log: ['4/5 recalled next day', '调查 shaky — flagged for lesson 3'] },
           { n: 3, title: 'News in conversation', mins: 15, done: false, today: true, icon: 'mic', color: 'coral',
             obj: 'Push the news pieces from recognition into speech.',
             steps: [
-              { k: 'warm', name: 'Review lesson-2 words aloud', min: 3, d: 'open with “encuesta” — it was shaky' },
-              { k: 'story', name: 'Story recall: questions on the huelga story', min: 4, d: 'gist first, then two detail questions' },
-              { k: 'talk', name: 'Conversation: ¿qué noticia leíste esta semana?', min: 5, d: 'AI corrects gently, keeps the flow' },
-              { k: 'cards', name: 'Voice flashcards to close', min: 3, d: 'all five news pieces + sin embargo' }
+              { k: 'warm', name: 'Review lesson-2 words aloud', min: 3, d: 'open with 调查 — it was shaky' },
+              { k: 'story', name: 'Story recall: questions on 「地铁罢工」', min: 4, d: 'gist first, then two detail questions' },
+              { k: 'talk', name: 'Conversation: 你这周看了什么新闻？', min: 5, d: 'AI corrects gently, keeps the flow' },
+              { k: 'cards', name: 'Voice flashcards to close', min: 3, d: 'all five news pieces + 不过' }
             ],
             mats: [
-              { t: 'story', name: 'Huelga de trenes (reprise)', d: 'same story, harder questions' },
-              { t: 'news', name: '3 real headlines · El País', d: 'scan for the one about transport' }
+              { t: 'story', name: '地铁罢工 (reprise)', d: 'same story, harder questions' },
+              { t: 'news', name: '3 real headlines · 人民日报', d: 'scan for the one about transport' }
             ],
-            words: ['la noticia', 'el titular', 'la encuesta', 'sin embargo'], grammar: ['pretérito (intro)'],
-            note: 'From lesson 2: “encuesta still shaky — open with it.”' },
+            words: ['新闻', '标题', '调查', '不过'], grammar: ['了 (completed)'],
+            note: 'From lesson 2: “调查 still shaky — open with it.”' },
           { n: 4, title: 'Slang starter', mins: 15, done: false, icon: 'tag', color: 'rose',
             obj: 'First real slang — sound like a person, not a textbook.',
             steps: [
-              { k: 'vocab', name: 'New: guay, vale, tío, flipar', min: 4, d: 'register notes: with friends, not bosses' },
+              { k: 'vocab', name: 'New: 给力、靠谱、老铁、躺平', min: 4, d: 'register notes: with friends, never with your boss' },
               { k: 'story', name: 'Dialogue: running into a friend', min: 4, d: 'street pace, real fillers' },
               { k: 'talk', name: 'Roleplay the dialogue, swap roles', min: 5, d: 'you start the second run' },
-              { k: 'cards', name: 'Flashcards ES→EN', min: 2, d: '' }
+              { k: 'cards', name: 'Flashcards 中文→EN', min: 2, d: '' }
             ],
             mats: [
               { t: 'audio', name: 'Street-pace dialogue (1.0×)', d: 'first full-speed material this week' },
               { t: 'pack', name: 'Slang pack · 4 pieces', d: 'goal: “real slang, not textbook stuff”' }
             ],
-            words: ['guay', 'vale', 'tío / tía', 'flipar'], grammar: [] },
+            words: ['给力', '靠谱', '老铁', '躺平'], grammar: [] },
           { n: 5, title: 'Review & mini exam', mins: 20, done: false, icon: 'star', color: 'amber',
             obj: 'Prove the week stuck — then let the AI write the next one.',
             steps: [
@@ -744,7 +754,7 @@
               { k: 'plan', name: 'AI writes week 35', min: 2, d: 'create_plan, after reviewing results' }
             ],
             mats: [{ t: 'rubric', name: 'CEFR-lite exam rubric', d: 'the same five spoken-language aspects' }],
-            words: [], grammar: ['pretérito (past)'] }
+            words: [], grammar: ['是…的 (emphasis)'] }
         ] },
       { id: 'w35', title: 'Week 35', topic: 'Not written yet', range: '25 – 31 Aug', status: 'future', pos: [13, 76] }
     ]
@@ -1343,7 +1353,7 @@
           '<div class="aitip">Want more? Say <b>&ldquo;teach me five more ' + c.name.toLowerCase() + ' words&rdquo;</b> in your next lesson.</div>';
       } else if (c.type === 'concept') {
         body = bar(c.pct) +
-          '<p class="desc" style="margin-top:10px"><span style="font-weight:800; font-style:italic; color:var(--ink)">' + c.ex + '</span></p>' +
+          '<p class="desc" style="margin-top:10px"><span style="font-weight:800; color:var(--ink)">' + c.ex + '</span></p>' +
           '<div class="aitip">Graded like vocabulary: three solid recalls in real sentences and it turns green.</div>';
       } else {
         body = bar(c.pct) +
@@ -1413,7 +1423,7 @@
     if (p.status === 'future') {
       box.innerHTML =
         '<p class="desc" style="margin-top:10px; padding-right:24px">Plans are <b>always short-term</b> — one week, then iterate. Your AI writes this one on Sunday, in lesson 5 of week 34, after reviewing what stuck and what didn’t.</p>' +
-        '<p class="desc">Likely focus, based on this week’s notes: <b>pretérito</b>, more news pieces, and “encuesta” until it behaves.</p>' +
+        '<p class="desc">Likely focus, based on this week’s notes: <b>是…的</b>, more news pieces, and 调查 until it behaves.</p>' +
         '<div class="aitip">Impatient? Say <b>&ldquo;plan next week now&rdquo;</b> in voice mode — it calls <b>create_plan</b> whenever you ask.</div>';
       return;
     }
@@ -1653,13 +1663,13 @@
     { t: 'sys',  text: 'VOICE MODE · NEW PROFILE, NOTHING LINKED YET', d: 1600 },
     { t: 'user', text: '&ldquo;Link my Open Language Teacher profile — code OLT-4F2K.&rdquo;', d: 2000 },
     { t: 'tool', name: 'link_profile', args: '{ code: "OLT-4F2K" }', fx: 'connected', d: 2000 },
-    { t: 'ai',   text: 'Linked! A brand-new Spanish profile. Roughly how many Spanish words would you say you already know?', d: 2600 },
-    { t: 'user', text: '&ldquo;Maybe two hundred? I can order food and greet people.&rdquo;', d: 2200 },
-    { t: 'ai',   text: 'A solid A2 base. And what do you want Spanish <em>for</em> — conversations, reading, travel, the news?', d: 2600 },
-    { t: 'user', text: '&ldquo;Conversations mostly. And Spanish news… and real slang, not textbook stuff.&rdquo;', d: 2600 },
-    { t: 'tool', name: 'update_profile', args: '{ level: "A2", known_words: ~200,\n  goals: ["conversation", "news", "slang"] }', fx: 'profile saved · skill map estimated',
+    { t: 'ai',   text: 'Linked! A brand-new Mandarin profile. Roughly how many Chinese words would you say you already know?', d: 2600 },
+    { t: 'user', text: '&ldquo;Maybe six hundred? I passed HSK 3 last year and I can order food.&rdquo;', d: 2200 },
+    { t: 'ai',   text: 'Solid intermediate base. And what do you want Chinese <em>for</em> — conversations, reading, travel, the news?', d: 2600 },
+    { t: 'user', text: '&ldquo;Conversations mostly. And Chinese news… and real slang, not textbook stuff.&rdquo;', d: 2600 },
+    { t: 'tool', name: 'update_profile', args: '{ language: "zh-CN", from: "en",\n  level: "HSK 4 / B1", known_words: ~600,\n  goals: ["conversation", "news", "slang"] }', fx: 'profile saved · skill map estimated',
       run: () => {
-        state.knownExtra = 200;
+        state.knownExtra = 610;
         state.skills = deepCopy(DEFAULT.skills);
         skBuild(); renderSkillSide();
       }, d: 2200 },
@@ -1668,12 +1678,12 @@
     { t: 'user', text: '&ldquo;Perfect.&rdquo;', d: 1400 },
     { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"] }', fx: 'plan written — check the Plan tab',
       run: () => { state.plans = freshPlans(); plBuild(); renderPlanSide(); }, d: 2400 },
-    { t: 'tool', name: 'add_subtopics', args: '{ vocabulary: ["News", "Slang"],\n  grammar: ["pretérito", "por vs para"],\n  words: ["la noticia", "el titular", …12] }', fx: 'new nodes on your map',
+    { t: 'tool', name: 'add_subtopics', args: '{ vocabulary: ["News", "Slang"],\n  grammar: ["了 (completed)", "把 construction"],\n  words: ["新闻", "标题", …12] }', fx: 'new nodes on your map',
       run: () => {
         state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
         skBuild(); renderSkillSide(); flashSkill('vocab');
       }, d: 2400 },
-    { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. ¡Hasta pronto!', d: 2400 },
+    { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. 加油！', d: 2400 },
     { t: 'sys',  text: 'ONBOARDING COMPLETE — THE MAPS FILLED THEMSELVES IN', d: 1200 }
   ];
 
@@ -1702,7 +1712,7 @@
     const l = nextLesson();
     if (!p || !l) return;
     l.done = true;
-    l.log = ['story gist: perfect', 'conversation: 2 self-corrections', '“encuesta” recalled once — one more to go'];
+    l.log = ['story gist: perfect', 'conversation: 2 self-corrections', '调查 recalled once — one more to go'];
     state.streak += 1;
     state.skills.speaking.pct = Math.min(100, state.skills.speaking.pct + 4);
     state.skills.listening.pct = Math.min(100, state.skills.listening.pct + 3);
@@ -1714,21 +1724,21 @@
 
   const lessonEvents = [
     { t: 'sys',  text: 'VOICE MODE · PROFILE LINKED', d: 1400 },
-    { t: 'user', text: '&ldquo;Start my next Spanish lesson.&rdquo;', d: 1800 },
-    { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News in conversation (~15 min)\n→ note from lesson 2: "encuesta was shaky"', d: 2400 },
-    { t: 'ai',   text: 'Lesson three. Warm-up first — repeat after me: <span class="es">la noticia… el titular… la encuesta.</span>', d: 2800 },
-    { t: 'user', text: '&ldquo;La noticia… el titular… la encuesta.&rdquo;', d: 2200 },
-    { t: 'ai',   text: 'A tiny story: <span class="es">&ldquo;El titular decía: huelga de trenes. Según la encuesta, el gobierno perdía apoyo…&rdquo;</span> — what was the headline about?', d: 3200 },
-    { t: 'user', text: '&ldquo;¡La huelga de trenes!&rdquo;', d: 1800 },
-    { t: 'ai',   text: 'Perfecto. Your turn — <span class="es">¿qué noticia leíste tú esta semana?</span>', d: 2400 },
-    { t: 'user', text: '&ldquo;Eh… leí una noticia sobre una encuesta del gobierno.&rdquo;', d: 2400 },
-    { t: 'ai',   text: 'Great sentence. Flashcards to close — how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2400 },
-    { t: 'user', text: '&ldquo;¡El titular!&rdquo;', d: 1600 },
-    { t: 'tool', name: 'update_word_strength', args: '{ "la noticia": 3, "el titular": 2,\n  "la encuesta": 1 }', fx: '"la noticia" graduated to mastered',
-      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flashSkill('vocab'); }, d: 2600 },
-    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · maps updated',
+    { t: 'user', text: '&ldquo;Start my next Chinese lesson.&rdquo;', d: 1800 },
+    { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News in conversation (~15 min)\n→ note from lesson 2: "调查 was shaky"', d: 2400 },
+    { t: 'ai',   text: 'Lesson three. Warm-up first — repeat after me: <span class="es">新闻 xīnwén… 标题 biāotí… 调查 diàochá.</span>', d: 2800 },
+    { t: 'user', text: '&ldquo;新闻… 标题… 调查。&rdquo;', d: 2200 },
+    { t: 'ai',   text: 'Watch the fourth tone on 调查. A tiny story: <span class="es">&ldquo;标题写着：地铁罢工。根据调查，政府失去了支持…&rdquo;</span> — what was the headline about?', d: 3200 },
+    { t: 'user', text: '&ldquo;地铁罢工 — the subway strike!&rdquo;', d: 1800 },
+    { t: 'ai',   text: '很好。Your turn — <span class="es">你这周看了什么新闻？</span>', d: 2400 },
+    { t: 'user', text: '&ldquo;嗯… 我看了一条关于政府调查的新闻。&rdquo;', d: 2400 },
+    { t: 'ai',   text: 'Great sentence — and you used the measure word 条 correctly. Flashcards to close: how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2600 },
+    { t: 'user', text: '&ldquo;标题！&rdquo;', d: 1600 },
+    { t: 'tool', name: 'update_word_strength', args: '{ "新闻": 3, "标题": 2,\n  "调查": 1 }', fx: '"新闻" graduated to mastered',
+      run: () => { bumpWord('调查', 1); bumpWord('标题', 2); bumpWord('新闻', 3); flashSkill('vocab'); }, d: 2600 },
+    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "调查 tone still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · maps updated',
       run: completeNext, d: 2400 },
-    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated, and your speaking node ticked up. Same time tomorrow for slang?', d: 2600 },
+    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">新闻</span> just graduated, and your speaking node ticked up. Same time tomorrow for slang?', d: 2600 },
     { t: 'sys',  text: 'SESSION SYNCED — THE SCORE IS KEPT BEHIND ME', d: 1200 }
   ];
 
