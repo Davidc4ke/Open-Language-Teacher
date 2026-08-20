@@ -39,7 +39,11 @@
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.45);
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  *::-webkit-scrollbar { width: 7px; height: 7px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+  *::-webkit-scrollbar-thumb:hover { background: var(--faint); }
   html, body { margin: 0; padding: 0; }
   body {
     background: var(--bg); color: var(--ink);
@@ -178,9 +182,14 @@
   .searchpill.hasq .clear { display: grid; }
 
   .sk-body {
-    display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: 18px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 0px; gap: 0;
     height: clamp(430px, calc(100vh - 220px), 640px);
+    transition: grid-template-columns .45s cubic-bezier(.3,.8,.3,1), gap .45s cubic-bezier(.3,.8,.3,1);
   }
+  .sk-body.withside { grid-template-columns: minmax(0, 1fr) 316px; gap: 18px; }
+  .sk-side { min-width: 0; opacity: 0; transform: translateX(14px); pointer-events: none;
+    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.2,.4,1), background-color .35s ease; }
+  .sk-body.withside .sk-side { opacity: 1; transform: none; pointer-events: auto; }
   .mapcanvas {
     position: relative; overflow: hidden; border-radius: 24px;
     touch-action: none;
@@ -230,7 +239,7 @@
   .fnode.ghost:hover .nring b { border-color: var(--blue); color: var(--blue); }
 
   /* ---------- sidebar ---------- */
-  .sk-side { overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 4px; }
+  .sk-side { overflow-y: auto; overflow-x: hidden; padding: 24px 22px; display: flex; flex-direction: column; gap: 4px; }
   .sk-side .backlink { color: var(--faint); font-weight: 700; font-size: 12px; text-align: left; padding: 0 0 8px; transition: color .2s; }
   .sk-side .backlink:hover { color: var(--blue); }
   .sk-side .bigpct { font-size: 44px; font-weight: 900; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -395,9 +404,10 @@
   }
 
   @media (max-width: 900px) {
-    .sk-body { grid-template-columns: 1fr; height: auto; }
+    .sk-body, .sk-body.withside { grid-template-columns: 1fr; height: auto; }
     .mapcanvas { height: 400px; }
-    .sk-side { max-height: 420px; }
+    .sk-side { display: none; max-height: 420px; }
+    .sk-body.withside .sk-side { display: flex; }
   }
   @media (max-width: 640px) {
     .topbar { margin: 12px 12px 0; }
