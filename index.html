@@ -19,6 +19,9 @@
     --shadow: 0 1px 2px rgba(23,32,58,.04), 0 14px 40px rgba(23,32,58,.08);
     --sans: 'Nunito Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    /* standard node palette — settable per node over MCP */
+    --c-blue: #2E63E7; --c-teal: #0F8C86; --c-violet: #7A4FD8;
+    --c-coral: #DA6A4C; --c-amber: #B98216; --c-green: #35935B; --c-rose: #C2417C;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -28,6 +31,8 @@
       --blue: #7FA3F2; --green: #6FC28F; --green-soft: #1E3226;
       --coral: #E98F72; --chip: #232A38; --glow: rgba(127,163,242,.12);
       --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.45);
+      --c-blue: #7FA3F2; --c-teal: #5BC8C2; --c-violet: #A98BF0;
+      --c-coral: #E98F72; --c-amber: #E3B45C; --c-green: #6FC28F; --c-rose: #E387B4;
     }
   }
   :root[data-theme="dark"] {
@@ -37,6 +42,8 @@
     --blue: #7FA3F2; --green: #6FC28F; --green-soft: #1E3226;
     --coral: #E98F72; --chip: #232A38; --glow: rgba(127,163,242,.12);
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.45);
+    --c-blue: #7FA3F2; --c-teal: #5BC8C2; --c-violet: #A98BF0;
+    --c-coral: #E98F72; --c-amber: #E3B45C; --c-green: #6FC28F; --c-rose: #E387B4;
   }
 
   * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
@@ -194,10 +201,11 @@
   .nring > svg circle { fill: none; stroke-width: 5; }
   .nring .t { stroke: var(--line); }
   .nring .f {
-    stroke: var(--faint); stroke-linecap: round;
+    stroke: var(--nc, var(--faint)); stroke-linecap: round;
     stroke-dasharray: 163.4; stroke-dashoffset: 163.4;
     transition: stroke-dashoffset 1s cubic-bezier(.3,.8,.3,1), stroke .3s;
   }
+  .nico { color: var(--nc, currentColor); }
   .nring b {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
@@ -214,10 +222,14 @@
   .nlabel { font-weight: 800; font-size: 13px; pointer-events: none; white-space: nowrap; }
   .fnode.child .nlabel { font-size: 11.5px; font-weight: 700; color: var(--muted); max-width: 110px; white-space: normal; text-align: center; line-height: 1.2; }
   .nsub { letter-spacing: .14em; font-size: 8px; color: var(--faint); pointer-events: none; white-space: nowrap; }
-  .fnode.sel .nring .f, .fnode.open .nring .f { stroke: var(--blue); }
-  .fnode.sel .nring b, .fnode.open .nring b { color: var(--blue); box-shadow: 0 0 0 6px var(--glow), var(--shadow); }
+  .fnode.sel .nring .f, .fnode.open .nring .f { stroke: var(--nc, var(--blue)); }
+  .fnode.sel .nring b, .fnode.open .nring b {
+    color: var(--nc, var(--blue));
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--nc, var(--blue)) 15%, transparent), var(--shadow);
+  }
   .fnode.done-n .nring .f { stroke: var(--green); }
   .fnode.done-n .nring b { color: var(--green); }
+  .fnode.done-n .nico { color: inherit; }
   .fnode.ghost .nring b { background: transparent; box-shadow: none; border: 2px dashed var(--faint); color: var(--faint); font-size: 18px; font-weight: 600; }
   .fnode.ghost .nring .t, .fnode.ghost .nring .f { stroke: transparent; }
   .fnode.ghost:hover .nring b { border-color: var(--blue); color: var(--blue); }
@@ -520,9 +532,9 @@
       { es: 'entender',    en: 'to understand', topic: 'Conversation', p: 2, ex: 'No entiendo — ¿puedes repetir?' }
     ],
     skills: {
-      vocab: { pct: 72, label: 'Vocabulary', icon: 'book', pos: [24, 26],
+      vocab: { pct: 72, label: 'Vocabulary', icon: 'book', color: 'blue', pos: [24, 26],
         desc: 'Every piece your AI has taught you, grouped by theme. The first 1,000 high-frequency words cover most of daily speech — that’s the race you’re running.' },
-      grammar: { pct: 41, label: 'Grammar', icon: 'branch', pos: [64, 16],
+      grammar: { pct: 41, label: 'Grammar', icon: 'branch', color: 'violet', pos: [64, 16],
         desc: 'The patterns that glue words together — graded like words, recall by recall, always inside real sentences.',
         concepts: [
           { name: 'Present tense',     s: 3, ex: 'Hablo, comes, vive — regular verbs are solid.' },
@@ -532,7 +544,7 @@
           { name: 'Por vs para',       s: 1, ex: 'Gracias por venir · esto es para ti.' },
           { name: 'Subjunctive intro', s: 0, ex: 'Espero que tengas razón.' }
         ] },
-      speaking: { pct: 55, label: 'Speaking', icon: 'mic', meta: '34 conversations', pos: [42, 74],
+      speaking: { pct: 55, label: 'Speaking', icon: 'mic', color: 'coral', meta: '34 conversations', pos: [42, 74],
         desc: 'Graded live in voice mode on the five CEFR aspects of spoken language.',
         subs: [
           { name: 'Fluency',       pct: 55, note: 'keeping going without long pauses' },
@@ -541,7 +553,7 @@
           { name: 'Interaction',   pct: 60, note: 'turn-taking, asking back, repair moves' },
           { name: 'Coherence',     pct: 44, note: 'linking ideas — sin embargo, por cierto' }
         ] },
-      listening: { pct: 63, label: 'Listening', icon: 'ear', meta: '41 stories heard', pos: [86, 40],
+      listening: { pct: 63, label: 'Listening', icon: 'ear', color: 'teal', meta: '41 stories heard', pos: [86, 40],
         desc: 'Trained entirely by ear, split the way listening research splits it.',
         subs: [
           { name: 'Gist',                 pct: 70, note: 'catch the overall meaning of a story' },
@@ -549,14 +561,14 @@
           { name: 'Inference',            pct: 45, note: 'what’s meant but never said' },
           { name: 'Sound discrimination', pct: 66, note: 'pero vs perro, by ear alone' }
         ] },
-      reading: { pct: 48, label: 'Reading', icon: 'read', meta: '12 stories read', pos: [14, 66],
+      reading: { pct: 48, label: 'Reading', icon: 'read', color: 'amber', meta: '12 stories read', pos: [14, 66],
         desc: 'Volume plus precision: lots of easy reading, a little hard reading.',
         subs: [
           { name: 'Extensive reading', pct: 58, note: 'long easy stories built from your own pieces' },
           { name: 'Scanning',          pct: 45, note: 'find the fact fast — real Spanish headlines' },
           { name: 'Intensive reading', pct: 40, note: 'short hard texts, every word accounted for' }
         ] },
-      writing: { pct: 26, label: 'Writing', icon: 'pen', meta: '9 notes written', pos: [76, 78],
+      writing: { pct: 26, label: 'Writing', icon: 'pen', color: 'rose', meta: '9 notes written', pos: [76, 78],
         desc: 'The quiet skill — trained in chat mode, where your AI corrects as you type.',
         subs: [
           { name: 'Messages & chat',   pct: 34, note: 'informal register, emoji-proof' },
@@ -754,6 +766,7 @@
         dead: false
       });
       setRing(el, o.ghost ? 0 : (o.pct || 0));
+      if (o.color) el.style.setProperty('--nc', 'var(--c-' + o.color + ')');
       attach(n);
       f.nodes.push(n);
       return n;
@@ -936,7 +949,7 @@
     skExpanded = null; skChild = null;
     SKILL_KEYS.forEach((k, i) => {
       const sk = state.skills[k];
-      const n = SK.makeNode({ kind: 'skill', key: k, px: sk.pos[0], py: sk.pos[1], pct: sk.pct, icon: sk.icon, label: sk.label, sub: nodeSub(k) });
+      const n = SK.makeNode({ kind: 'skill', key: k, px: sk.pos[0], py: sk.pos[1], pct: sk.pct, icon: sk.icon, color: sk.color, label: sk.label, sub: nodeSub(k) });
       if (!reduced) { n.s = 0; n.ts = 0; setTimeout(() => { n.ts = 1; }, 80 * i); }
     });
   }
@@ -955,7 +968,7 @@
     kids.push({ ghost: true, i: kids.length });
     bloom(SK, parent, kids, (o) => o.ghost
       ? { kind: 'ghost', key: 'ghost', idx: o.i, ghost: true }
-      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, icon: o.c.icon, label: o.c.name }, cx, 46);
+      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, icon: o.c.icon, color: state.skills[k].color, label: o.c.name }, cx, 46);
     renderSkillSide();
   }
 
@@ -1207,7 +1220,7 @@
       box.innerHTML =
         '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' +
         '<p class="desc">Nothing on this map is hard-coded. The app only <em>suggests</em> a standard taxonomy over MCP (<span style="font-family:var(--mono); font-size:11px">get_skill_taxonomy</span>) — the six skills and their common subtopics. Your AI creates every node, and can go beyond the standard set whenever you do.</p>' +
-        '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopics</b>, with an icon your AI picks from the app&rsquo;s standard set (book, mic, globe, tag…).</div>';
+        '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopics</b>, with an icon and a color your AI picks from the app&rsquo;s standard sets (book, mic, globe, tag… · blue, teal, violet, coral, amber, rose).</div>';
       return;
     }
 
