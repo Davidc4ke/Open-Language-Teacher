@@ -177,6 +177,8 @@
     position: absolute; inset: 0; overflow: hidden;
     touch-action: none; cursor: grab;
     transition: opacity .3s;
+    background-image: radial-gradient(color-mix(in srgb, var(--faint) 30%, transparent) 1.5px, transparent 1.5px);
+    background-size: 26px 26px;
   }
   .mapcanvas.grabbing { cursor: grabbing; }
   .maphint { position: absolute; right: 18px; bottom: 14px; text-align: right; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
@@ -852,6 +854,9 @@
       f.cam.x += (f.tcam.x - f.cam.x) * 0.14;
       f.cam.y += (f.tcam.y - f.cam.y) * 0.14;
       f.zoom += (f.tzoom - f.zoom) * 0.14;
+      const gs = 26 * f.zoom;
+      canvas.style.backgroundPosition = f.cam.x + 'px ' + f.cam.y + 'px';
+      canvas.style.backgroundSize = gs + 'px ' + gs + 'px';
       f.nodes.forEach(n => {
         const tx = n.px / 100 * w, ty = n.py / 100 * h;
         n.bx += (tx - n.bx) * 0.085;
