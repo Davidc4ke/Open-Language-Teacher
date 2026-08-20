@@ -1437,7 +1437,7 @@
     }
 
     box.innerHTML =
-      '<p class="desc" style="margin-top:10px; padding-right:24px">' + p.range + ' · written by ChatGPT via MCP.<br>Focus: <b>' + p.focus + '</b>' + (p.result ? ' · ' + p.result : '') + '</p>' +
+      '<p class="desc" style="margin-top:10px; padding-right:24px">Focus: <b>' + p.focus + '</b></p>' +
       '<span class="mono">Lessons · click for full detail</span>' +
       '<ul class="siderows">' + p.lessons.map((l, i) => {
         const isNext = p.status === 'current' && nextLesson() && nextLesson().n === l.n;
