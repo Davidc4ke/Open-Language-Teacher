@@ -1444,11 +1444,12 @@
     if (!l || !day) return;
     const parts = partsOf(l);
     const k = parts.length;
+    const cxp = Math.min(78, Math.max(34, day.px));
     parts.forEach((pt, j) => {
       PL.makeNode({
         kind: 'part', key: plWeek, idx: i, part: j, small: true, cls: 'part',
-        px: Math.max(6, Math.min(94, day.px + (j - (k - 1) / 2) * 10)),
-        py: Math.min(90, day.py + 27),
+        px: Math.max(21, Math.min(92, cxp + (j - (k - 1) / 2) * 11)),
+        py: Math.min(88, day.py + 30),
         fromX: day.bx, fromY: day.by,
         pct: 100, text: '', icon: pt.icon, color: pt.color,
         label: pt.name, sub: pt.kind
@@ -2082,5 +2083,28 @@
   renderAll();
   reveal(document.querySelector('section.active'));
   requestAnimationFrame(() => SK.start());
+
+  /* ---- live sync: when served by the OLT server, hydrate from /api/state and
+     poll so MCP tool calls from your AI show up here within seconds ---- */
+  let lastV = -1;
+  async function syncState() {
+    try {
+      const r = await fetch('/api/state', { cache: 'no-store' });
+      if (!r.ok) return;
+      const s = await r.json();
+      if (typeof s.v === 'number' && s.v !== lastV && !playing) {
+        lastV = s.v;
+        state = s;
+        const keepWeek = plWeek, keepSel = plSel, keepPart = plPart;
+        renderAll();
+        if (keepWeek && state.plans.some(p => p.id === keepWeek && p.status !== 'future')) {
+          plExpand(keepWeek);
+          if (typeof keepSel === 'number') { plSelect(keepSel); if (keepPart != null) plPartSelect(keepPart); }
+        }
+      }
+    } catch (e) { /* static mode — keep local seed */ }
+  }
+  syncState();
+  setInterval(syncState, 3000);
 })();
 </script>
