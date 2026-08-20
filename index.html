@@ -128,12 +128,14 @@
   .sk-head { display: flex; align-items: center; gap: 20px; margin-bottom: 12px; }
   .searchpill {
     flex: 1; display: flex; align-items: center; gap: 12px;
-    background: var(--chip);
-    background: color-mix(in srgb, var(--blue) 6%, var(--chip));
+    background: var(--card);
+    background: color-mix(in srgb, var(--blue) 9%, var(--card));
+    border: 1.5px solid color-mix(in srgb, var(--blue) 22%, var(--line));
     border-radius: 999px;
     padding: 4px 8px 4px 20px;
-    transition: box-shadow .25s, background-color .35s;
+    transition: box-shadow .25s, background-color .35s, border-color .25s;
   }
+  .searchpill:focus-within { border-color: var(--blue); }
   .searchpill:focus-within { box-shadow: 0 2px 3px rgba(23,32,58,.05), 0 18px 44px rgba(23,32,58,.13), 0 0 0 2px var(--glow); }
   .searchpill .glyph { color: var(--faint); font-size: 15px; flex: none; }
   .searchpill input {
@@ -160,9 +162,11 @@
   .sk-body.withside .sk-side { opacity: 1; transform: none; pointer-events: auto; }
   .mapcanvas {
     position: relative; overflow: hidden; border-radius: 24px;
-    touch-action: none;
+    touch-action: none; cursor: grab;
     transition: opacity .3s;
   }
+  .mapcanvas.grabbing { cursor: grabbing; }
+  .maphint { position: absolute; right: 16px; bottom: 12px; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
   .mapcanvas.dim { opacity: .35; }
   .mapnote { position: absolute; left: 16px; bottom: 12px; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); max-width: 90%; }
   #mapLines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -413,6 +417,7 @@
       <div class="mapcanvas" id="skillMap">
         <svg id="mapLines"></svg>
         <span class="mapnote mono">every node is created &amp; graded by your AI — this standard set is suggested by the app via MCP</span>
+        <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
       </div>
       <aside class="card sk-side" id="skillSide"></aside>
     </div>
@@ -591,6 +596,8 @@
   const linesEl = $('mapLines');
   let fnodes = [];   // {key, idx, type:'skill'|'child'|'ghost', el, px, py, bx, by, s, ts, amp, sp, ph, dead}
   let rafId = null;
+  let cam = { x: 0, y: 0 }, tcam = { x: 0, y: 0 };
+  let zoom = 1, tzoom = 1;
 
   function pxOf(n) { return [n.px / 100 * mapEl.clientWidth, n.py / 100 * mapEl.clientHeight]; }
 
@@ -712,6 +719,9 @@
 
   function tick(t) {
     const w = mapEl.clientWidth, h = mapEl.clientHeight;
+    cam.x += (tcam.x - cam.x) * 0.14;
+    cam.y += (tcam.y - cam.y) * 0.14;
+    zoom += (tzoom - zoom) * 0.14;
     fnodes.forEach(n => {
       const tx = n.px / 100 * w, ty = n.py / 100 * h;
       n.bx += (tx - n.bx) * 0.085;
@@ -719,8 +729,9 @@
       n.s += (n.ts - n.s) * 0.12;
       const fx = reduced ? 0 : Math.sin(t / 1000 * n.sp + n.ph) * n.amp * n.s;
       const fy = reduced ? 0 : Math.cos(t / 1000 * n.sp * 0.83 + n.ph * 1.3) * n.amp * n.s;
-      n.rx = n.bx + fx; n.ry = n.by + fy;
-      n.el.style.transform = 'translate(' + n.rx + 'px,' + n.ry + 'px) translate(-50%,-50%) scale(' + Math.max(0.01, n.s) + ')';
+      n.rx = (n.bx + fx) * zoom + cam.x;
+      n.ry = (n.by + fy) * zoom + cam.y;
+      n.el.style.transform = 'translate(' + n.rx + 'px,' + n.ry + 'px) translate(-50%,-50%) scale(' + (Math.max(0.01, n.s) * zoom) + ')';
     });
     updateLines();
     rafId = requestAnimationFrame(tick);
@@ -745,8 +756,10 @@
         if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 6) moved = true;
         if (!moved) return;
         const r = mapEl.getBoundingClientRect();
-        n.px = Math.max(4, Math.min(96, (ev.clientX - r.left) / r.width * 100));
-        n.py = Math.max(6, Math.min(94, (ev.clientY - r.top) / r.height * 100));
+        const wx = (ev.clientX - r.left - cam.x) / zoom;
+        const wy = (ev.clientY - r.top - cam.y) / zoom;
+        n.px = Math.max(4, Math.min(96, wx / r.width * 100));
+        n.py = Math.max(6, Math.min(94, wy / r.height * 100));
       };
       const up = () => {
         window.removeEventListener('pointermove', move);
@@ -767,9 +780,37 @@
     }
   }
 
+  /* pan (drag empty canvas), zoom (scroll), reset (double-click) */
   mapEl.addEventListener('pointerdown', e => {
-    if (!e.target.closest('.fnode') && expanded) collapse();
+    if (e.target.closest('.fnode')) return;
+    const sx = e.clientX, sy = e.clientY, cx0 = tcam.x, cy0 = tcam.y;
+    let moved = false;
+    mapEl.classList.add('grabbing');
+    const move = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (Math.hypot(dx, dy) > 6) moved = true;
+      if (moved) { tcam.x = cx0 + dx; tcam.y = cy0 + dy; }
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      mapEl.classList.remove('grabbing');
+      if (!moved && expanded) collapse();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   });
+  mapEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    const r = mapEl.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const nz = Math.max(0.45, Math.min(2.4, tzoom * Math.exp(-e.deltaY * 0.0012)));
+    const wx = (mx - tcam.x) / tzoom, wy = (my - tcam.y) / tzoom;
+    tcam.x = mx - wx * nz;
+    tcam.y = my - wy * nz;
+    tzoom = nz;
+  }, { passive: false });
+  mapEl.addEventListener('dblclick', () => { tcam.x = 0; tcam.y = 0; tzoom = 1; });
   window.addEventListener('resize', () => { /* targets recompute in tick from % */ });
 
   /* ---------------- sidebar ---------------- */
