@@ -123,7 +123,7 @@
     transition: background-color .35s ease, transform .25s ease, box-shadow .25s ease;
   }
 
-  /* today hero card */
+  /* ---------- today hero card ---------- */
   .todaycard { display: flex; align-items: center; gap: 34px; padding: 34px 38px; }
   .todaycard:hover { transform: translateY(-2px); box-shadow: 0 2px 3px rgba(23,32,58,.05), 0 22px 54px rgba(23,32,58,.12); }
   .ringwrap { position: relative; width: 132px; height: 132px; flex: none; }
@@ -152,29 +152,101 @@
   .cta:active { transform: translateY(0) scale(.98); }
   .ctahint { display: block; margin-top: 12px; font-size: 12px; color: var(--faint); }
 
-  /* ---------- words ---------- */
-  .seg { display: inline-flex; background: var(--card); border-radius: 999px; box-shadow: var(--shadow); padding: 4px; margin: 26px 0 22px; }
-  .seg button {
-    padding: 9px 22px; border-radius: 999px; font-weight: 800; font-size: 13.5px; color: var(--muted);
-    display: inline-flex; align-items: center; gap: 8px;
-    transition: color .2s, background-color .25s;
+  /* =========================================================
+     SKILL MAP
+     ========================================================= */
+  .searchpill {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border-radius: 999px; box-shadow: var(--shadow);
+    padding: 6px 8px 6px 20px; margin: 26px 0 8px;
+    transition: box-shadow .25s;
   }
-  .seg button .n { font-variant-numeric: tabular-nums; font-size: 11.5px; opacity: .65; }
-  .seg button.on { background: var(--navy); color: var(--navy-ink); }
-  .seg .dotc { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .searchpill:focus-within { box-shadow: 0 2px 3px rgba(23,32,58,.05), 0 18px 44px rgba(23,32,58,.13), 0 0 0 2px var(--glow); }
+  .searchpill .glyph { color: var(--faint); font-size: 15px; flex: none; }
+  .searchpill input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: none;
+    font-family: var(--sans); font-size: 14.5px; font-weight: 600; color: var(--ink);
+    padding: 9px 0;
+  }
+  .searchpill input::placeholder { color: var(--faint); font-weight: 600; }
+  .searchpill .clear {
+    width: 32px; height: 32px; border-radius: 50%; color: var(--faint);
+    display: none; place-items: center; transition: background-color .2s;
+  }
+  .searchpill .clear:hover { background: var(--chip); color: var(--ink); }
+  .searchpill.hasq .clear { display: grid; }
+
+  .skillmap {
+    position: relative; height: 430px; margin-top: 8px;
+    transition: opacity .3s;
+  }
+  .skillmap.dim { opacity: .3; pointer-events: none; }
+  #mapLines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #mapLines line { stroke: var(--line); stroke-width: 2; transition: stroke .3s; }
+  #mapLines line.act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
+  @keyframes dashflow { to { stroke-dashoffset: -26; } }
+
+  .snode {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    padding: 8px; border-radius: 20px; z-index: 1;
+    transition: transform .25s cubic-bezier(.3,1.3,.4,1);
+  }
+  .snode:hover { transform: translate(-50%, -50%) scale(1.06); }
+  .nring { position: relative; width: 76px; height: 76px; }
+  .snode.hub .nring { width: 118px; height: 118px; }
+  .nring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .nring circle { fill: none; stroke-width: 5; }
+  .nring .t { stroke: var(--line); }
+  .nring .f {
+    stroke: var(--faint); stroke-linecap: round;
+    stroke-dasharray: 163.4; stroke-dashoffset: 163.4;
+    transition: stroke-dashoffset 1.1s cubic-bezier(.3,.8,.3,1), stroke .3s;
+  }
+  .nring b {
+    position: absolute; inset: 0; display: grid; place-content: center;
+    font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -.01em;
+    background: var(--card); border-radius: 50%; margin: 9px;
+    box-shadow: var(--shadow);
+    transition: background-color .35s, color .3s;
+  }
+  .snode.hub .nring b { font-size: 22px; }
+  .snode.hub .nring b small { font-family: var(--mono); font-size: 7.5px; letter-spacing: .22em; color: var(--faint); font-weight: 500; }
+  .nlabel { font-weight: 800; font-size: 13.5px; }
+  .nsub { letter-spacing: .14em; font-size: 8.5px; color: var(--faint); }
+  .snode.sel .nring .f { stroke: var(--blue); }
+  .snode.sel .nring b { color: var(--blue); box-shadow: 0 0 0 6px var(--glow), var(--shadow); }
+  .snode.done-n .nring .f { stroke: var(--green); }
+
+  /* ---------- skill detail ---------- */
+  .skilldetail { margin-top: 22px; overflow: hidden; }
+  .dhead { display: flex; align-items: baseline; gap: 16px; padding: 24px 26px 4px; }
+  .dhead h3 { margin: 0; font-size: 21px; font-weight: 900; letter-spacing: -.015em; }
+  .dhead .dpct { margin-left: auto; font-size: 26px; font-weight: 900; color: var(--blue); font-variant-numeric: tabular-nums; flex: none; }
+  .ddesc { margin: 2px 26px 6px; font-size: 13.5px; color: var(--muted); max-width: 60ch; }
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; padding: 12px 22px 4px; }
+  .chips button {
+    border-radius: 999px; padding: 6px 14px;
+    font-size: 12.5px; font-weight: 700; color: var(--muted); background: var(--chip);
+    transition: background-color .2s, color .2s, transform .15s;
+  }
+  .chips button:hover { color: var(--ink); transform: translateY(-1px); }
+  .chips button.on { background: var(--navy); color: var(--navy-ink); }
+  .chips button .n { font-size: 10.5px; opacity: .6; font-variant-numeric: tabular-nums; }
 
   .wordlist { list-style: none; margin: 0; padding: 10px; }
   .wordlist li { border-radius: 16px; transition: background-color .25s; }
   .wordrow {
     display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-    padding: 14px 16px; border-radius: 16px;
+    padding: 13px 16px; border-radius: 16px;
     transition: background-color .2s, transform .15s;
   }
   .wordrow:hover { background: var(--chip); transform: translateX(3px); }
-  .headword { font-weight: 800; font-size: 16px; flex: none; }
+  .headword { font-weight: 800; font-size: 15.5px; flex: none; }
   .gloss { color: var(--muted); font-size: 13.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wtag { font-family: var(--mono); font-size: 8px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); flex: none; }
   .dots { display: flex; gap: 4px; flex: none; }
-  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .4s, transform .3s; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .4s; }
   .dots i.f { background: var(--coral); }
   .dots.k i.f { background: var(--green); }
   .ex { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s cubic-bezier(.2,.7,.3,1); }
@@ -185,6 +257,13 @@
   li.open .ex { grid-template-rows: 1fr; }
   .more { padding: 12px 16px 14px; font-size: 12px; color: var(--faint); font-weight: 600; }
   .empty { padding: 26px 16px; font-size: 13.5px; color: var(--muted); font-style: italic; }
+
+  .subrow { display: flex; align-items: center; gap: 16px; padding: 15px 16px; border-radius: 16px; }
+  .subrow .sn { font-weight: 800; font-size: 14px; flex: 1; min-width: 0; }
+  .subrow .sn small { display: block; font-weight: 600; font-size: 12px; color: var(--faint); }
+  .subrow .bar { width: 130px; flex: none; height: 6px; border-radius: 999px; background: var(--chip); overflow: hidden; }
+  .subrow .bar i { display: block; height: 100%; border-radius: 999px; background: var(--blue); width: 0; transition: width 1s cubic-bezier(.3,.8,.3,1); }
+  .subrow .sp { flex: none; width: 42px; text-align: right; font-weight: 900; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--muted); }
 
   /* ---------- plan ---------- */
   .stripcard { overflow-x: auto; margin-top: 30px; }
@@ -212,13 +291,11 @@
   .plannote { margin: 26px 6px 0; font-size: 14px; color: var(--muted); }
   .plannote b { color: var(--ink); }
 
-  /* flash on live updates */
   .flash { animation: flashbg 1.5s ease both; }
   @keyframes flashbg { 0% { background-color: var(--green-soft); } 100% { background-color: transparent; } }
 
   /* =========================================================
-     THE AI PANEL — deliberately foreign: always dark, floats
-     OVER the app. This is "your own AI", not the interface.
+     THE AI PANEL — always dark, floats OVER the app.
      ========================================================= */
   .ai {
     position: fixed; top: 84px; right: 20px; bottom: 20px; width: min(392px, calc(100vw - 40px));
@@ -294,8 +371,9 @@
     .orb, .ai.speak-ai .orb { animation: none; }
     .stop.today .node { animation: none; }
     .aibtn .live { animation: none; }
+    #mapLines line.act { animation: none; }
     main::before { animation: none; }
-    .ring .fill { transition: none; }
+    .ring .fill, .nring .f, .subrow .bar i { transition: none; }
     .flash { animation: none; background: var(--green-soft); }
     .ai { transition: opacity .2s; transform: none; }
   }
@@ -305,6 +383,12 @@
     .brand span { display: none; }
     .todaycard { flex-direction: column; text-align: center; gap: 22px; padding: 28px 22px; }
     .statline { gap: 18px; flex-wrap: wrap; }
+    .skillmap { height: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 10px 0; }
+    .snode { position: static; transform: none; }
+    .snode:hover { transform: scale(1.05); }
+    .snode.hub { order: -1; width: 100%; }
+    #mapLines { display: none; }
+    .subrow .bar { width: 80px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
   }
 </style>
@@ -313,7 +397,7 @@
   <div class="brand"><span class="mark"></span><span>Open Language Teacher</span></div>
   <nav class="topnav">
     <button data-target="today" class="active">Today</button>
-    <button data-target="words">Words</button>
+    <button data-target="skills">Skills</button>
     <button data-target="plan">Plan</button>
   </nav>
   <div class="spacer"></div>
@@ -327,11 +411,11 @@
   <section data-view="today" class="active">
     <span class="mono eyebrow rv">Wednesday · Week 34 · Spanish from Dutch</span>
     <h1 class="hero rv" id="greeting">Hola, David.</h1>
-    <p class="sub rv" id="subline"><b>la noticia</b> is one recall away from your known list. Fifteen minutes today keeps the streak alive.</p>
+    <p class="sub rv" id="subline"><b>la noticia</b> is one recall away from mastered. Fifteen minutes today keeps the streak alive.</p>
 
     <div class="statline rv">
-      <div><b id="kNum">214</b>words known</div>
-      <div><b id="lNum">12</b>in learning</div>
+      <div><b id="kNum">214</b>pieces mastered</div>
+      <div><b id="lNum">12</b>in practice</div>
       <div><b id="sNum">6</b>day streak</div>
     </div>
 
@@ -353,20 +437,25 @@
     </div>
   </section>
 
-  <!-- ================ WORDS ================ -->
-  <section data-view="words">
-    <span class="mono eyebrow rv">Your ledger</span>
-    <h1 class="hero rv">Words.</h1>
-    <p class="sub rv">Added and graded by your AI, one recall at a time. Three solid recalls and a word graduates.</p>
+  <!-- ================ SKILLS ================ -->
+  <section data-view="skills">
+    <span class="mono eyebrow rv">Your language, mapped</span>
+    <h1 class="hero rv">Skills.</h1>
+    <p class="sub rv">Language isn't only words — it's grammar, ears, mouth and eyes. Tap a node to open it. Every recall your AI grades lands somewhere on this map.</p>
+
+    <div class="searchpill rv" id="searchPill">
+      <span class="glyph">⌕</span>
+      <input id="skillSearch" type="text" autocomplete="off" spellcheck="false" placeholder="Search anything — “titular”, “ser vs estar”, “rolled r”">
+      <button class="clear" id="searchClear">✕</button>
+    </div>
 
     <div class="rv">
-      <div class="seg">
-        <button data-mode="learning" class="on"><span class="dotc" style="background:var(--coral)"></span>Learning <span class="n" id="segL">12</span></button>
-        <button data-mode="known"><span class="dotc" style="background:var(--green)"></span>Known <span class="n" id="segK">214</span></button>
+      <div class="skillmap" id="skillMap">
+        <svg id="mapLines"></svg>
       </div>
     </div>
 
-    <div class="card rv"><ul class="wordlist" id="wordList"></ul></div>
+    <div class="card skilldetail rv" id="skillDetail"></div>
   </section>
 
   <!-- ================ PLAN ================ -->
@@ -416,30 +505,65 @@
     knownExtra: 202,
     streak: 6,
     learning: [
-      { es: 'la noticia',  en: 'the news (item)',     p: 2, ex: '¿Has visto la noticia de hoy?' },
-      { es: 'el titular',  en: 'headline',            p: 1, ex: 'El titular era muy dramático.' },
-      { es: 'la encuesta', en: 'survey, poll',        p: 1, ex: 'Según la encuesta, ganará el sí.' },
-      { es: 'la huelga',   en: 'strike (labour)',     p: 0, ex: 'Hay huelga de trenes mañana.' },
-      { es: 'el gobierno', en: 'government',          p: 2, ex: 'El gobierno anunció nuevas medidas.' },
-      { es: 'guay',        en: 'cool (slang)',        p: 1, ex: '¡Qué guay tu chaqueta!' },
-      { es: 'vale',        en: 'okay, deal (slang)',  p: 2, ex: 'Vale, nos vemos a las ocho.' },
-      { es: 'tío / tía',   en: 'dude / girl (slang)', p: 0, ex: '¿Qué pasa, tío?' },
-      { es: 'flipar',      en: 'to be amazed',        p: 0, ex: 'Vas a flipar con esta canción.' },
-      { es: 'sin embargo', en: 'however',             p: 1, ex: 'Sin embargo, no estoy de acuerdo.' },
-      { es: 'por cierto',  en: 'by the way',          p: 2, ex: 'Por cierto, ¿cómo fue tu viaje?' },
-      { es: 'quedar',      en: 'to meet up',          p: 1, ex: '¿Quedamos el sábado?' }
+      { es: 'la noticia',  en: 'the news (item)',     topic: 'News',         p: 2, ex: '¿Has visto la noticia de hoy?' },
+      { es: 'el titular',  en: 'headline',            topic: 'News',         p: 1, ex: 'El titular era muy dramático.' },
+      { es: 'la encuesta', en: 'survey, poll',        topic: 'News',         p: 1, ex: 'Según la encuesta, ganará el sí.' },
+      { es: 'la huelga',   en: 'strike (labour)',     topic: 'News',         p: 0, ex: 'Hay huelga de trenes mañana.' },
+      { es: 'el gobierno', en: 'government',          topic: 'News',         p: 2, ex: 'El gobierno anunció nuevas medidas.' },
+      { es: 'guay',        en: 'cool (slang)',        topic: 'Slang',        p: 1, ex: '¡Qué guay tu chaqueta!' },
+      { es: 'vale',        en: 'okay, deal (slang)',  topic: 'Slang',        p: 2, ex: 'Vale, nos vemos a las ocho.' },
+      { es: 'tío / tía',   en: 'dude / girl (slang)', topic: 'Slang',        p: 0, ex: '¿Qué pasa, tío?' },
+      { es: 'flipar',      en: 'to be amazed',        topic: 'Slang',        p: 0, ex: 'Vas a flipar con esta canción.' },
+      { es: 'sin embargo', en: 'however',             topic: 'Conversation', p: 1, ex: 'Sin embargo, no estoy de acuerdo.' },
+      { es: 'por cierto',  en: 'by the way',          topic: 'Conversation', p: 2, ex: 'Por cierto, ¿cómo fue tu viaje?' },
+      { es: 'quedar',      en: 'to meet up',          topic: 'Conversation', p: 1, ex: '¿Quedamos el sábado?' }
     ],
     known: [
-      { es: 'hola',        en: 'hello',         p: 3, ex: '¡Hola! ¿Qué tal?' },
-      { es: 'gracias',     en: 'thank you',     p: 3, ex: 'Muchas gracias por todo.' },
-      { es: 'la cuenta',   en: 'the bill',      p: 3, ex: 'La cuenta, por favor.' },
-      { es: 'viajar',      en: 'to travel',     p: 3, ex: 'Me encanta viajar en tren.' },
-      { es: 'el tren',     en: 'the train',     p: 3, ex: 'El tren sale a las diez.' },
-      { es: 'la playa',    en: 'the beach',     p: 2, ex: 'Vamos a la playa mañana.' },
-      { es: 'la ciudad',   en: 'the city',      p: 3, ex: 'La ciudad es preciosa de noche.' },
-      { es: 'el amigo',    en: 'friend',        p: 3, ex: 'Es un buen amigo mío.' },
-      { es: 'entender',    en: 'to understand', p: 2, ex: 'No entiendo — ¿puedes repetir?' }
+      { es: 'hola',        en: 'hello',         topic: 'Basics', p: 3, ex: '¡Hola! ¿Qué tal?' },
+      { es: 'gracias',     en: 'thank you',     topic: 'Basics', p: 3, ex: 'Muchas gracias por todo.' },
+      { es: 'la cuenta',   en: 'the bill',      topic: 'Food',   p: 3, ex: 'La cuenta, por favor.' },
+      { es: 'viajar',      en: 'to travel',     topic: 'Travel', p: 3, ex: 'Me encanta viajar en tren.' },
+      { es: 'el tren',     en: 'the train',     topic: 'Travel', p: 3, ex: 'El tren sale a las diez.' },
+      { es: 'la playa',    en: 'the beach',     topic: 'Travel', p: 2, ex: 'Vamos a la playa mañana.' },
+      { es: 'la ciudad',   en: 'the city',      topic: 'Travel', p: 3, ex: 'La ciudad es preciosa de noche.' },
+      { es: 'el amigo',    en: 'friend',        topic: 'Conversation', p: 3, ex: 'Es un buen amigo mío.' },
+      { es: 'entender',    en: 'to understand', topic: 'Conversation', p: 2, ex: 'No entiendo — ¿puedes repetir?' }
     ],
+    skills: {
+      vocab: { pct: 72, label: 'Vocabulary',
+        desc: 'Every word you’ve met, filed by theme. Three solid recalls and a word graduates to green.' },
+      grammar: { pct: 41, label: 'Grammar',
+        desc: 'The glue between the words — graded the same way: recall by recall, in real sentences.',
+        concepts: [
+          { name: 'Present tense',      s: 3, ex: 'Hablo, comes, vive — regular verbs are solid.' },
+          { name: 'Gender & articles',  s: 2, ex: 'el mapa, la mano — the tricky exceptions.' },
+          { name: 'Ser vs estar',       s: 2, ex: 'Soy holandés · estoy cansado.' },
+          { name: 'Pretérito (past)',   s: 1, ex: 'Ayer hablé con mi amigo.' },
+          { name: 'Por vs para',        s: 1, ex: 'Gracias por venir · esto es para ti.' },
+          { name: 'Subjunctive intro',  s: 0, ex: 'Espero que tengas razón.' }
+        ] },
+      reading: { pct: 48, label: 'Reading', meta: '12 stories read',
+        desc: 'Short stories and real headlines from Spain, leveled to what you know.',
+        subs: [
+          { name: 'Short stories',    note: 'built from your own vocabulary', pct: 58 },
+          { name: 'News headlines',   note: 'real ones, from Spanish media',  pct: 45 },
+          { name: 'Messages & chat',  note: 'informal register, abbreviations', pct: 60 }
+        ] },
+      speaking: { pct: 55, label: 'Speaking', meta: '34 conversations',
+        desc: 'The loudest skill. Your AI listens in voice mode, corrects gently, and keeps the score here.',
+        subs: [
+          { name: 'Conversation fluency',  note: '34 voice conversations held', pct: 55 },
+          { name: 'Repeat-after-me',       note: 'pronunciation accuracy',      pct: 70 },
+          { name: 'The rolled r',          note: 'perro vs pero — getting there', pct: 40 }
+        ] },
+      listening: { pct: 63, label: 'Listening', meta: '41 stories heard',
+        desc: 'Trained entirely by ear — stories, voice flashcards and native-speed clips.',
+        subs: [
+          { name: 'Story comprehension',   note: 'told by your AI in voice mode', pct: 65 },
+          { name: 'Voice flashcards',      note: 'hear Spanish, answer in English', pct: 72 },
+          { name: 'Native-speed clips',    note: 'the final boss',                 pct: 30 }
+        ] }
+    },
     plan: {
       lessons: [
         { n: 1, title: 'Greetings & recall',   done: true },
@@ -451,37 +575,184 @@
     }
   };
 
+  const SKILL_KEYS = ['vocab', 'grammar', 'reading', 'speaking', 'listening'];
+  const POS = { vocab: [50, 10], grammar: [84, 30], listening: [76, 84], speaking: [24, 84], reading: [16, 30], hub: [50, 54] };
+  const TOPICS = ['All', 'News', 'Slang', 'Conversation', 'Travel', 'Basics', 'Food'];
+
   let state = deepCopy(DEFAULT);
-  let mode = 'learning';
+  let selectedSkill = 'vocab';
+  let vocabTopic = 'All';
+  let query = '';
   let booted = false;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
   const $ = (id) => document.getElementById(id);
+  const CIRC = 163.4;
 
-  /* ---------------- rendering ---------------- */
-  function dots(p, k) {
+  /* ---------------- skill map ---------------- */
+  function hubPct() {
+    const v = SKILL_KEYS.map(k => state.skills[k].pct);
+    return Math.round(v.reduce((a, b) => a + b, 0) / v.length);
+  }
+
+  function nodeSub(k) {
+    if (k === 'vocab') return (state.known.length + state.knownExtra) + ' mastered';
+    if (k === 'grammar') {
+      const c = state.skills.grammar.concepts;
+      return c.length ? c.filter(x => x.s === 3).length + '/' + c.length + ' solid' : '—';
+    }
+    return state.skills[k].meta || '—';
+  }
+
+  function renderMap() {
+    const map = $('skillMap');
+    map.querySelectorAll('.snode').forEach(n => n.remove());
+    const mk = (k, hub) => {
+      const b = document.createElement('button');
+      b.className = 'snode' + (hub ? ' hub' : '') + (k === selectedSkill ? ' sel' : '');
+      b.dataset.skill = k;
+      const [x, y] = POS[hub ? 'hub' : k];
+      b.style.left = x + '%'; b.style.top = y + '%';
+      const pct = hub ? hubPct() : state.skills[k].pct;
+      if (pct >= 90 && !hub) b.classList.add('done-n');
+      b.innerHTML =
+        '<span class="nring"><svg viewBox="0 0 60 60">' +
+        '<circle class="t" cx="30" cy="30" r="26"></circle>' +
+        '<circle class="f" cx="30" cy="30" r="26"></circle></svg>' +
+        '<b>' + (hub ? pct + '%<small>Español · A2</small>' : pct + '%') + '</b></span>' +
+        (hub ? '' : '<span class="nlabel">' + state.skills[k].label + '</span><span class="nsub mono">' + nodeSub(k) + '</span>');
+      map.appendChild(b);
+      const f = b.querySelector('.f');
+      if (booted && !reduced) requestAnimationFrame(() => requestAnimationFrame(() => { f.style.strokeDashoffset = CIRC * (1 - pct / 100); }));
+      else f.style.strokeDashoffset = CIRC * (1 - pct / 100);
+    };
+    mk('hub', true);
+    SKILL_KEYS.forEach(k => mk(k, false));
+    requestAnimationFrame(drawLines);
+  }
+
+  function drawLines() {
+    const map = $('skillMap'), svg = $('mapLines');
+    if (!map.offsetParent) return;
+    const mr = map.getBoundingClientRect();
+    svg.setAttribute('viewBox', '0 0 ' + mr.width + ' ' + mr.height);
+    const hub = map.querySelector('.snode.hub .nring');
+    if (!hub) { svg.innerHTML = ''; return; }
+    const hr = hub.getBoundingClientRect();
+    const hx = hr.left - mr.left + hr.width / 2, hy = hr.top - mr.top + hr.height / 2;
+    svg.innerHTML = SKILL_KEYS.map(k => {
+      const n = map.querySelector('.snode[data-skill="' + k + '"] .nring');
+      if (!n) return '';
+      const r = n.getBoundingClientRect();
+      const x = r.left - mr.left + r.width / 2, y = r.top - mr.top + r.height / 2;
+      return '<line ' + (k === selectedSkill ? 'class="act" ' : '') + 'x1="' + hx + '" y1="' + hy + '" x2="' + x + '" y2="' + y + '"></line>';
+    }).join('');
+  }
+  window.addEventListener('resize', drawLines);
+
+  /* ---------------- skill detail ---------------- */
+  function dotsHtml(p, k) {
     let h = '<span class="dots' + (k ? ' k' : '') + '">';
     for (let i = 1; i <= 3; i++) h += '<i class="' + (i <= p ? 'f' : '') + '"></i>';
     return h + '</span>';
   }
 
-  function renderWords() {
-    const list = mode === 'learning' ? state.learning : state.known;
-    const k = mode === 'known';
-    $('wordList').innerHTML = (list.length
-      ? list.map(w =>
-          '<li data-word="' + w.es + '"><button class="wordrow">' +
-          '<span class="headword">' + w.es + '</span>' +
-          '<span class="gloss">' + w.en + '</span>' + dots(w.p, k) + '</button>' +
-          '<div class="ex"><div><p><span class="es">' + w.ex + '</span></p></div></div></li>').join('')
-      : '<li><div class="empty">Nothing here yet — your AI fills this list during onboarding and lessons.</div></li>') +
-      (k && state.knownExtra > 0
-        ? '<li><div class="more">+ ' + state.knownExtra + ' more from onboarding &amp; earlier weeks</div></li>' : '');
-    $('segL').textContent = state.learning.length;
-    $('segK').textContent = state.known.length + state.knownExtra;
+  function wordLi(w, known, tag) {
+    return '<li data-word="' + w.es + '"><button class="wordrow">' +
+      '<span class="headword">' + w.es + '</span>' +
+      '<span class="gloss">' + w.en + '</span>' +
+      (tag ? '<span class="wtag">' + tag + '</span>' : '') +
+      dotsHtml(w.p, known) + '</button>' +
+      '<div class="ex"><div><p><span class="es">' + w.ex + '</span></p></div></div></li>';
   }
 
+  function conceptLi(c, tag) {
+    return '<li data-word="' + c.name + '"><button class="wordrow">' +
+      '<span class="headword">' + c.name + '</span>' +
+      '<span class="gloss">' + (c.s === 3 ? 'solid' : c.s === 0 ? 'not started' : 'in progress') + '</span>' +
+      (tag ? '<span class="wtag">' + tag + '</span>' : '') +
+      dotsHtml(c.s, c.s === 3) + '</button>' +
+      '<div class="ex"><div><p><span class="es">' + c.ex + '</span></p></div></div></li>';
+  }
+
+  function subRow(s) {
+    return '<div class="subrow">' +
+      '<span class="sn">' + s.name + '<small>' + s.note + '</small></span>' +
+      '<span class="bar"><i data-w="' + s.pct + '"></i></span>' +
+      '<span class="sp">' + s.pct + '%</span></div>';
+  }
+
+  function animBars(root) {
+    root.querySelectorAll('.bar i').forEach(el => {
+      const w = el.dataset.w + '%';
+      if (reduced) { el.style.width = w; return; }
+      requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = w; }));
+    });
+  }
+
+  function dHead(title, desc, pct) {
+    return '<div class="dhead"><h3>' + title + '</h3><span class="dpct">' + pct + '%</span></div>' +
+      '<p class="ddesc">' + desc + '</p>';
+  }
+
+  function renderDetail() {
+    const box = $('skillDetail');
+    $('skillMap').classList.toggle('dim', !!query);
+
+    if (query) {
+      const q = query.toLowerCase();
+      const hits = [];
+      state.learning.forEach(w => { if ((w.es + ' ' + w.en).toLowerCase().includes(q)) hits.push(wordLi(w, false, 'vocab · ' + w.topic)); });
+      state.known.forEach(w => { if ((w.es + ' ' + w.en).toLowerCase().includes(q)) hits.push(wordLi(w, true, 'vocab · ' + w.topic)); });
+      state.skills.grammar.concepts.forEach(c => { if ((c.name + ' ' + c.ex).toLowerCase().includes(q)) hits.push(conceptLi(c, 'grammar')); });
+      ['reading', 'speaking', 'listening'].forEach(k =>
+        (state.skills[k].subs || []).forEach(s => {
+          if (s.name.toLowerCase().includes(q)) hits.push(
+            '<li><div class="subrow"><span class="sn">' + s.name + '<small>' + state.skills[k].label + '</small></span>' +
+            '<span class="bar"><i data-w="' + s.pct + '"></i></span><span class="sp">' + s.pct + '%</span></div></li>');
+        }));
+      box.innerHTML = dHead('Search', hits.length + ' result' + (hits.length === 1 ? '' : 's') + ' across the whole map for &ldquo;' + query + '&rdquo;.', '⌕').replace('<span class="dpct">⌕%</span>', '<span class="dpct">⌕</span>') +
+        '<ul class="wordlist">' + (hits.join('') || '<li><div class="empty">Nothing found — your AI hasn’t taught you that one yet.</div></li>') + '</ul>';
+      animBars(box);
+      return;
+    }
+
+    const sk = state.skills[selectedSkill];
+
+    if (selectedSkill === 'vocab') {
+      const all = state.learning.map(w => ({ w, k: false })).concat(state.known.map(w => ({ w, k: true })));
+      const filt = all.filter(x => vocabTopic === 'All' || x.w.topic === vocabTopic);
+      const count = t => t === 'All' ? all.length : all.filter(x => x.w.topic === t).length;
+      box.innerHTML = dHead(sk.label, sk.desc, sk.pct) +
+        '<div class="chips">' + TOPICS.map(t =>
+          '<button data-topic="' + t + '" class="' + (t === vocabTopic ? 'on' : '') + '">' + t + ' <span class="n">' + count(t) + '</span></button>').join('') + '</div>' +
+        '<ul class="wordlist">' +
+        (filt.length ? filt.map(x => wordLi(x.w, x.k, x.k ? 'mastered' : 'practicing')).join('')
+                     : '<li><div class="empty">Nothing here yet — your AI fills this list during onboarding and lessons.</div></li>') +
+        (vocabTopic === 'All' && state.knownExtra > 0 ? '<li><div class="more">+ ' + state.knownExtra + ' more mastered in earlier weeks</div></li>' : '') +
+        '</ul>';
+      return;
+    }
+
+    if (selectedSkill === 'grammar') {
+      const c = sk.concepts;
+      box.innerHTML = dHead(sk.label, sk.desc, sk.pct) +
+        '<ul class="wordlist">' +
+        (c.length ? c.map(x => conceptLi(x, '')).join('')
+                  : '<li><div class="empty">No concepts yet — onboarding estimates your grammar, lessons grade it.</div></li>') +
+        '</ul>';
+      return;
+    }
+
+    box.innerHTML = dHead(sk.label, sk.desc, sk.pct) +
+      '<ul class="wordlist">' + (sk.subs || []).map(s => '<li>' + subRow(s) + '</li>').join('') + '</ul>';
+    animBars(box);
+  }
+
+  function renderSkills() { renderMap(); renderDetail(); }
+
+  /* ---------------- plan & today ---------------- */
   function nextLesson() { return state.plan ? state.plan.lessons.find(l => !l.done) : null; }
 
   function renderPlan() {
@@ -515,13 +786,13 @@
       $('todayTitle').textContent = next.title;
       $('todayDesc').textContent = next.desc || 'Warm-up recall, new words in context, and a short conversation.';
       $('startCta').innerHTML = '▷&nbsp; Start in your AI';
-      $('subline').innerHTML = '<b>la noticia</b> is one recall away from your known list. Fifteen minutes today keeps the streak alive.';
+      $('subline').innerHTML = '<b>la noticia</b> is one recall away from mastered. Fifteen minutes today keeps the streak alive.';
     } else if (state.plan) {
       $('todayEyebrow').textContent = 'Week complete';
       $('todayTitle').textContent = '¡Enhorabuena!';
       $('todayDesc').textContent = 'All five lessons done. Your AI will review the week and write the next plan.';
       $('startCta').innerHTML = '▷&nbsp; Plan next week';
-      $('subline').innerHTML = 'Every lesson done. <b>la noticia</b> made it to your known list.';
+      $('subline').innerHTML = 'Every lesson done. <b>la noticia</b> is mastered.';
     } else {
       $('todayEyebrow').textContent = 'New profile';
       $('todayTitle').textContent = 'Meet your teacher';
@@ -531,7 +802,7 @@
     }
   }
 
-  function renderAll() { renderWords(); renderPlan(); renderToday(); }
+  function renderAll() { renderSkills(); renderPlan(); renderToday(); }
 
   function flash(el) {
     if (!el) return;
@@ -539,6 +810,7 @@
     void el.offsetWidth;
     el.classList.add('flash');
   }
+  function flashNode(k) { flash(document.querySelector('.snode[data-skill="' + k + '"]')); }
 
   /* ---------------- choreography ---------------- */
   function reveal(section) {
@@ -571,22 +843,37 @@
         s.classList.toggle('active', on);
         if (on) reveal(s);
       });
+      if (btn.dataset.target === 'skills') requestAnimationFrame(() => { renderMap(); });
       window.scrollTo({ top: 0 });
     });
   });
 
-  document.querySelectorAll('.seg button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.seg button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      mode = btn.dataset.mode;
-      renderWords();
-    });
+  $('skillMap').addEventListener('click', e => {
+    const n = e.target.closest('.snode');
+    if (!n) return;
+    if (n.dataset.skill !== 'hub') selectedSkill = n.dataset.skill;
+    document.querySelectorAll('.snode').forEach(x => x.classList.toggle('sel', x.dataset.skill === selectedSkill));
+    drawLines();
+    renderDetail();
   });
 
-  document.addEventListener('click', e => {
+  $('skillDetail').addEventListener('click', e => {
+    const chip = e.target.closest('button[data-topic]');
+    if (chip) { vocabTopic = chip.dataset.topic; renderDetail(); return; }
     const row = e.target.closest('.wordrow');
     if (row) row.parentElement.classList.toggle('open');
+  });
+
+  const searchEl = $('skillSearch');
+  searchEl.addEventListener('input', () => {
+    query = searchEl.value.trim();
+    $('searchPill').classList.toggle('hasq', !!query);
+    renderDetail();
+  });
+  $('searchClear').addEventListener('click', () => {
+    searchEl.value = ''; query = '';
+    $('searchPill').classList.remove('hasq');
+    renderDetail(); searchEl.focus();
   });
 
   $('themeToggle').addEventListener('click', () => {
@@ -680,6 +967,17 @@
   $('simReset').addEventListener('click', resetSim);
 
   /* ------- scenario: onboarding ------- */
+  function zeroSkills() {
+    const sk = deepCopy(DEFAULT.skills);
+    Object.keys(sk).forEach(k => {
+      sk[k].pct = 0;
+      if (sk[k].concepts) sk[k].concepts = [];
+      if (sk[k].subs) sk[k].subs.forEach(s => s.pct = 0);
+      if (sk[k].meta) sk[k].meta = '—';
+    });
+    return sk;
+  }
+
   const onboardingEvents = [
     { t: 'sys',  text: 'VOICE MODE · NEW PROFILE, NOTHING LINKED YET', d: 1600 },
     { t: 'user', text: '&ldquo;Link my Open Language Teacher profile — code OLT-4F2K.&rdquo;', d: 2000 },
@@ -688,8 +986,13 @@
     { t: 'user', text: '&ldquo;Maybe two hundred? I can order food and greet people.&rdquo;', d: 2200 },
     { t: 'ai',   text: 'A solid A2 base. And what do you want Spanish <em>for</em> — conversations, reading, travel, the news?', d: 2600 },
     { t: 'user', text: '&ldquo;Conversations mostly. And Spanish news… and real slang, not textbook stuff.&rdquo;', d: 2600 },
-    { t: 'tool', name: 'update_profile', args: '{ level: "A2", known_words: ~200,\n  goals: ["conversation", "news", "slang"] }', fx: 'profile saved',
-      run: () => { state.knownExtra = 200; renderToday(); flash($('kNum').parentElement); }, d: 2200 },
+    { t: 'tool', name: 'update_profile', args: '{ level: "A2", known_words: ~200,\n  goals: ["conversation", "news", "slang"] }', fx: 'profile saved · skill map estimated',
+      run: () => {
+        state.knownExtra = 200;
+        state.skills = deepCopy(DEFAULT.skills);
+        renderToday(); renderSkills();
+        flash($('kNum').parentElement);
+      }, d: 2200 },
     { t: 'tool', name: 'get_plan_instructions', args: 'reads olt://guide/lesson-authoring', d: 2000 },
     { t: 'ai',   text: 'The app asks me to keep plans short — one week, then iterate. Five ±15-minute lessons around news, slang and conversation. Sound good?', d: 3000 },
     { t: 'user', text: '&ldquo;Perfect.&rdquo;', d: 1400 },
@@ -699,18 +1002,18 @@
         state.plan.lessons.forEach(l => l.done = false);
         renderPlan(); renderToday();
       }, d: 2400 },
-    { t: 'tool', name: 'add_words', args: '{ list: "learning", words: ["la noticia",\n  "el titular", …12 total] }', fx: '12 words queued',
+    { t: 'tool', name: 'add_words', args: '{ list: "learning", words: ["la noticia",\n  "el titular", …12], concepts: ["pretérito",\n  "por vs para"] }', fx: '12 words + grammar queued',
       run: () => {
         state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
-        renderWords(); renderToday(); flash($('lNum').parentElement);
+        renderSkills(); renderToday(); flash($('lNum').parentElement);
       }, d: 2400 },
     { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. ¡Hasta pronto!', d: 2400 },
-    { t: 'sys',  text: 'ONBOARDING COMPLETE — THE APP FILLED ITSELF IN', d: 1200 }
+    { t: 'sys',  text: 'ONBOARDING COMPLETE — THE MAP FILLED ITSELF IN', d: 1200 }
   ];
 
   function playOnboard() {
     runScenario(onboardingEvents, () => {
-      state = { connected: false, knownExtra: 0, streak: 0, learning: [], known: [], plan: null };
+      state = { connected: false, knownExtra: 0, streak: 0, learning: [], known: [], plan: null, skills: zeroSkills() };
     });
   }
   $('playOnboard').addEventListener('click', playOnboard);
@@ -724,7 +1027,7 @@
       state.learning = state.learning.filter(x => x.es !== es);
       state.known.unshift(w);
     }
-    renderWords(); renderToday();
+    renderDetail(); renderToday();
     flash(document.querySelector('.wordlist li[data-word="' + es + '"]'));
   }
 
@@ -733,9 +1036,13 @@
     if (!l) return;
     l.done = true;
     state.streak += 1;
-    renderPlan(); renderToday();
+    state.skills.speaking.pct = Math.min(100, state.skills.speaking.pct + 4);
+    state.skills.listening.pct = Math.min(100, state.skills.listening.pct + 3);
+    state.skills.vocab.pct = Math.min(100, state.skills.vocab.pct + 1);
+    renderPlan(); renderToday(); renderSkills();
     flash($('sNum').parentElement);
     flash(document.querySelector('.stop[data-lesson="' + l.n + '"]'));
+    flashNode('speaking'); flashNode('listening');
   }
 
   const lessonEvents = [
@@ -750,11 +1057,11 @@
     { t: 'user', text: '&ldquo;Eh… leí una noticia sobre una encuesta del gobierno.&rdquo;', d: 2400 },
     { t: 'ai',   text: 'Great sentence. Flashcards to close — how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2400 },
     { t: 'user', text: '&ldquo;¡El titular!&rdquo;', d: 1600 },
-    { t: 'tool', name: 'update_word_strength', args: '{ "la noticia": 3, "el titular": 2,\n  "la encuesta": 1 }', fx: '"la noticia" graduated to Known',
-      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flash($('kNum').parentElement); }, d: 2600 },
-    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat tomorrow" }', fx: 'lesson done · streak +1',
+    { t: 'tool', name: 'update_word_strength', args: '{ "la noticia": 3, "el titular": 2,\n  "la encuesta": 1 }', fx: '"la noticia" graduated to mastered',
+      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flash($('kNum').parentElement); flashNode('vocab'); }, d: 2600 },
+    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · map updated',
       run: completeNext, d: 2400 },
-    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated. Same time tomorrow for slang?', d: 2600 },
+    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated, and your speaking ring ticked up. Same time tomorrow for slang?', d: 2600 },
     { t: 'sys',  text: 'SESSION SYNCED — THE SCORE IS KEPT BEHIND ME', d: 1200 }
   ];
 
