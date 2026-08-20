@@ -1002,14 +1002,39 @@
   };
 
   const SKILL_KEYS = ['vocab', 'grammar', 'speaking', 'listening', 'reading', 'writing'];
-  const TOPICS = ['News', 'Slang', 'Conversation', 'Travel', 'Basics', 'Food'];
+  /* vocabulary topics are DERIVED from the words themselves — any topic the AI passes to
+     add_words becomes a node on the map, in first-seen order */
+  function vocabTopics() {
+    const seen = [];
+    allWords().forEach(x => { const t = x.w.topic || 'General'; if (!seen.includes(t)) seen.push(t); });
+    return seen;
+  }
   const KINDS = { warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
   const MODES = { voice: { icon: 'mic' }, chat: { icon: 'chat' }, reading: { icon: 'read' } };
   function modeOf(l) { return MODES[l.mode] ? l.mode : 'voice'; }
 
+  /* tolerate loosely-shaped data written over MCP: mats/parts may arrive as bare strings
+     or objects missing fields — never render "undefined" */
+  function normMat(m) {
+    if (typeof m === 'string') return { name: m, d: '', t: 'mat' };
+    return { name: m.name || m.title || m.d || 'Material', d: m.name ? (m.d || '') : '', t: m.t || m.kind || 'mat' };
+  }
+  const PART_NEED = { script: 'lines', news: 'items', deck: 'cards', drill: 'prompts', rubric: 'rows' };
+  function normPart(p) {
+    if (typeof p === 'string') return { kind: 'mat', name: p, d: '' };
+    const out = Object.assign({}, p);
+    if (!PART_NEED[out.kind] && out.kind !== 'story' && out.kind !== 'mat') out.kind = 'mat';
+    if (PART_NEED[out.kind] && !Array.isArray(out[PART_NEED[out.kind]])) out.kind = 'mat';
+    if (out.kind === 'story' && typeof out.html !== 'string') {
+      if (typeof out.text === 'string') out.html = out.text; else out.kind = 'mat';
+    }
+    if (!out.name) out.name = out.title || (out.kind === 'mat' ? 'Material' : out.kind.charAt(0).toUpperCase() + out.kind.slice(1));
+    return out;
+  }
+
   /* every lesson explodes into prepared components; older lessons derive them from the plan */
   function partsOf(l) {
-    if (l.parts) return l.parts;
+    if (l.parts && l.parts.length) return l.parts.map(normPart);
     const ps = [{
       kind: 'script', name: 'Teaching script', icon: MODES[modeOf(l)].icon, color: l.color || 'blue',
       lines: [{ s: 'CUE', t: 'Archived outline — the full script regenerates on demand via get_next_lesson:' }]
@@ -1019,7 +1044,7 @@
       kind: 'deck', name: 'Word pack · ' + l.words.length, icon: 'book', color: 'blue',
       cards: l.words.map(zh => { const hit = allWords().find(x => x.w.es === zh); return hit ? { zh, en: hit.w.en, p: hit.w.p } : { zh, en: '', p: 3 }; })
     });
-    (l.mats || []).forEach(m => ps.push({
+    (l.mats || []).map(normMat).forEach(m => ps.push({
       kind: 'mat', name: m.name, d: m.d || '', color: 'amber',
       icon: m.t === 'story' ? 'read' : m.t === 'audio' ? 'ear' : m.t === 'news' ? 'news' : m.t === 'rubric' ? 'star' : 'tag'
     }));
@@ -1064,6 +1089,13 @@
     if (b) setBg(b.dataset.bg);
   });
   const TOPIC_ICONS = { News: 'news', Slang: 'tag', Conversation: 'chat', Travel: 'globe', Basics: 'star', Food: 'coffee' };
+  const TOPIC_ICON_POOL = ['tag', 'book', 'chat', 'globe', 'star', 'coffee', 'news'];
+  function topicIcon(t) {
+    if (TOPIC_ICONS[t]) return TOPIC_ICONS[t];
+    let h = 0;
+    for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+    return TOPIC_ICON_POOL[h % TOPIC_ICON_POOL.length];
+  }
 
   let state = deepCopy(DEFAULT);
   let query = '';
@@ -1265,13 +1297,13 @@
     return state.learning.map(w => ({ w, k: false })).concat(state.known.map(w => ({ w, k: true })));
   }
   function topicStats(t) {
-    const ws = allWords().filter(x => x.w.topic === t);
+    const ws = allWords().filter(x => (x.w.topic || 'General') === t);
     const m = ws.filter(x => x.k).length;
     return { total: ws.length, mastered: m, pct: ws.length ? Math.round(m / ws.length * 100) : 0, words: ws };
   }
   function childrenOf(k) {
     const sk = state.skills[k];
-    if (k === 'vocab') return TOPICS.map(t => { const s = topicStats(t); return { name: t, pct: s.pct, note: s.total + ' pieces · ' + s.mastered + ' mastered', type: 'topic', icon: TOPIC_ICONS[t] }; });
+    if (k === 'vocab') return vocabTopics().map(t => { const s = topicStats(t); return { name: t, pct: s.pct, note: s.total + ' pieces · ' + s.mastered + ' mastered', type: 'topic', icon: topicIcon(t) }; });
     if (k === 'grammar') return (sk.concepts || []).map(c => ({ name: c.name, pct: Math.round(c.s / 3 * 100), note: c.s === 3 ? 'solid' : c.s === 0 ? 'not started' : 'in progress', type: 'concept', ex: c.ex, s: c.s }));
     return (sk.subs || []).map(s => ({ name: s.name, pct: s.pct, note: s.note, type: 'metric' }));
   }
@@ -1619,7 +1651,7 @@
       let rows = '';
       allWords().forEach(x => {
         if ((x.w.es + ' ' + x.w.en).toLowerCase().includes(q))
-          rows += '<li data-goto="vocab:' + TOPICS.indexOf(x.w.topic) + '"><button class="siderow"><span class="dotc" style="background:' + (x.k ? 'var(--green)' : 'var(--coral)') + '"></span><span class="t">' + x.w.es + '<small>' + x.w.en + ' · vocabulary / ' + x.w.topic.toLowerCase() + '</small></span></button></li>';
+          rows += '<li data-goto="vocab:' + vocabTopics().indexOf(x.w.topic || 'General') + '"><button class="siderow"><span class="dotc" style="background:' + (x.k ? 'var(--green)' : 'var(--coral)') + '"></span><span class="t">' + x.w.es + '<small>' + x.w.en + ' · vocabulary / ' + (x.w.topic || 'General').toLowerCase() + '</small></span></button></li>';
       });
       (state.skills.grammar.concepts || []).forEach((c, i) => {
         if ((c.name + ' ' + c.ex).toLowerCase().includes(q))
@@ -1711,7 +1743,7 @@
 
   /* ---- plan sidebar ---- */
   function stepRows(l) {
-    return '<ul class="steps">' + l.steps.map((s, i) =>
+    return '<ul class="steps">' + (l.steps || []).map((s, i) =>
       '<li><span class="num">' + (i + 1) + '</span>' +
       '<span class="st">' + s.name + '<small>' + (KINDS[s.k] || s.k) + (s.d ? ' — ' + s.d : '') + '</small></span>' +
       '<span class="min">' + s.min + ' min</span></li>').join('') + '</ul>';
@@ -1748,7 +1780,7 @@
         } else if (pt.kind === 'story') {
           pb = (pt.stats ? '<span class="mono">' + pt.stats + '</span>' : '') +
             '<p class="storyzh">' + pt.html + '</p><div class="glossline"></div>' +
-            '<span class="mono">English</span><p class="desc">' + pt.en + '</p>' +
+            (pt.en ? '<span class="mono">English</span><p class="desc">' + pt.en + '</p>' : '') +
             (pt.qs ? '<span class="mono">Comprehension</span><ul class="loglines">' + pt.qs.map(q => '<li>' + q + '</li>').join('') + '</ul>' : '') +
             '<div class="aitip">Generated from <b>your own vocabulary</b> — tap the dotted words for pinyin, exactly as the in-chat MCP app renders them.</div>';
         } else if (pt.kind === 'news') {
@@ -1784,7 +1816,7 @@
           (!l.done && !l.log ? '<div class="aitip">' + (md === 'voice' ? 'Say' : 'Type') + ' <b>&ldquo;start my lesson&rdquo;</b> — this one runs in <b>' + md + ' mode</b>' + (md !== 'voice' ? ', with the materials rendered as MCP apps right in the chat' : '') + '. Your AI pulls the exact script via <b>get_next_lesson</b>.</div>' : '');
       } else if (plTab === 'materials') {
         body = (l.mats && l.mats.length
-          ? '<ul class="siderows">' + l.mats.map(m =>
+          ? '<ul class="siderows">' + l.mats.map(normMat).map(m =>
               '<li><div class="siderow" style="cursor:default"><span class="dotc" style="background:var(--blue)"></span><span class="t">' + m.name + (m.d ? '<small>' + m.d + '</small>' : '') + '</span></div></li>').join('') + '</ul>'
           : '<div class="empty">No materials — this one is pure conversation.</div>') +
           '<div class="aitip">Every material is <b>generated by your AI</b> — stories built from your own pieces, audio at your pace, real headlines when you&rsquo;re ready.</div>';
@@ -1827,7 +1859,7 @@
     const hit = allWords().find(x => x.w.es === es);
     switchView('skills');
     skExpand('vocab');
-    if (hit) { const ti = TOPICS.indexOf(hit.w.topic); if (ti >= 0) skSelect(ti); }
+    if (hit) { const ti = vocabTopics().indexOf(hit.w.topic || 'General'); if (ti >= 0) skSelect(ti); }
   }
   function gotoGrammarNode(name) {
     switchView('skills');

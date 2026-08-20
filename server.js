@@ -151,7 +151,15 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    flashcard decks, drills, and an exam rubric for review lessons. The app shows all of it to the learner.
 5. Weight topics by profile goals. Pull "news" themes from the target language's home country.
 6. Set the learner's language with update_profile during onboarding (language, languageLabel, level).
-7. Icons and colors for nodes come from the standard sets (get_skill_taxonomy). End every week by calling create_plan.`;
+7. Icons and colors for nodes come from the standard sets (get_skill_taxonomy). End every week by calling create_plan.
+8. EDIT, don't recreate. create_plan is ONLY for starting a brand-new week. To change the current plan's
+   title, focus or lessons, use update_plan (whole plan) or update_lesson (one lesson) — calling create_plan
+   again archives the plan and duplicates it on the learner's map.
+9. Every "mats" entry and every "parts" component MUST have a "name" — the app displays it to the learner.
+10. Vocabulary topics: the "topic" string you pass to add_words automatically becomes a node on the learner's
+   vocabulary map. Reuse existing topic names (see get_vocab) instead of inventing near-duplicates.
+11. After writing, READ BACK and verify: get_current_plan after create_plan/update_plan, get_vocab after
+   add_words. Confirm to the learner only what the read-back shows.`;
 
 const TAXONOMY = {
   note: 'Suggested standard scaffold. Your AI creates every node and may go beyond this set (add_subtopics).',
@@ -166,6 +174,90 @@ const TAXONOMY = {
     writing: { label: 'Writing', icon: 'pen', color: 'rose', subtopics: ['Typing/IME', 'Messages & chat', 'Sentence building', 'Handwriting'] }
   }
 };
+
+/* ---------------- lesson schema + normalization ---------------- */
+const StepZ = z.object({
+  k: z.string().optional().describe('Step kind: warm | vocab | story | talk | cards | exam | plan'),
+  name: z.string().describe('Short step name shown in the agenda'),
+  min: z.number().optional().describe('Minutes for this step'),
+  d: z.string().optional().describe('One-line description')
+});
+const MatZ = z.object({
+  name: z.string().describe('Material name shown to the learner — REQUIRED, never a bare string'),
+  d: z.string().optional().describe('One-line description'),
+  t: z.string().optional().describe('Type: story | audio | news | pack | rubric')
+});
+const LineZ = z.object({ s: z.string().describe('Speaker: AI | YOU | IF | CUE'), t: z.string().describe('The line') });
+const PartZ = z.object({
+  kind: z.enum(['script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat']),
+  name: z.string().describe('Component name shown on the map — REQUIRED'),
+  icon: z.string().optional(), color: z.string().optional(),
+  d: z.string().optional().describe('Description (kind "mat")'),
+  lines: z.array(LineZ).optional().describe('kind "script": turn-by-turn teaching script'),
+  html: z.string().optional().describe('kind "story": story text in the target language'),
+  en: z.string().optional().describe('kind "story": English translation'),
+  stats: z.string().optional().describe('kind "story": e.g. "96% known pieces · 140 chars"'),
+  qs: z.array(z.string()).optional().describe('kind "story": comprehension questions'),
+  items: z.array(z.object({
+    zh: z.string().describe('Headline in the target language'), py: z.string().optional().describe('Romanization'),
+    url: z.string().optional(), src: z.string().optional(), diff: z.string().optional(), task: z.string().optional()
+  })).optional().describe('kind "news": real headline items with links'),
+  cards: z.array(z.object({ zh: z.string(), en: z.string(), p: z.number().optional() })).optional().describe('kind "deck": flashcards'),
+  prompts: z.array(z.object({ q: z.string(), a: z.string() })).optional().describe('kind "drill": prompt → expected answer'),
+  rows: z.array(z.object({ a: z.string().describe('Aspect'), d: z.string().describe('Descriptor') })).optional().describe('kind "rubric"')
+});
+const LessonZ = z.object({
+  title: z.string(),
+  mins: z.number().optional().describe('Total minutes, 10–20'),
+  mode: z.enum(['voice', 'chat', 'reading']).optional(),
+  icon: z.string().optional().describe('From the standard icon set'),
+  color: z.string().optional().describe('From the standard color set'),
+  obj: z.string().optional().describe('One-sentence objective shown to the learner'),
+  steps: z.array(StepZ).min(1).describe('The lesson agenda'),
+  mats: z.array(MatZ).optional().describe('Materials — each MUST be an object with a name'),
+  words: z.array(z.string()).optional().describe('Pieces this lesson teaches (add them via add_words too)'),
+  grammar: z.array(z.string()).optional(),
+  parts: z.array(PartZ).optional().describe('Fully-prepared components the learner can open on the map')
+});
+
+const PART_NEED = { script: 'lines', news: 'items', deck: 'cards', drill: 'prompts', rubric: 'rows' };
+function normMat(m) {
+  if (typeof m === 'string') return { name: m, d: '' };
+  return { name: m.name || m.title || m.d || 'Material', d: m.name ? (m.d || '') : '', ...(m.t ? { t: m.t } : {}) };
+}
+function normPart(p) {
+  if (typeof p === 'string') return { kind: 'mat', name: p, d: '' };
+  const out = { ...p };
+  if (!PART_NEED[out.kind] && out.kind !== 'story' && out.kind !== 'mat') out.kind = 'mat';
+  if (PART_NEED[out.kind] && !Array.isArray(out[PART_NEED[out.kind]])) out.kind = 'mat';
+  if (out.kind === 'story' && typeof out.html !== 'string') {
+    if (typeof out.text === 'string') out.html = out.text; else out.kind = 'mat';
+  }
+  if (!out.name) out.name = out.title || (out.kind === 'mat' ? 'Material' : out.kind.charAt(0).toUpperCase() + out.kind.slice(1));
+  return out;
+}
+function normLesson(l, i, prev) {
+  return {
+    n: i + 1,
+    title: l.title || 'Lesson ' + (i + 1),
+    mins: l.mins || 15,
+    mode: MODE_SET.includes(l.mode) ? l.mode : 'voice',
+    icon: ICON_SET.includes(l.icon) ? l.icon : ICON_SET[(i + 6) % ICON_SET.length],
+    color: COLOR_SET.includes(l.color) ? l.color : COLOR_SET[i % COLOR_SET.length],
+    done: prev ? !!prev.done : false,
+    ...(prev && prev.log ? { log: prev.log } : {}),
+    ...(prev && prev.note ? { note: prev.note } : {}),
+    obj: l.obj || l.objective || '',
+    steps: (l.steps || []).map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '' })),
+    mats: (l.mats || []).map(normMat),
+    words: l.words || [], grammar: l.grammar || [],
+    parts: l.parts && l.parts.length ? l.parts.map(normPart) : undefined
+  };
+}
+const planSummary = p => ({
+  id: p.id, title: p.title, focus: p.focus, range: p.range, status: p.status,
+  lessons: (p.lessons || []).map(l => l.n + '. ' + l.title + ' (' + l.mode + (l.done ? ', done' : '') + ')')
+});
 
 /* ---------------- mcp (bound to one learner) ---------------- */
 const text = o => ({ content: [{ type: 'text', text: typeof o === 'string' ? o : JSON.stringify(o, null, 2) }] });
@@ -189,7 +281,7 @@ function buildMcp(user) {
     };
   };
 
-  const server = new McpServer({ name: 'open-language-teacher', version: '2.0.0' });
+  const server = new McpServer({ name: 'open-language-teacher', version: '2.1.0' });
 
   server.registerTool('link_profile', {
     title: 'Link profile',
@@ -243,22 +335,25 @@ function buildMcp(user) {
   });
 
   server.registerTool('add_words', {
-    title: 'Add words', description: 'Queue new pieces to learn. Each: {word (target language), gloss (romanization · translation), topic, ex (example sentence)}.',
+    title: 'Add words', description: 'Queue new pieces to learn. Each: {word (target language), gloss (romanization · translation), topic, ex (example sentence)}. Each distinct topic automatically becomes a node on the learner\'s vocabulary map — reuse existing topic names (see get_vocab) instead of inventing near-duplicates.',
     inputSchema: {
       words: z.array(z.object({
-        word: z.string(), gloss: z.string(), topic: z.string().optional(), ex: z.string().optional()
+        word: z.string(), gloss: z.string(),
+        topic: z.string().optional().describe('Vocabulary map node this word belongs to — reuse existing topics where possible'),
+        ex: z.string().optional()
       }))
     }
   }, async ({ words }) => {
-    const added = [];
+    const added = [], skipped = [];
     const s = mutate(uid, s => {
       for (const w of words) {
-        if (s.learning.some(x => x.es === w.word) || s.known.some(x => x.es === w.word)) continue;
+        if (s.learning.some(x => x.es === w.word) || s.known.some(x => x.es === w.word)) { skipped.push(w.word); continue; }
         s.learning.push({ es: w.word, en: w.gloss, topic: w.topic || 'General', p: 0, ex: w.ex || '' });
         added.push(w.word);
       }
     });
-    return text({ ok: true, added, inPractice: s.learning.length });
+    const topics = [...new Set([...s.learning, ...s.known].map(w => w.topic || 'General'))];
+    return text({ ok: true, added, skippedAlreadyStored: skipped, inPractice: s.learning.length, vocabMapTopics: topics });
   });
 
   server.registerTool('update_word_strength', {
@@ -324,37 +419,120 @@ function buildMcp(user) {
   });
 
   server.registerTool('create_plan', {
-    title: 'Create plan', description: 'Write a new short-term plan (3–7 days). Read get_plan_instructions first. The current plan is archived. Each lesson: {title, mins, mode, icon, color, obj, steps:[{k,name,min,d}], mats, words, grammar, parts}.',
+    title: 'Create plan', description: 'Start a BRAND-NEW short-term plan (3–7 days) — only when there is no current plan, or the current week is finished. To adjust an existing plan use update_plan or update_lesson instead. Read get_plan_instructions first. Archives the current plan (if it has progress). Rejected with an error if the current plan has zero completed lessons, unless replace: true.',
     inputSchema: {
       focus: z.string(), range: z.string().optional(), title: z.string().optional(),
-      lessons: z.array(z.any()).min(1).max(7)
+      lessons: z.array(LessonZ).min(1).max(7),
+      replace: z.boolean().optional().describe('Set true to confirm discarding a current plan that has no completed lessons yet. Without it, such a call is rejected so plans are not accidentally duplicated.')
     }
-  }, async ({ focus, range, title, lessons }) => {
+  }, async ({ focus, range, title, lessons, replace }) => {
+    const before = S();
+    const cur0 = before.plans.find(p => p.status === 'current');
+    if (cur0 && !(cur0.lessons || []).some(l => l.done) && !replace) {
+      return text({
+        ok: false,
+        error: 'The current plan "' + cur0.title + '" has no completed lessons. If you meant to adjust it, call update_plan or update_lesson. If you really want to throw it away and start over, call create_plan again with replace: true.',
+        currentPlan: planSummary(cur0)
+      });
+    }
     const s = mutate(uid, s => {
       const cur = s.plans.find(p => p.status === 'current');
-      if (cur) cur.status = 'past';
+      if (cur) {
+        if ((cur.lessons || []).some(l => l.done)) cur.status = 'past';
+        else s.plans = s.plans.filter(p => p !== cur); // replacing an untouched plan leaves no junk behind
+      }
       s.plans = s.plans.filter(p => p.status !== 'future');
       const lastNum = s.plans.reduce((m, p) => Math.max(m, parseInt(String(p.id).replace(/\D/g, '')) || 0), 0);
-      const num = (lastNum || new Date().getWeekNumber?.() || 33) + 1;
-      const norm = lessons.map((l, i) => ({
-        n: i + 1,
-        title: l.title || 'Lesson ' + (i + 1),
-        mins: l.mins || 15,
-        mode: MODE_SET.includes(l.mode) ? l.mode : 'voice',
-        icon: ICON_SET.includes(l.icon) ? l.icon : ICON_SET[(i + 6) % ICON_SET.length],
-        color: COLOR_SET.includes(l.color) ? l.color : COLOR_SET[i % COLOR_SET.length],
-        done: false,
-        obj: l.obj || l.objective || '',
-        steps: (l.steps || []).map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '' })),
-        mats: l.mats || [], words: l.words || [], grammar: l.grammar || [],
-        parts: l.parts || undefined
-      }));
+      const num = (lastNum || 33) + 1;
+      const norm = lessons.map((l, i) => normLesson(l, i));
       s.plans.push({ id: 'w' + num, title: title || ('Week ' + num), topic: focus, range: range || '', status: 'current', focus, lessons: norm, pos: [13, 47] });
       s.plans.push({ id: 'w' + (num + 1), title: 'Week ' + (num + 1), topic: 'Not written yet', range: '', status: 'future', pos: [13, 76] });
       layoutPlans(s);
     });
     const p = s.plans.find(x => x.status === 'current');
-    return text({ ok: true, plan: { title: p.title, focus, lessons: p.lessons.map(l => l.n + '. ' + l.title + ' (' + l.mode + ')') } });
+    return text({ ok: true, plan: planSummary(p), verify: 'Call get_current_plan to read the stored plan back before confirming to the learner.' });
+  });
+
+  server.registerTool('get_current_plan', {
+    title: 'Get current plan', description: 'Read the full current plan exactly as stored (every lesson with steps, mats, words, grammar, parts), plus a list of past/future plans. Use it to verify writes and to decide between update_plan and create_plan.', inputSchema: {}
+  }, async () => {
+    const s = S();
+    const p = curPlan(s);
+    return text({
+      currentPlan: p || null,
+      otherPlans: s.plans.filter(x => x.status !== 'current').map(x => ({ id: x.id, title: x.title, status: x.status, topic: x.topic }))
+    });
+  });
+
+  server.registerTool('update_plan', {
+    title: 'Update plan', description: 'Adjust the CURRENT plan in place — no archiving, no duplicate on the map. Patch title/focus/range, and optionally replace the whole lesson list (done-flags, logs and notes of lessons with the same number are preserved). For a single lesson prefer update_lesson.',
+    inputSchema: {
+      title: z.string().optional(), focus: z.string().optional(), range: z.string().optional(),
+      lessons: z.array(LessonZ).min(1).max(7).optional().describe('Full replacement lesson list (omit to keep lessons unchanged)')
+    }
+  }, async (a) => {
+    let out = null;
+    mutate(uid, s => {
+      const p = curPlan(s);
+      if (!p) { out = { ok: false, error: 'No current plan — call create_plan first.' }; return; }
+      if (a.title) p.title = a.title;
+      if (a.focus) { p.focus = a.focus; p.topic = a.focus; }
+      if (a.range != null) p.range = a.range;
+      if (a.lessons) p.lessons = a.lessons.map((l, i) => normLesson(l, i, (p.lessons || [])[i]));
+      out = { ok: true, plan: planSummary(p), verify: 'Call get_current_plan to confirm the stored result.' };
+    });
+    return text(out);
+  });
+
+  server.registerTool('update_lesson', {
+    title: 'Update lesson', description: 'Patch ONE lesson of the current plan by its day number n. Only the fields you pass are replaced (steps/mats/parts replace that whole array). Use this to fix a title, add materials or attach prepared parts without touching the rest of the plan.',
+    inputSchema: {
+      lesson: z.number().describe('The lesson/day number n (see get_current_plan)'),
+      title: z.string().optional(), mins: z.number().optional(),
+      mode: z.enum(['voice', 'chat', 'reading']).optional(),
+      icon: z.string().optional(), color: z.string().optional(), obj: z.string().optional(),
+      steps: z.array(StepZ).optional(), mats: z.array(MatZ).optional(),
+      words: z.array(z.string()).optional(), grammar: z.array(z.string()).optional(),
+      parts: z.array(PartZ).optional(),
+      done: z.boolean().optional().describe('Usually set via complete_lesson instead')
+    }
+  }, async (a) => {
+    let out = null;
+    mutate(uid, s => {
+      const p = curPlan(s);
+      if (!p) { out = { ok: false, error: 'No current plan — call create_plan first.' }; return; }
+      const l = (p.lessons || []).find(x => x.n === a.lesson);
+      if (!l) { out = { ok: false, error: 'No lesson ' + a.lesson + ' in "' + p.title + '" (has ' + p.lessons.length + ' lessons).' }; return; }
+      if (a.title) l.title = a.title;
+      if (a.mins != null) l.mins = a.mins;
+      if (a.mode) l.mode = a.mode;
+      if (a.icon && ICON_SET.includes(a.icon)) l.icon = a.icon;
+      if (a.color && COLOR_SET.includes(a.color)) l.color = a.color;
+      if (a.obj != null) l.obj = a.obj;
+      if (a.steps) l.steps = a.steps.map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '' }));
+      if (a.mats) l.mats = a.mats.map(normMat);
+      if (a.words) l.words = a.words;
+      if (a.grammar) l.grammar = a.grammar;
+      if (a.parts) l.parts = a.parts.map(normPart);
+      if (a.done != null) l.done = a.done;
+      out = { ok: true, plan: p.title, lesson: { n: l.n, title: l.title, mode: l.mode, mats: l.mats.length + ' materials', parts: (l.parts || []).length + ' parts' } };
+    });
+    return text(out);
+  });
+
+  server.registerTool('delete_plan', {
+    title: 'Delete plan', description: 'Permanently remove one plan by id (see get_current_plan → otherPlans). Use it to clean up an accidental duplicate. Deleting the current plan leaves the learner with no active plan.',
+    inputSchema: { id: z.string().describe('Plan id, e.g. "w34"') }
+  }, async ({ id }) => {
+    let out = null;
+    mutate(uid, s => {
+      const p = s.plans.find(x => x.id === id);
+      if (!p) { out = { ok: false, error: 'No plan with id "' + id + '".' }; return; }
+      s.plans = s.plans.filter(x => x !== p);
+      layoutPlans(s);
+      out = { ok: true, deleted: { id: p.id, title: p.title, status: p.status }, remaining: s.plans.map(x => ({ id: x.id, title: x.title, status: x.status })) };
+    });
+    return text(out);
   });
 
   server.registerTool('get_next_lesson', {

@@ -43,7 +43,9 @@ So the app owns the *schema and the score*; the AI owns the *content and the ped
 | `get_plan_instructions` | resource: how the app wants plans & lessons structured |
 | `get_skill_taxonomy` | resource: the suggested standard skill/subtopic scaffold |
 | `add_subtopics` / `update_skill` | create new nodes on the skill map (with an `icon` and a `color` from the app's standard sets); write graded results |
-| `create_plan` | write a short-term plan (3–7 days max) |
+| `create_plan` | write a brand-new short-term plan (3–7 days max); refuses to clobber an unstarted plan |
+| `update_plan` / `update_lesson` | adjust the current plan in place — no archiving, no duplicates |
+| `get_current_plan` / `delete_plan` | read the stored plan back to verify writes; remove an accidental duplicate |
 | `get_vocab` / `add_words` | read lists; queue new words with examples |
 | `update_word_strength` | record recall results after drills |
 | `get_next_lesson` / `complete_lesson` | pull today's lesson; mark done with notes |
