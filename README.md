@@ -48,4 +48,4 @@ So the app owns the *schema and the score*; the AI owns the *content and the ped
 
 ## This repo
 
-`index.html` — an interactive, self-contained mockup of the web app. It includes a "Your AI · voice mode" panel that simulates ChatGPT driving the app over MCP: play the **onboarding** or **voice lesson** scenario and watch tool calls stream in while the app's data updates live. Open the file in any browser; no build step.
+`index.html` — an interactive, self-contained mockup of the web app: pan/zoom node maps for Skills and Plan (with a canvas background switcher), a topbar that becomes the selection header, and a lean slide-in detail panel. It includes a "Your AI · voice mode" panel that simulates ChatGPT driving the app over MCP: play the **onboarding** or **voice lesson** scenario and watch tool calls stream in while the app's data updates live. Open the file in any browser; no build step.
