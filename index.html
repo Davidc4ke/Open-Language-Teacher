@@ -190,8 +190,8 @@
   .fnode.hid { opacity: 0; pointer-events: none; }
   .nring { position: relative; width: 84px; height: 84px; pointer-events: none; }
   .fnode.child .nring { width: 62px; height: 62px; }
-  .nring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .nring circle { fill: none; stroke-width: 5; }
+  .nring > svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .nring > svg circle { fill: none; stroke-width: 5; }
   .nring .t { stroke: var(--line); }
   .nring .f {
     stroke: var(--faint); stroke-linecap: round;
@@ -863,13 +863,19 @@
     return f;
   }
 
-  function bloom(field, parent, kids, mkOpts) {
-    const rx = 32, ry = 30;
+  function visibleCenterX(field) {
+    const w = field.canvas.clientWidth || window.innerWidth;
+    return Math.max(28, Math.min(50, ((w - 352) / 2) / w * 100));
+  }
+
+  function bloom(field, parent, kids, mkOpts, cx, cy) {
+    cx = cx != null ? cx : 50; cy = cy != null ? cy : 46;
+    const rx = Math.min(30, cx - 6), ry = 30;
     const total = kids.length;
     kids.forEach((c, i) => {
       const a = -Math.PI / 2 + i * (2 * Math.PI / total);
-      const px = Math.max(8, Math.min(92, 50 + Math.cos(a) * rx));
-      const py = Math.max(10, Math.min(88, 46 + Math.sin(a) * ry));
+      const px = Math.max(6, Math.min(94, cx + Math.cos(a) * rx));
+      const py = Math.max(10, Math.min(88, cy + Math.sin(a) * ry));
       field.makeNode(Object.assign({ px, py, fromX: parent.bx, fromY: parent.by, small: true }, mkOpts(c, i)));
     });
   }
@@ -939,16 +945,17 @@
     skCollapse(false);
     skExpanded = k; skChild = null;
     const parent = SK.nodes.find(n => n.kind === 'skill' && n.key === k);
+    const cx = visibleCenterX(SK);
     SK.nodes.forEach(n => {
       if (n.kind !== 'skill') return;
-      if (n.key === k) { n.px = 50; n.py = 46; n.ts = 1.12; n.el.classList.add('open'); n.el.classList.remove('hid'); }
+      if (n.key === k) { n.px = cx; n.py = 46; n.ts = 1.12; n.el.classList.add('open'); n.el.classList.remove('hid'); }
       else { n.ts = 0; n.el.classList.add('hid'); n.el.classList.remove('open'); }
     });
     const kids = childrenOf(k).map((c, i) => ({ c, i }));
     kids.push({ ghost: true, i: kids.length });
     bloom(SK, parent, kids, (o) => o.ghost
       ? { kind: 'ghost', key: 'ghost', idx: o.i, ghost: true }
-      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, icon: o.c.icon, label: o.c.name });
+      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, icon: o.c.icon, label: o.c.name }, cx, 46);
     renderSkillSide();
   }
 
@@ -1061,10 +1068,13 @@
       n.el.classList.toggle('open', n.key === id);
     });
     const next = p.status === 'current' ? p.lessons.find(l => !l.done) : null;
+    const w = PL.canvas.clientWidth || window.innerWidth;
+    const rightEdge = Math.max(60, Math.min(90, ((w - 380) / w) * 100));
+    const step = (rightEdge - 24) / Math.max(1, p.lessons.length - 1);
     p.lessons.forEach((l, i) => {
       PL.makeNode({
         kind: 'day', key: id, idx: i, small: true,
-        px: 27 + i * 12.5, py: p.pos[1],
+        px: 24 + i * step, py: p.pos[1],
         fromX: parent.bx, fromY: parent.by,
         pct: l.done ? 100 : 0,
         text: l.done ? '✓' : l.n,
