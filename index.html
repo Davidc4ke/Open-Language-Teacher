@@ -22,9 +22,10 @@
     /* standard node palette — settable per node over MCP */
     --c-blue: #2E63E7; --c-teal: #0F8C86; --c-violet: #7A4FD8;
     --c-coral: #DA6A4C; --c-amber: #B98216; --c-green: #35935B; --c-rose: #C2417C;
-    --gridc: color-mix(in srgb, var(--faint) 30%, transparent);
-    --gridc-strong: color-mix(in srgb, var(--faint) 55%, transparent);
-    --gridc-blue: color-mix(in srgb, var(--blue) 20%, transparent);
+    --gridc: color-mix(in srgb, var(--faint) 11%, transparent);
+    --gridc-strong: color-mix(in srgb, var(--faint) 18%, transparent);
+    --gridc-blue: color-mix(in srgb, var(--blue) 8%, transparent);
+    --gridc-sw: color-mix(in srgb, var(--faint) 60%, transparent);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -185,10 +186,10 @@
   .mapcanvas[data-bg="bigdots"] { background-image: radial-gradient(var(--gridc-strong) 2.5px, transparent 2.5px); background-size: 44px 44px; }
   .mapcanvas[data-bg="hatch"] { background-image: repeating-linear-gradient(45deg, var(--gridc) 0 1px, transparent 1px 24px); }
   .mapcanvas[data-bg="blueprint"] {
-    background-color: color-mix(in srgb, var(--blue) 4%, transparent);
+    background-color: color-mix(in srgb, var(--blue) 2%, transparent);
     background-image:
       linear-gradient(var(--gridc-blue) 1px, transparent 1px), linear-gradient(90deg, var(--gridc-blue) 1px, transparent 1px),
-      linear-gradient(color-mix(in srgb, var(--blue) 32%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--blue) 32%, transparent) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--blue) 14%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--blue) 14%, transparent) 1px, transparent 1px);
     background-size: 26px 26px, 26px 26px, 104px 104px, 104px 104px;
   }
   .mapcanvas[data-bg="plain"] { background-image: none; }
@@ -205,10 +206,10 @@
   }
   .bgsw:hover { transform: translateY(-1px); }
   .bgsw.on { border-color: var(--blue); box-shadow: 0 0 0 3px var(--glow); }
-  .bgsw[data-bg="dots"] { background-image: radial-gradient(var(--gridc-strong) 1px, transparent 1px); background-size: 6px 6px; }
-  .bgsw[data-bg="grid"] { background-image: linear-gradient(var(--gridc-strong) 1px, transparent 1px), linear-gradient(90deg, var(--gridc-strong) 1px, transparent 1px); background-size: 7px 7px; }
-  .bgsw[data-bg="bigdots"] { background-image: radial-gradient(var(--gridc-strong) 1.5px, transparent 1.5px); background-size: 10px 10px; }
-  .bgsw[data-bg="hatch"] { background-image: repeating-linear-gradient(45deg, var(--gridc-strong) 0 1px, transparent 1px 6px); }
+  .bgsw[data-bg="dots"] { background-image: radial-gradient(var(--gridc-sw) 1px, transparent 1px); background-size: 6px 6px; }
+  .bgsw[data-bg="grid"] { background-image: linear-gradient(var(--gridc-sw) 1px, transparent 1px), linear-gradient(90deg, var(--gridc-sw) 1px, transparent 1px); background-size: 7px 7px; }
+  .bgsw[data-bg="bigdots"] { background-image: radial-gradient(var(--gridc-sw) 1.5px, transparent 1.5px); background-size: 10px 10px; }
+  .bgsw[data-bg="hatch"] { background-image: repeating-linear-gradient(45deg, var(--gridc-sw) 0 1px, transparent 1px 6px); }
   .bgsw[data-bg="blueprint"] { background-color: color-mix(in srgb, var(--blue) 10%, var(--bg)); background-image: linear-gradient(var(--gridc-blue) 1px, transparent 1px), linear-gradient(90deg, var(--gridc-blue) 1px, transparent 1px); background-size: 7px 7px; }
   .mapcanvas.grabbing { cursor: grabbing; }
   .maphint { position: absolute; right: 18px; bottom: 14px; text-align: right; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
