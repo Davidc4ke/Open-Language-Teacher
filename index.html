@@ -864,6 +864,7 @@
   function renderSide() {
     const box = $('skillSide');
     mapEl.classList.toggle('dim', !!query);
+    document.querySelector('.sk-body').classList.toggle('withside', !!expanded || !!query);
 
     if (query) {
       const q = query.toLowerCase();
