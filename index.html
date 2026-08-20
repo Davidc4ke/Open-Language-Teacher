@@ -200,6 +200,7 @@
   }
   .fnode:active { cursor: grabbing; }
   .fnode.dimmed { opacity: .35; }
+  .fnode.hid { opacity: 0; pointer-events: none; }
   .fnode { transition: opacity .35s; }
   .nring { position: relative; width: 84px; height: 84px; pointer-events: none; }
   .fnode.child .nring { width: 62px; height: 62px; }
@@ -601,7 +602,6 @@
   };
 
   const SKILL_KEYS = ['vocab', 'grammar', 'speaking', 'listening', 'reading', 'writing'];
-  const PARK = { vocab: [9, 12], grammar: [50, 7], speaking: [10, 88], listening: [91, 26], reading: [7, 50], writing: [91, 88] };
   const TOPICS = ['News', 'Slang', 'Conversation', 'Travel', 'Basics', 'Food'];
   const CIRC = 163.4;
 
@@ -668,7 +668,7 @@
       bx: opts.fromX != null ? opts.fromX : x, by: opts.fromY != null ? opts.fromY : y,
       s: opts.type === 'skill' ? 0 : 0.01, ts: 1,
       amp: opts.type === 'skill' ? 8 : 5,
-      sp: 0.4 + Math.random() * 0.5, ph: Math.random() * 6.28,
+      sp: 0.06 + Math.random() * 0.06, ph: Math.random() * 6.28,
       dead: false
     };
     setRing(el, opts.type === 'ghost' ? 0 : opts.pct);
@@ -716,10 +716,10 @@
       if (n.type !== 'skill') return;
       if (n.key === k) {
         n.px = 50; n.py = 46; n.ts = 1.12;
-        n.el.classList.add('open'); n.el.classList.remove('dimmed');
+        n.el.classList.add('open'); n.el.classList.remove('hid');
       } else {
-        n.px = PARK[n.key][0]; n.py = PARK[n.key][1]; n.ts = 0.62;
-        n.el.classList.add('dimmed'); n.el.classList.remove('open');
+        n.ts = 0;
+        n.el.classList.add('hid'); n.el.classList.remove('open');
       }
     });
     const kids = childrenOf(k);
@@ -743,7 +743,7 @@
     fnodes.forEach(n => {
       const sk = state.skills[n.key];
       n.px = sk.pos[0]; n.py = sk.pos[1]; n.ts = 1;
-      n.el.classList.remove('dimmed', 'open', 'sel');
+      n.el.classList.remove('dimmed', 'hid', 'open', 'sel');
     });
     expanded = null; selChild = null;
     if (rerender !== false) renderSide();
