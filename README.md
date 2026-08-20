@@ -21,12 +21,25 @@ A web app for learning any language — where **your data lives in the app, but 
 - At the end it calls `update_word_strength` and `complete_lesson` with notes for tomorrow.
 - At the end of each week, the AI reviews results and writes the next short plan. Easy iterations, never grand curricula.
 
+## The skill map — who creates the nodes
+
+Language is tracked as a node map, not a word list: six skills (Vocabulary, Grammar, Speaking, Listening, Reading, Writing), each expanding into subtopics (vocabulary themes, grammar concepts, the CEFR spoken-language aspects, listening/reading sub-skills…).
+
+**The contract:**
+
+- **The AI is fully in control of creating every node, dynamically.** Skill nodes, subtopics, word groups — all created, extended, renamed and graded by the learner's own AI through MCP tools (`add_subtopics`, `update_skill`, `update_word_strength`). "Add a football vocabulary pack" in voice mode → a new node appears.
+- **The web app instructs a standard starting set over MCP.** A `get_skill_taxonomy` resource suggests the common scaffold — the six skills and their research-backed default subtopics (e.g. CEFR's five spoken-language aspects: fluency, pronunciation, accuracy, interaction, coherence; listening gist/detail/inference; extensive vs intensive reading). The AI reads it during onboarding and uses it as the baseline, then grows the map from what the learner actually does.
+
+So the app owns the *schema and the score*; the AI owns the *content and the pedagogy*.
+
 ## MCP tool surface (draft)
 
 | Tool | Purpose |
 | --- | --- |
 | `get_profile` / `update_profile` | read/save level, goals, native language |
 | `get_plan_instructions` | resource: how the app wants plans & lessons structured |
+| `get_skill_taxonomy` | resource: the suggested standard skill/subtopic scaffold |
+| `add_subtopics` / `update_skill` | create new nodes on the skill map; write graded results |
 | `create_plan` | write a short-term plan (3–7 days max) |
 | `get_vocab` / `add_words` | read lists; queue new words with examples |
 | `update_word_strength` | record recall results after drills |

@@ -196,6 +196,7 @@
     transition: opacity .3s;
   }
   .mapcanvas.dim { opacity: .35; }
+  .mapnote { position: absolute; left: 16px; bottom: 12px; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); max-width: 90%; }
   #mapLines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   #mapLines line { stroke: var(--line); stroke-width: 2; }
   #mapLines line.act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
@@ -478,6 +479,7 @@
     <div class="sk-body rv">
       <div class="mapcanvas" id="skillMap">
         <svg id="mapLines"></svg>
+        <span class="mapnote mono">every node is created &amp; graded by your AI — this standard set is suggested by the app via MCP</span>
       </div>
       <aside class="card sk-side" id="skillSide"></aside>
     </div>
@@ -907,8 +909,8 @@
       box.innerHTML =
         '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' +
         '<h3>A new subtopic</h3>' +
-        '<p class="desc">Subtopics aren’t fixed — your AI creates them from what you do. Nothing to configure here.</p>' +
-        '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopic</b>.</div>';
+        '<p class="desc">Nothing on this map is hard-coded. The app only <em>suggests</em> a standard taxonomy over MCP (<span style="font-family:var(--mono); font-size:11px">get_skill_taxonomy</span>) — the six skills and their common subtopics. Your AI creates every node, and can go beyond the standard set whenever you do.</p>' +
+        '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopics</b>.</div>';
       return;
     }
 
