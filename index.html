@@ -168,7 +168,6 @@
   .mapcanvas.grabbing { cursor: grabbing; }
   .maphint { position: absolute; right: 16px; bottom: 12px; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); }
   .mapcanvas.dim { opacity: .35; }
-  .mapnote { position: absolute; left: 16px; bottom: 12px; pointer-events: none; letter-spacing: .16em; font-size: 8.5px; color: var(--faint); max-width: 90%; }
   #mapLines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   #mapLines line { stroke: var(--line); stroke-width: 2; }
   #mapLines line.act { stroke: var(--blue); stroke-dasharray: 6 7; animation: dashflow 1.1s linear infinite; }
@@ -416,7 +415,6 @@
     <div class="sk-body rv">
       <div class="mapcanvas" id="skillMap">
         <svg id="mapLines"></svg>
-        <span class="mapnote mono">every node is created &amp; graded by your AI — this standard set is suggested by the app via MCP</span>
         <span class="maphint mono">drag to pan · scroll to zoom · double-click to reset</span>
       </div>
       <aside class="card sk-side" id="skillSide"></aside>
@@ -689,9 +687,17 @@
   }
 
   function collapse(rerender) {
-    fnodes.filter(n => n.type !== 'skill').forEach(n => { n.dead = true; n.ts = 0; setTimeout(() => { n.el.remove(); }, 300); });
-    fnodes = fnodes.filter(n => n.type === 'skill');
-    fnodes.forEach(n => {
+    const home = expanded ? state.skills[expanded].pos : null;
+    fnodes.filter(n => n.type !== 'skill').forEach(n => {
+      n.dead = true; n.ts = 0;
+      if (home) { n.px = home[0]; n.py = home[1]; }
+      n.el.classList.add('hid');
+    });
+    setTimeout(() => {
+      fnodes.filter(n => n.dead).forEach(n => n.el.remove());
+      fnodes = fnodes.filter(n => !n.dead);
+    }, 500);
+    fnodes.filter(n => n.type === 'skill').forEach(n => {
       const sk = state.skills[n.key];
       n.px = sk.pos[0]; n.py = sk.pos[1]; n.ts = 1;
       n.el.classList.remove('dimmed', 'hid', 'open', 'sel');
