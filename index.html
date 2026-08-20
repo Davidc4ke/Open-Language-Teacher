@@ -1,0 +1,981 @@
+<title>Open Language Teacher</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #FAF9F5;
+    --surface: #FFFFFF;
+    --ink: #232630;
+    --muted: #6E7280;
+    --faint: #9A9DA8;
+    --line: #E5E2D9;
+    --red: #B23A2E;
+    --red-ink: #FFFFFF;
+    --red-soft: #F7E9E5;
+    --blue: #3D5A80;
+    --blue-soft: #EAF0F6;
+    --green: #3E7C50;
+    --green-soft: #E6F0E8;
+    --amber: #96690F;
+    --amber-soft: #F6EDD7;
+    --chip: #F1EFE7;
+    --mono-bg: #F4F2EA;
+    --sim-bg: #F3F1EA;
+    --shadow: 0 1px 2px rgba(35,38,48,.05), 0 10px 28px rgba(35,38,48,.07);
+    --serif: 'Literata', Georgia, 'Times New Roman', serif;
+    --sans: 'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'Spline Sans Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14161C;
+      --surface: #1C1F27;
+      --ink: #E9E7DF;
+      --muted: #9AA0AC;
+      --faint: #6E7280;
+      --line: #2D313C;
+      --red: #E0745F;
+      --red-ink: #1A120F;
+      --red-soft: #382520;
+      --blue: #8FB0D8;
+      --blue-soft: #232C3A;
+      --green: #84BD90;
+      --green-soft: #1F2E23;
+      --amber: #D9A94E;
+      --amber-soft: #33290F;
+      --chip: #242833;
+      --mono-bg: #20242E;
+      --sim-bg: #181B22;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14161C;
+    --surface: #1C1F27;
+    --ink: #E9E7DF;
+    --muted: #9AA0AC;
+    --faint: #6E7280;
+    --line: #2D313C;
+    --red: #E0745F;
+    --red-ink: #1A120F;
+    --red-soft: #382520;
+    --blue: #8FB0D8;
+    --blue-soft: #232C3A;
+    --green: #84BD90;
+    --green-soft: #1F2E23;
+    --amber: #D9A94E;
+    --amber-soft: #33290F;
+    --chip: #242833;
+    --mono-bg: #20242E;
+    --sim-bg: #181B22;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: var(--sans); font-size: 14px; cursor: pointer; color: var(--ink); }
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+  /* ---------- shell ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 20px; height: 58px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .wordmark {
+    font-family: var(--serif); font-weight: 700; font-size: 19px; letter-spacing: -.01em;
+    display: flex; align-items: baseline; gap: 8px; white-space: nowrap;
+  }
+  .wordmark .dot { color: var(--red); }
+  .wordmark small {
+    font-family: var(--sans); font-weight: 500; font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .14em;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface); padding: 4px 12px;
+    font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap;
+  }
+  .pill b { color: var(--ink); font-weight: 600; }
+  .topbar .spacer { flex: 1; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--blue); color: var(--paper);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 13px; flex: none;
+  }
+  #simToggle { display: none; }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 196px minmax(0, 1fr) 384px;
+    height: calc(100vh - 58px);
+  }
+
+  /* ---------- sidebar ---------- */
+  .side {
+    border-right: 1px solid var(--line);
+    padding: 18px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .side button.nav {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; text-align: left;
+    background: none; border: 0; border-radius: 8px;
+    padding: 9px 12px; font-weight: 500; color: var(--muted);
+  }
+  .side button.nav .glyph { width: 16px; text-align: center; color: var(--faint); font-size: 13px; }
+  .side button.nav:hover { background: var(--chip); color: var(--ink); }
+  .side button.nav.active { background: var(--red-soft); color: var(--red); font-weight: 600; }
+  .side button.nav.active .glyph { color: var(--red); }
+  .side .foot {
+    margin-top: auto; padding: 10px 12px;
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+  .statusdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 6px; }
+  .statusdot.off { background: var(--faint); }
+
+  /* ---------- main ---------- */
+  main { overflow-y: auto; padding: 28px 32px 60px; }
+  section[data-view] { display: none; max-width: 860px; margin: 0 auto; }
+  section[data-view].active { display: block; }
+  .view-head { margin-bottom: 22px; }
+  .view-head h1 { font-family: var(--serif); font-size: 27px; font-weight: 700; letter-spacing: -.01em; }
+  .view-head p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  .card .pad { padding: 18px 20px; }
+
+  /* stat tiles */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+  .stat { padding: 14px 16px; }
+  .stat .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+  .stat .value { font-family: var(--serif); font-size: 30px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .stat .sub { font-size: 12px; color: var(--muted); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+
+  .eyebrow {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .13em; color: var(--muted); margin-bottom: 8px;
+  }
+  .eyebrow .accent { color: var(--red); }
+
+  /* today's lesson */
+  .today-card { border-color: var(--red); border-width: 1px; }
+  .today-card h3 { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+  .steps { margin: 12px 0 0; padding: 0; list-style: none; }
+  .steps li { display: flex; gap: 10px; padding: 5px 0; color: var(--muted); font-size: 14px; }
+  .steps li::before { content: "▸"; color: var(--red); flex: none; }
+  .btnrow { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: 8px; padding: 8px 14px; font-weight: 600;
+  }
+  .btn:hover { background: var(--chip); }
+  .btn.primary { background: var(--red); border-color: var(--red); color: var(--red-ink); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .hint { font-size: 12.5px; color: var(--muted); }
+
+  .promptbox {
+    margin-top: 12px;
+    font-family: var(--mono); font-size: 12.5px;
+    background: var(--mono-bg); border: 1px dashed var(--line);
+    border-radius: 8px; padding: 10px 12px; color: var(--muted);
+    overflow-x: auto; white-space: nowrap;
+  }
+
+  /* how it works */
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+  .how .card { padding: 16px; }
+  .how h4 { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+  .how p { margin: 0; font-size: 13px; color: var(--muted); }
+  .how .k { font-family: var(--serif); font-style: italic; color: var(--red); font-size: 15px; }
+
+  /* plan mini list */
+  .mini-plan { list-style: none; margin: 0; padding: 0; }
+  .mini-plan li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .mini-plan li:last-child { border-bottom: 0; }
+  .mini-plan .n { font-family: var(--mono); font-size: 11.5px; color: var(--faint); width: 18px; flex: none; }
+  .mini-plan .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .tag {
+    font-size: 11px; font-weight: 600; border-radius: 999px;
+    padding: 2px 9px; white-space: nowrap; flex: none;
+  }
+  .tag.done  { background: var(--green-soft); color: var(--green); }
+  .tag.today { background: var(--red-soft); color: var(--red); }
+  .tag.next  { background: var(--chip); color: var(--muted); }
+  .tag.topic { background: var(--blue-soft); color: var(--blue); font-weight: 500; }
+  .tag.res   { background: var(--amber-soft); color: var(--amber); }
+
+  /* ---------- vocabulary ---------- */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .filters button {
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: 999px; padding: 5px 14px; font-size: 13px; font-weight: 500; color: var(--muted);
+  }
+  .filters button:hover { background: var(--chip); color: var(--ink); }
+  .filters button.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  .vocab-col h2 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;
+  }
+  .vocab-col h2 .count { font-family: var(--mono); font-weight: 500; font-size: 12px; color: var(--muted); }
+  .vocab-col h2 .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; align-self: center; }
+  .wordlist { list-style: none; margin: 0; padding: 0; }
+  .wordlist li { border-bottom: 1px solid var(--line); }
+  .wordlist li:last-child { border-bottom: 0; }
+  .wordrow {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; background: none; border: 0; text-align: left;
+    padding: 10px 14px;
+  }
+  .wordrow:hover { background: var(--chip); }
+  .headword { font-family: var(--serif); font-weight: 700; font-size: 16px; color: var(--red); flex: none; }
+  .gloss { color: var(--muted); font-size: 13.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dots { display: flex; gap: 3px; flex: none; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+  .dots i.f { background: var(--green); }
+  .dots.learning i.f { background: var(--amber); }
+  .ex {
+    display: none; padding: 0 14px 12px 14px;
+    font-size: 13.5px; color: var(--muted);
+  }
+  .ex .es { font-family: var(--serif); font-style: italic; color: var(--ink); }
+  li.open .ex { display: block; }
+  li.open .wordrow { background: var(--chip); }
+  .more { padding: 10px 14px; font-size: 12.5px; color: var(--faint); }
+  .empty { padding: 22px 14px; font-size: 13.5px; color: var(--muted); font-style: italic; }
+  .vocab-note { margin-top: 16px; font-size: 13px; color: var(--muted); max-width: 68ch; }
+
+  /* ---------- plan ---------- */
+  .plan-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 20px; }
+  .lesson-card { margin-bottom: 12px; }
+  .lesson-card .pad { display: flex; gap: 14px; }
+  .lesson-card.today-l { border-color: var(--red); }
+  .lesson-card.done-l { opacity: .78; }
+  .lesson-n {
+    font-family: var(--serif); font-weight: 700; font-size: 21px;
+    color: var(--faint); width: 30px; flex: none; text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .lesson-card.today-l .lesson-n { color: var(--red); }
+  .lesson-body { flex: 1; min-width: 0; }
+  .lesson-body h3 { font-family: var(--serif); font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lesson-body .mins { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--muted); }
+  .lesson-steps { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13.5px; color: var(--muted); }
+  .lesson-steps li { padding: 2px 0; display: flex; gap: 8px; }
+  .lesson-steps li::before { content: "·"; color: var(--faint); }
+  .plan-note {
+    margin-top: 20px; padding: 14px 16px;
+    background: var(--amber-soft); border-radius: 10px;
+    font-size: 13.5px; color: var(--amber);
+  }
+  .plan-history { margin-top: 20px; font-size: 13px; color: var(--muted); }
+
+  /* ---------- mcp ---------- */
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 14px; font-size: 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font-weight: 500; }
+  .kv dd code { font-family: var(--mono); font-size: 12.5px; background: var(--mono-bg); padding: 2px 7px; border-radius: 6px; }
+  .toolrows { list-style: none; margin: 0; padding: 0; }
+  .toolrows li {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px;
+  }
+  .toolrows li:last-child { border-bottom: 0; }
+  .toolrows .tn { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--blue); flex: none; width: 190px; }
+  .toolrows .td { color: var(--muted); flex: 1; }
+  .guide {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+    background: var(--mono-bg); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; color: var(--ink);
+    margin: 0;
+  }
+  .guide .c { color: var(--muted); }
+  .setup { counter-reset: step; list-style: none; margin: 0; padding: 0; }
+  .setup li { display: flex; gap: 12px; padding: 8px 0; font-size: 14px; }
+  .setup li::before {
+    counter-increment: step; content: counter(step);
+    font-family: var(--serif); font-weight: 700; color: var(--red);
+    width: 20px; flex: none; text-align: center;
+  }
+  .setup li code { font-family: var(--mono); font-size: 12px; background: var(--mono-bg); padding: 1px 6px; border-radius: 5px; }
+  .mt { margin-top: 20px; }
+  .mb8 { margin-bottom: 8px; }
+
+  /* ---------- simulator ---------- */
+  .sim {
+    border-left: 1px solid var(--line);
+    background: var(--sim-bg);
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .sim-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
+  .sim-head .eyebrow { margin-bottom: 2px; }
+  .sim-head h2 { font-family: var(--serif); font-size: 18px; font-weight: 700; }
+  .sim-head p { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+  .sim-controls { display: flex; gap: 8px; padding: 12px 18px; flex-wrap: wrap; }
+  .sim-controls .btn { font-size: 13px; padding: 7px 12px; }
+  .sim-controls .btn.blue { background: var(--blue); border-color: var(--blue); color: var(--paper); }
+  .sim-controls .btn:disabled { opacity: .45; cursor: default; }
+
+  .voice { display: flex; align-items: center; gap: 10px; padding: 0 18px 10px; height: 34px; }
+  .bars { display: flex; align-items: center; gap: 3px; height: 22px; }
+  .bars i { width: 4px; height: 6px; border-radius: 2px; background: var(--blue); opacity: .45; }
+  .voice.speaking .bars i { opacity: 1; animation: bar .9s ease-in-out infinite; }
+  .voice.speaking .bars i:nth-child(2) { animation-delay: .12s; }
+  .voice.speaking .bars i:nth-child(3) { animation-delay: .24s; }
+  .voice.speaking .bars i:nth-child(4) { animation-delay: .36s; }
+  .voice.speaking .bars i:nth-child(5) { animation-delay: .48s; }
+  @keyframes bar { 0%,100% { height: 6px; } 50% { height: 20px; } }
+  .voice .vlabel { font-size: 12px; color: var(--muted); }
+
+  .transcript {
+    flex: 1; overflow-y: auto; padding: 6px 18px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .bub { max-width: 88%; border-radius: 12px; padding: 9px 13px; font-size: 13.5px; line-height: 1.5; animation: pop .28s ease both; }
+  .bub .who { display: block; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px; opacity: .65; }
+  .bub.ai { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); }
+  .bub.user { align-self: flex-end; background: var(--blue); color: var(--paper); }
+  .bub .es { font-family: var(--serif); font-style: italic; }
+  .sysline { align-self: center; font-size: 11.5px; color: var(--faint); padding: 2px 0; animation: pop .28s ease both; }
+  .toolcall {
+    align-self: stretch;
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+    background: var(--mono-bg); border-left: 3px solid var(--blue);
+    border-radius: 6px; padding: 8px 11px;
+    animation: pop .28s ease both;
+    overflow-x: auto;
+  }
+  .toolcall .tn { color: var(--blue); font-weight: 600; }
+  .toolcall .args { color: var(--muted); white-space: pre; }
+  .toolcall .fx { color: var(--green); font-weight: 600; }
+  @keyframes pop { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+  .flash { animation: flashbg 1.4s ease both; }
+  @keyframes flashbg { 0% { background-color: var(--green-soft); } 100% { background-color: transparent; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bub, .toolcall, .sysline { animation: none; }
+    .voice.speaking .bars i { animation: none; height: 14px; }
+    .flash { animation: none; background: var(--green-soft); }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1180px) {
+    .shell { grid-template-columns: 176px minmax(0,1fr); }
+    .sim {
+      position: fixed; top: 58px; right: 0; bottom: 0; width: min(400px, 100vw);
+      transform: translateX(100%); transition: transform .25s ease;
+      box-shadow: var(--shadow); z-index: 30;
+    }
+    .sim.openpanel { transform: none; }
+    #simToggle { display: inline-flex; }
+  }
+  @media (max-width: 800px) {
+    .shell { grid-template-columns: minmax(0,1fr); }
+    .side {
+      flex-direction: row; border-right: 0; border-bottom: 1px solid var(--line);
+      padding: 8px 12px; overflow-x: auto;
+    }
+    .side .foot { display: none; }
+    .shell { grid-template-rows: auto 1fr; height: auto; }
+    main { padding: 20px 16px 60px; }
+    .stats, .how { grid-template-columns: 1fr 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    .topbar .pill.lang small { display: none; }
+  }
+</style>
+
+<header class="topbar">
+  <div class="wordmark">Open Language Teacher<span class="dot">.</span><small>mockup</small></div>
+  <span class="pill lang"><b>Spanish</b> <small>from Dutch · A2</small></span>
+  <span class="pill" id="streakPill">🔥 <b id="streakTop">6</b>-day streak</span>
+  <div class="spacer"></div>
+  <button class="btn" id="simToggle">Your AI</button>
+  <div class="avatar" title="David">D</div>
+</header>
+
+<div class="shell">
+
+  <nav class="side">
+    <button class="nav active" data-target="dashboard"><span class="glyph">◈</span>Dashboard</button>
+    <button class="nav" data-target="vocab"><span class="glyph">A→</span>Vocabulary</button>
+    <button class="nav" data-target="plan"><span class="glyph">▤</span>Lesson plan</button>
+    <button class="nav" data-target="mcp"><span class="glyph">⇄</span>MCP connection</button>
+    <div class="foot"><span class="statusdot" id="sideDot"></span><span id="sideStatus">MCP linked · ChatGPT</span></div>
+  </nav>
+
+  <main>
+
+    <!-- ======================= DASHBOARD ======================= -->
+    <section data-view="dashboard" class="active">
+      <div class="view-head">
+        <h1 id="greeting">Hola, David.</h1>
+        <p id="dashSub">Week plan · day 3 of 7. Your data lives here — your own AI does the teaching.</p>
+      </div>
+
+      <div class="stats">
+        <div class="card stat"><div class="label">Words known</div><div class="value" id="statKnown">214</div><div class="sub">+9 this week</div></div>
+        <div class="card stat"><div class="label">In learning</div><div class="value" id="statLearning">12</div><div class="sub">news · slang · talk</div></div>
+        <div class="card stat"><div class="label">Lessons done</div><div class="value" id="statLessons">2/5</div><div class="sub">this week's plan</div></div>
+        <div class="card stat"><div class="label">Day streak</div><div class="value" id="statStreak">6</div><div class="sub">keep it alive today</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card today-card pad" id="todayCard">
+          <div class="eyebrow"><span class="accent">Today</span> · pull into your AI</div>
+          <h3 id="todayTitle">Lesson 3 · News words in conversation</h3>
+          <ul class="steps" id="todaySteps"></ul>
+          <div class="btnrow">
+            <button class="btn primary" id="copyPrompt">Copy prompt for your AI</button>
+            <span class="hint" id="copyHint">or just say it in voice mode →</span>
+          </div>
+          <div class="promptbox">"Start my next Spanish lesson from Open Language Teacher."</div>
+        </div>
+
+        <div class="card pad">
+          <div class="eyebrow">This week's plan</div>
+          <ul class="mini-plan" id="miniPlan"></ul>
+          <div class="hint" style="margin-top:10px;">Written by <b>your AI</b> during onboarding · always short-term, iterated weekly.</div>
+        </div>
+      </div>
+
+      <div class="how">
+        <div class="card">
+          <h4><span class="k">1 —</span> Your data lives here</h4>
+          <p>Profile, vocabulary lists and lesson plans. Plain, portable data — no AI inside the app.</p>
+        </div>
+        <div class="card">
+          <h4><span class="k">2 —</span> Your own AI teaches</h4>
+          <p>ChatGPT voice mode, Claude, whatever you already pay for. It holds the actual lesson in chat or voice.</p>
+        </div>
+        <div class="card">
+          <h4><span class="k">3 —</span> MCP connects them</h4>
+          <p>The AI pulls the next lesson, follows the app's teaching guide, and writes results back when you finish.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= VOCABULARY ======================= -->
+    <section data-view="vocab">
+      <div class="view-head">
+        <h1>Vocabulary</h1>
+        <p>Two lists, one ledger: words you're learning and words you own. Your AI adds words during onboarding and lessons, and records every recall result here. Click a word for its example sentence.</p>
+      </div>
+
+      <div class="filters" id="topicFilters"></div>
+
+      <div class="grid2">
+        <div class="vocab-col">
+          <h2><span class="swatch" style="background:var(--amber)"></span>Learning queue <span class="count" id="learnCount"></span></h2>
+          <div class="card"><ul class="wordlist" id="learningList"></ul></div>
+        </div>
+        <div class="vocab-col">
+          <h2><span class="swatch" style="background:var(--green)"></span>Known <span class="count" id="knownCount"></span></h2>
+          <div class="card"><ul class="wordlist" id="knownList"></ul></div>
+        </div>
+      </div>
+
+      <p class="vocab-note">Recall strength: <b>●○○</b> just met · <b>●●○</b> recalled once or twice · <b>●●●</b> solid → moves to <b style="color:var(--green)">Known</b>. Strengths decay slowly so old words resurface in review lessons.</p>
+    </section>
+
+    <!-- ======================= LESSON PLAN ======================= -->
+    <section data-view="plan">
+      <div class="view-head">
+        <h1 id="planTitle">This week's plan</h1>
+        <p>Five lessons, ~15 minutes each, built around your goals: conversation, Spanish news, slang.</p>
+      </div>
+
+      <div class="plan-meta">
+        <span class="pill" id="planRange"><b>18 – 24 Aug</b></span>
+        <span class="pill">created by <b id="planAuthor">ChatGPT · via MCP</b></span>
+        <span class="pill"><b id="planProgress">2 of 5</b>&nbsp;done</span>
+      </div>
+
+      <div id="lessonCards"></div>
+
+      <div class="plan-note"><b>Plans are always short-term.</b> One week — or three days — then your AI reviews what stuck, what didn't, and writes the next plan. Easy iterations beat grand curricula.</div>
+
+      <div class="plan-history">Previous · <b>Week of 11 – 17 Aug</b> — completed 5/5 · focus: restaurant &amp; travel basics · <span style="color:var(--green)">✓ archived</span></div>
+    </section>
+
+    <!-- ======================= MCP ======================= -->
+    <section data-view="mcp">
+      <div class="view-head">
+        <h1>MCP connection</h1>
+        <p>Open Language Teacher is an MCP server. Any AI that speaks MCP — ChatGPT, Claude, your own agent — can read your profile, hold your lessons, and write your progress back.</p>
+      </div>
+
+      <div class="grid2">
+        <div class="card pad">
+          <div class="eyebrow">Status</div>
+          <dl class="kv">
+            <dt>Connection</dt><dd id="mcpStatus"><span class="statusdot"></span>Connected</dd>
+            <dt>Client</dt><dd id="mcpClient">ChatGPT — voice mode</dd>
+            <dt>Server URL</dt><dd><code>https://olt.app/mcp/u/david</code></dd>
+            <dt>Pairing code</dt><dd><code>OLT-4F2K</code></dd>
+            <dt>Last sync</dt><dd id="mcpSync">today 14:32 · <code>complete_lesson</code></dd>
+          </dl>
+        </div>
+
+        <div class="card pad">
+          <div class="eyebrow">Set up in 3 steps</div>
+          <ol class="setup">
+            <li>Create your profile here in the web app — language, native tongue, that's it.</li>
+            <li>Add the server URL as a connector in your AI (ChatGPT → Settings → Connectors, or Claude → custom connector).</li>
+            <li>Say <code>"link my Open Language Teacher profile — code OLT-4F2K"</code>. Onboarding happens entirely in your AI.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card pad mt">
+        <div class="eyebrow mb8">Tools exposed to your AI</div>
+        <ul class="toolrows">
+          <li><span class="tn">get_profile</span><span class="td">read level, goals, native language, streak</span></li>
+          <li><span class="tn">update_profile</span><span class="td">save onboarding answers — estimated words known, goals, topics</span></li>
+          <li><span class="tn">get_plan_instructions</span><span class="td">how this app wants plans &amp; lessons structured (see guide below)</span><span class="tag res">resource</span></li>
+          <li><span class="tn">create_plan</span><span class="td">write a short-term plan — 3 to 7 days, never more</span></li>
+          <li><span class="tn">get_vocab</span><span class="td">read the known list and learning queue, filtered by topic</span></li>
+          <li><span class="tn">add_words</span><span class="td">queue new words with translations and example sentences</span></li>
+          <li><span class="tn">update_word_strength</span><span class="td">record recall results after drills and flashcards</span></li>
+          <li><span class="tn">get_next_lesson</span><span class="td">pull today's lesson script into the chat or voice session</span></li>
+          <li><span class="tn">complete_lesson</span><span class="td">mark done, leave notes for the next session</span></li>
+          <li><span class="tn">log_session</span><span class="td">store a short summary of what happened, for plan iteration</span></li>
+        </ul>
+      </div>
+
+      <div class="card pad mt">
+        <div class="eyebrow mb8">The lesson-authoring guide <span style="text-transform:none; letter-spacing:0;">— the app instructs, the AI creates</span></div>
+        <pre class="guide"><span class="c"># resource: olt://guide/lesson-authoring (read by your AI)</span>
+
+1. Plans are SHORT — 3 to 7 days, never more. Iterate weekly.
+2. A lesson is 10–20 min and always flows:
+   warm-up recall → new vocab (≤5 words) → the words in context
+   (story or dialogue) → active practice (conversation) →
+   flashcard check → call <span class="c">complete_lesson</span> with notes.
+3. In voice mode: have the learner SAY every new word aloud.
+   Flashcards by voice: prompt the word, learner translates.
+4. Weight topics by profile goals; pull real themes for the
+   "news" topic from the language's home country.
+5. End every week by reviewing results and writing next
+   week's plan with <span class="c">create_plan</span>.</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= SIMULATOR ======================= -->
+  <aside class="sim" id="simPanel">
+    <div class="sim-head">
+      <div class="eyebrow">Concept demo</div>
+      <h2>Your AI · voice mode</h2>
+      <p>This panel simulates ChatGPT voice mode driving the app over MCP. Press play and watch the app update live.</p>
+    </div>
+    <div class="sim-controls">
+      <button class="btn blue" id="playOnboard">▶ Onboarding</button>
+      <button class="btn blue" id="playLesson">▶ Voice lesson</button>
+      <button class="btn" id="simReset">Reset</button>
+    </div>
+    <div class="voice" id="voiceRow">
+      <div class="bars"><i></i><i></i><i></i><i></i><i></i></div>
+      <span class="vlabel" id="voiceLabel">idle</span>
+    </div>
+    <div class="transcript" id="transcript">
+      <div class="sysline">Pick a journey above — onboarding builds the profile from scratch; the lesson completes today's session.</div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- state ---------------- */
+  const DEFAULT = {
+    connected: true,
+    client: 'ChatGPT — voice mode',
+    knownExtra: 202,
+    streak: 6,
+    learning: [
+      { es: 'la noticia',  en: 'the news (item)',    topic: 'News',         p: 2, ex: '¿Has visto la noticia de hoy?' },
+      { es: 'el titular',  en: 'headline',           topic: 'News',         p: 1, ex: 'El titular era muy dramático.' },
+      { es: 'la encuesta', en: 'survey, poll',       topic: 'News',         p: 1, ex: 'Según la encuesta, ganará el sí.' },
+      { es: 'la huelga',   en: 'strike (labour)',    topic: 'News',         p: 0, ex: 'Hay huelga de trenes mañana.' },
+      { es: 'el gobierno', en: 'government',         topic: 'News',         p: 2, ex: 'El gobierno anunció nuevas medidas.' },
+      { es: 'guay',        en: 'cool (slang)',       topic: 'Slang',        p: 1, ex: '¡Qué guay tu chaqueta!' },
+      { es: 'vale',        en: 'okay, deal (slang)', topic: 'Slang',        p: 2, ex: 'Vale, nos vemos a las ocho.' },
+      { es: 'tío / tía',   en: 'dude / girl (slang)',topic: 'Slang',        p: 0, ex: '¿Qué pasa, tío?' },
+      { es: 'flipar',      en: 'to be amazed (slang)',topic: 'Slang',       p: 0, ex: 'Vas a flipar con esta canción.' },
+      { es: 'sin embargo', en: 'however',            topic: 'Conversation', p: 1, ex: 'Sin embargo, no estoy de acuerdo.' },
+      { es: 'por cierto',  en: 'by the way',         topic: 'Conversation', p: 2, ex: 'Por cierto, ¿cómo fue tu viaje?' },
+      { es: 'quedar',      en: 'to meet up',         topic: 'Conversation', p: 1, ex: '¿Quedamos el sábado?' }
+    ],
+    known: [
+      { es: 'hola',        en: 'hello',          topic: 'Basics', p: 3, ex: '¡Hola! ¿Qué tal?' },
+      { es: 'gracias',     en: 'thank you',      topic: 'Basics', p: 3, ex: 'Muchas gracias por todo.' },
+      { es: 'la cuenta',   en: 'the bill',       topic: 'Food',   p: 3, ex: 'La cuenta, por favor.' },
+      { es: 'el desayuno', en: 'breakfast',      topic: 'Food',   p: 2, ex: 'El desayuno es a las nueve.' },
+      { es: 'rico',        en: 'tasty, rich',    topic: 'Food',   p: 3, ex: '¡Qué rico está este café!' },
+      { es: 'viajar',      en: 'to travel',      topic: 'Travel', p: 3, ex: 'Me encanta viajar en tren.' },
+      { es: 'el tren',     en: 'the train',      topic: 'Travel', p: 3, ex: 'El tren sale a las diez.' },
+      { es: 'la playa',    en: 'the beach',      topic: 'Travel', p: 2, ex: 'Vamos a la playa mañana.' },
+      { es: 'la ciudad',   en: 'the city',       topic: 'Travel', p: 3, ex: 'La ciudad es preciosa de noche.' },
+      { es: 'trabajar',    en: 'to work',        topic: 'Conversation', p: 2, ex: 'Trabajo desde casa los viernes.' },
+      { es: 'el amigo',    en: 'friend',         topic: 'Conversation', p: 3, ex: 'Es un buen amigo mío.' },
+      { es: 'entender',    en: 'to understand',  topic: 'Conversation', p: 2, ex: 'No entiendo — ¿puedes repetir?' }
+    ],
+    plan: {
+      author: 'ChatGPT · via MCP',
+      lessons: [
+        { n: 1, title: 'Warm-up: greetings & recall',   mins: 10, done: true,  steps: ['Recall 10 known words by voice', 'Micro-conversation: introduce yourself'] },
+        { n: 2, title: 'News vocab: first five words',  mins: 15, done: true,  steps: ['New vocab: noticia, titular, gobierno…', 'Short story using the new words', 'Repeat-after-me drill'] },
+        { n: 3, title: 'News words in conversation',    mins: 15, done: false, steps: ['Review yesterday’s words aloud', 'Conversation: this week’s headlines', 'Voice flashcards to close'] },
+        { n: 4, title: 'Slang starter',                 mins: 15, done: false, steps: ['New vocab: guay, vale, tío, flipar', 'Dialogue: running into a friend', 'Flashcards Spanish → English'] },
+        { n: 5, title: 'Review & mini exam',            mins: 20, done: false, steps: ['Flashcards: all 12 learning words', 'Free conversation using at least 8', 'AI writes next week’s plan'] }
+      ]
+    }
+  };
+
+  let state = deepCopy(DEFAULT);
+  let topic = 'All';
+  const TOPICS = ['All', 'Basics', 'Food', 'Travel', 'News', 'Slang', 'Conversation'];
+
+  function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------------- rendering ---------------- */
+  function dots(p, cls) {
+    let h = '<span class="dots ' + cls + '">';
+    for (let i = 1; i <= 3; i++) h += '<i class="' + (i <= p ? 'f' : '') + '"></i>';
+    return h + '</span>';
+  }
+
+  function wordItem(w, cls) {
+    return '<li data-word="' + w.es + '">' +
+      '<button class="wordrow"><span class="headword">' + w.es + '</span>' +
+      '<span class="gloss">' + w.en + '</span>' +
+      '<span class="tag topic">' + w.topic + '</span>' + dots(w.p, cls) + '</button>' +
+      '<div class="ex"><span class="es">' + w.ex + '</span></div></li>';
+  }
+
+  function renderVocab() {
+    const L = state.learning.filter(w => topic === 'All' || w.topic === topic);
+    const K = state.known.filter(w => topic === 'All' || w.topic === topic);
+
+    $('learningList').innerHTML = L.length
+      ? L.map(w => wordItem(w, 'learning')).join('')
+      : '<li><div class="empty">Nothing here yet — your AI adds words during onboarding and lessons.</div></li>';
+
+    $('knownList').innerHTML = (K.length
+      ? K.map(w => wordItem(w, '')).join('')
+      : '<li><div class="empty">No known words yet.</div></li>') +
+      (topic === 'All' && state.knownExtra > 0
+        ? '<li><div class="more">+ ' + state.knownExtra + ' more from onboarding &amp; earlier weeks</div></li>' : '');
+
+    $('learnCount').textContent = '(' + state.learning.length + ')';
+    $('knownCount').textContent = '(' + (state.known.length + state.knownExtra) + ')';
+  }
+
+  function renderFilters() {
+    $('topicFilters').innerHTML = TOPICS.map(t =>
+      '<button data-topic="' + t + '" class="' + (t === topic ? 'on' : '') + '">' + t + '</button>').join('');
+  }
+
+  function nextLesson() { return state.plan ? state.plan.lessons.find(l => !l.done) : null; }
+
+  function renderPlan() {
+    const holder = $('lessonCards');
+    if (!state.plan) {
+      holder.innerHTML = '<div class="card pad"><div class="empty">No plan yet. Link your AI and run onboarding — it writes your first week.</div></div>';
+      $('planProgress').textContent = '0 of 0';
+      $('planAuthor').textContent = '—';
+      return;
+    }
+    const next = nextLesson();
+    holder.innerHTML = state.plan.lessons.map(l => {
+      const isToday = next && l.n === next.n;
+      const cls = l.done ? 'done-l' : (isToday ? 'today-l' : '');
+      const tag = l.done ? '<span class="tag done">✓ done</span>'
+        : (isToday ? '<span class="tag today">today</span>' : '<span class="tag next">upcoming</span>');
+      return '<div class="card lesson-card ' + cls + '" data-lesson="' + l.n + '"><div class="pad">' +
+        '<div class="lesson-n">' + l.n + '</div>' +
+        '<div class="lesson-body"><h3>' + l.title + ' ' + tag + ' <span class="mins">~' + l.mins + ' min</span></h3>' +
+        '<ul class="lesson-steps">' + l.steps.map(s => '<li>' + s + '</li>').join('') + '</ul>' +
+        '</div></div></div>';
+    }).join('');
+    const done = state.plan.lessons.filter(l => l.done).length;
+    $('planProgress').textContent = done + ' of ' + state.plan.lessons.length;
+    $('planAuthor').textContent = state.plan.author;
+  }
+
+  function renderDashboard() {
+    const done = state.plan ? state.plan.lessons.filter(l => l.done).length : 0;
+    const total = state.plan ? state.plan.lessons.length : 0;
+    $('statKnown').textContent = state.known.length + state.knownExtra;
+    $('statLearning').textContent = state.learning.length;
+    $('statLessons').textContent = done + '/' + total;
+    $('statStreak').textContent = state.streak;
+    $('streakTop').textContent = state.streak;
+
+    const next = nextLesson();
+    if (next) {
+      $('todayTitle').textContent = 'Lesson ' + next.n + ' · ' + next.title;
+      $('todaySteps').innerHTML = next.steps.map(s => '<li>' + s + '</li>').join('');
+    } else if (state.plan) {
+      $('todayTitle').textContent = 'Week complete — ¡enhorabuena!';
+      $('todaySteps').innerHTML = '<li>Your AI will review results and write next week’s plan.</li>';
+    } else {
+      $('todayTitle').textContent = 'No plan yet';
+      $('todaySteps').innerHTML = '<li>Run onboarding in your AI to get your first week.</li>';
+    }
+
+    $('miniPlan').innerHTML = state.plan
+      ? state.plan.lessons.map(l => {
+          const isToday = next && l.n === next.n;
+          const tag = l.done ? '<span class="tag done">done</span>'
+            : (isToday ? '<span class="tag today">today</span>' : '<span class="tag next">soon</span>');
+          return '<li><span class="n">' + l.n + '</span><span class="t">' + l.title + '</span>' + tag + '</li>';
+        }).join('')
+      : '<li><span class="t empty" style="padding:6px 0">Onboarding creates your first plan.</span></li>';
+
+    $('dashSub').textContent = state.plan
+      ? 'Week plan · ' + done + ' of ' + total + ' lessons done. Your data lives here — your own AI does the teaching.'
+      : 'Fresh profile. Link your AI over MCP to start onboarding.';
+  }
+
+  function renderConnection() {
+    $('sideDot').className = 'statusdot' + (state.connected ? '' : ' off');
+    $('sideStatus').textContent = state.connected ? 'MCP linked · ChatGPT' : 'MCP not linked';
+    $('mcpStatus').innerHTML = state.connected
+      ? '<span class="statusdot"></span>Connected'
+      : '<span class="statusdot off"></span>Waiting for your AI…';
+    $('mcpClient').textContent = state.connected ? state.client : '—';
+  }
+
+  function renderAll() { renderVocab(); renderPlan(); renderDashboard(); renderConnection(); renderFilters(); }
+
+  function flash(el) {
+    if (!el) return;
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  /* ---------------- navigation & interactions ---------------- */
+  document.querySelectorAll('.side .nav').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.side .nav').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('section[data-view]').forEach(s =>
+        s.classList.toggle('active', s.dataset.view === btn.dataset.target));
+      document.querySelector('main').scrollTop = 0;
+    });
+  });
+
+  $('topicFilters').addEventListener('click', e => {
+    const b = e.target.closest('button[data-topic]');
+    if (!b) return;
+    topic = b.dataset.topic;
+    renderFilters(); renderVocab();
+  });
+
+  document.addEventListener('click', e => {
+    const row = e.target.closest('.wordrow');
+    if (row) row.parentElement.classList.toggle('open');
+  });
+
+  $('copyPrompt').addEventListener('click', () => {
+    const text = '"Start my next Spanish lesson from Open Language Teacher."';
+    const ok = () => { $('copyHint').textContent = 'Copied — paste it in your AI.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, ok);
+    } else ok();
+  });
+
+  $('simToggle').addEventListener('click', () => $('simPanel').classList.toggle('openpanel'));
+
+  /* ---------------- simulator ---------------- */
+  const transcript = $('transcript');
+  const voiceRow = $('voiceRow');
+  const voiceLabel = $('voiceLabel');
+  let playing = false;
+  let timers = [];
+
+  function addBubble(kind, html) {
+    const div = document.createElement('div');
+    if (kind === 'sys') { div.className = 'sysline'; div.innerHTML = html; }
+    else if (kind === 'tool') { div.className = 'toolcall'; div.innerHTML = html; }
+    else {
+      div.className = 'bub ' + kind;
+      div.innerHTML = '<span class="who">' + (kind === 'ai' ? 'Your AI' : 'You') + '</span>' + html;
+    }
+    transcript.appendChild(div);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
+  function setSpeaking(who) {
+    voiceRow.classList.toggle('speaking', !!who);
+    voiceLabel.textContent = who || 'idle';
+  }
+
+  function runScenario(events, prep) {
+    if (playing) return;
+    playing = true;
+    $('playOnboard').disabled = true;
+    $('playLesson').disabled = true;
+    transcript.innerHTML = '';
+    if (prep) { prep(); renderAll(); }
+    let t = 400;
+    events.forEach(ev => {
+      timers.push(setTimeout(() => {
+        if (ev.t === 'tool') {
+          addBubble('tool',
+            '⚙ <span class="tn">' + ev.name + '</span>' +
+            (ev.args ? '\n<span class="args">' + ev.args + '</span>' : '') +
+            (ev.fx ? '\n<span class="fx">→ ' + ev.fx + '</span>' : ''));
+          setSpeaking(null);
+        } else if (ev.t === 'sys') {
+          addBubble('sys', ev.text);
+          setSpeaking(null);
+        } else {
+          addBubble(ev.t, ev.text);
+          setSpeaking(ev.t === 'ai' ? 'AI speaking…' : 'you speaking…');
+        }
+        if (ev.run) { ev.run(); }
+      }, t));
+      t += ev.d || 1900;
+    });
+    timers.push(setTimeout(() => {
+      setSpeaking(null);
+      playing = false;
+      $('playOnboard').disabled = false;
+      $('playLesson').disabled = false;
+    }, t + 300));
+  }
+
+  function resetSim() {
+    timers.forEach(clearTimeout); timers = [];
+    playing = false;
+    $('playOnboard').disabled = false;
+    $('playLesson').disabled = false;
+    setSpeaking(null);
+    state = deepCopy(DEFAULT);
+    renderAll();
+    transcript.innerHTML = '<div class="sysline">Reset. Pick a journey above.</div>';
+  }
+  $('simReset').addEventListener('click', resetSim);
+
+  /* ------- scenario: onboarding ------- */
+  function emptyProfile() {
+    state = { connected: false, client: '', knownExtra: 0, streak: 0, learning: [], known: [], plan: null };
+  }
+
+  const onboardingEvents = [
+    { t: 'sys',  text: 'Voice mode started in ChatGPT — new profile, nothing linked yet', d: 1600 },
+    { t: 'user', text: '&ldquo;Link my Open Language Teacher profile — code OLT-4F2K.&rdquo;', d: 2000 },
+    { t: 'tool', name: 'link_profile', args: '{ code: "OLT-4F2K" }', fx: 'connected — app status updated',
+      run: () => { state.connected = true; state.client = 'ChatGPT — voice mode'; renderConnection(); flash($('sideStatus').parentElement); }, d: 2000 },
+    { t: 'ai',   text: 'Linked! I can see a brand-new Spanish profile. Roughly how many Spanish words would you say you already know?', d: 2600 },
+    { t: 'user', text: '&ldquo;Maybe two hundred? I can order food and greet people.&rdquo;', d: 2200 },
+    { t: 'ai',   text: 'A solid A2 base. And what do you want Spanish <em>for</em> — conversations, reading, travel, following the news?', d: 2600 },
+    { t: 'user', text: '&ldquo;Conversations mostly. I&rsquo;d love to follow Spanish news… and teach me real slang, not textbook stuff.&rdquo;', d: 2600 },
+    { t: 'tool', name: 'update_profile', args: '{ level: "A2", known_words: ~200,\n  goals: ["conversation", "news", "slang"] }', fx: 'profile saved',
+      run: () => { state.knownExtra = 200; renderDashboard(); flash($('statKnown').parentElement); }, d: 2200 },
+    { t: 'tool', name: 'get_plan_instructions', args: 'reads olt://guide/lesson-authoring', d: 2000 },
+    { t: 'ai',   text: 'The app asks me to keep plans short — one week, then iterate. I&rsquo;ll draft five ±15-minute lessons around news words, slang and conversation. Sound good?', d: 3000 },
+    { t: 'user', text: '&ldquo;Perfect.&rdquo;', d: 1400 },
+    { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"] }', fx: 'plan written to the app',
+      run: () => {
+        state.plan = deepCopy(DEFAULT.plan);
+        state.plan.lessons.forEach(l => l.done = false);
+        renderPlan(); renderDashboard(); flash($('miniPlan'));
+      }, d: 2400 },
+    { t: 'tool', name: 'add_words', args: '{ list: "learning", words: ["la noticia",\n  "el titular", "la encuesta", …12 total] }', fx: '12 words queued',
+      run: () => {
+        state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
+        renderVocab(); renderDashboard(); flash($('statLearning').parentElement);
+      }, d: 2400 },
+    { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. ¡Hasta pronto!', d: 2400 },
+    { t: 'sys',  text: 'Onboarding complete — check Dashboard, Vocabulary and Lesson plan', d: 1200 }
+  ];
+
+  $('playOnboard').addEventListener('click', () => runScenario(onboardingEvents, emptyProfile));
+
+  /* ------- scenario: voice lesson ------- */
+  function bumpWord(es, p) {
+    const w = state.learning.find(x => x.es === es);
+    if (!w) return;
+    w.p = p;
+    if (p >= 3) {
+      state.learning = state.learning.filter(x => x.es !== es);
+      state.known.unshift(w);
+    }
+    renderVocab(); renderDashboard();
+    flash(document.querySelector('.wordlist li[data-word="' + es + '"]'));
+  }
+
+  function completeNext() {
+    const l = nextLesson();
+    if (!l) return;
+    l.done = true;
+    state.streak += 1;
+    renderPlan(); renderDashboard();
+    flash($('statLessons').parentElement);
+    flash($('statStreak').parentElement);
+    flash(document.querySelector('.lesson-card[data-lesson="' + l.n + '"]'));
+  }
+
+  const lessonEvents = [
+    { t: 'sys',  text: 'Voice mode · profile already linked', d: 1400 },
+    { t: 'user', text: '&ldquo;Start my next Spanish lesson.&rdquo;', d: 1800 },
+    { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News words in conversation (~15 min)\n→ notes from lesson 2: "encuesta was shaky"', d: 2400 },
+    { t: 'ai',   text: 'Lesson three — news words in conversation. Warm-up first, repeat after me: <span class="es">la noticia… el titular… la encuesta.</span>', d: 2800 },
+    { t: 'user', text: '&ldquo;La noticia… el titular… la encuesta.&rdquo;', d: 2200 },
+    { t: 'ai',   text: 'A tiny story: <span class="es">&ldquo;El titular decía: huelga de trenes. Según la encuesta, el gobierno perdía apoyo…&rdquo;</span> — what was the headline about?', d: 3200 },
+    { t: 'user', text: '&ldquo;¡La huelga de trenes!&rdquo;', d: 1800 },
+    { t: 'ai',   text: 'Perfecto. Conversation time — <span class="es">¿qué noticia leíste tú esta semana?</span>', d: 2400 },
+    { t: 'user', text: '&ldquo;Eh… leí una noticia sobre una encuesta del gobierno.&rdquo;', d: 2400 },
+    { t: 'ai',   text: 'Great sentence. Voice flashcards to close — how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2400 },
+    { t: 'user', text: '&ldquo;¡El titular!&rdquo;', d: 1600 },
+    { t: 'tool', name: 'update_word_strength', args: '{ "la noticia": 3, "el titular": 2,\n  "la encuesta": 1 }', fx: '"la noticia" moved to Known',
+      run: () => { bumpWord('la encuesta', 1); bumpWord('el titular', 2); bumpWord('la noticia', 3); flash($('statKnown').parentElement); }, d: 2600 },
+    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat in lesson 4 warm-up" }', fx: 'lesson done · streak +1',
+      run: completeNext, d: 2400 },
+    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated to your known list. Same time tomorrow for slang?', d: 2600 },
+    { t: 'sys',  text: 'Session synced — see Dashboard and Vocabulary for the updates', d: 1200 }
+  ];
+
+  $('playLesson').addEventListener('click', () => {
+    if (!state.plan || !nextLesson()) { state = deepCopy(DEFAULT); }
+    runScenario(lessonEvents, null);
+  });
+
+  /* ---------------- init ---------------- */
+  renderAll();
+})();
+</script>
