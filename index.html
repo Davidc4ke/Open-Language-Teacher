@@ -67,12 +67,20 @@
   /* ---------- topbar ---------- */
   .topbar {
     position: sticky; top: 0; z-index: 20;
-    margin: 16px auto 0; max-width: 1060px;
+    margin: 14px 16px 0;
     background: var(--card); border-radius: 999px; box-shadow: var(--shadow);
     display: flex; align-items: center; gap: 6px;
     padding: 8px 10px 8px 18px;
-    transition: background-color .35s ease;
+    transition: background-color .35s ease, margin-right .45s cubic-bezier(.3,.8,.3,1);
   }
+  body.panelopen .topbar { margin-right: 368px; }
+  .topinfo {
+    display: none; align-items: center; gap: 10px; min-width: 0;
+    margin-left: 6px; padding-left: 16px; border-left: 1.5px solid var(--line);
+  }
+  .topinfo.has { display: flex; }
+  .topinfo b { font-size: 14.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topinfo .p { color: var(--blue); font-weight: 800; font-size: 13px; white-space: nowrap; flex: none; }
   .brand { display: flex; align-items: center; gap: 9px; font-weight: 900; font-size: 15px; white-space: nowrap; margin-right: 10px; }
   .mark { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--blue); display: grid; place-items: center; flex: none; }
   .mark::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
@@ -121,8 +129,8 @@
   /* =========================================================
      NODE FIELDS (skills + plan)
      ========================================================= */
-  .sk-head { display: flex; align-items: center; gap: 20px; max-width: 1060px; margin: 12px auto; padding: 0 20px; transition: padding .45s cubic-bezier(.3,.8,.3,1), max-width .45s cubic-bezier(.3,.8,.3,1); }
-  .sk-head.shrunk { max-width: none; padding: 0 366px 0 20px; }
+  .sk-head { display: flex; align-items: center; gap: 20px; margin: 12px 16px; transition: margin-right .45s cubic-bezier(.3,.8,.3,1); }
+  body.panelopen .sk-head { margin-right: 368px; }
   .searchpill {
     flex: 1; display: flex; align-items: center; gap: 12px;
     background: var(--card);
@@ -150,7 +158,7 @@
   .sk-body { position: relative; height: calc(100vh - 90px); min-height: 420px; }
   section[data-view="skills"] .sk-body { height: calc(100vh - 152px); }
   .sk-side {
-    position: fixed; top: 88px; right: 14px; bottom: 14px; z-index: 15;
+    position: fixed; top: 14px; right: 14px; bottom: 14px; z-index: 25;
     width: min(324px, calc(100vw - 28px));
     opacity: 0; transform: translateX(18px); pointer-events: none;
     box-shadow: 0 2px 4px rgba(23,32,58,.06), 0 24px 60px rgba(23,32,58,.16);
@@ -390,10 +398,11 @@
 
   @media (max-width: 640px) {
     .topbar { margin: 12px 12px 0; }
+    body.panelopen .topbar, body.panelopen .sk-head { margin-right: 12px; }
     .brand span { display: none; }
-    .sk-head { flex-wrap: wrap; }
-    .sk-head.shrunk { padding: 0 20px; }
-    .sk-side { top: 78px; right: 10px; bottom: 10px; }
+    .sk-head { flex-wrap: wrap; margin: 12px; }
+    .topinfo { display: none !important; }
+    .sk-side { top: 10px; right: 10px; bottom: 10px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
   }
 </style>
@@ -404,6 +413,7 @@
     <button data-target="skills" class="active">Skills</button>
     <button data-target="plan">Plan</button>
   </nav>
+  <div class="topinfo" id="topInfo"></div>
   <div class="spacer"></div>
   <button class="iconbtn" id="themeToggle" title="Toggle theme">☾</button>
   <button class="aibtn" id="aiOpen"><span class="live" id="liveDot"></span>Your AI</button>
@@ -1091,12 +1101,46 @@
     });
   }
 
+  /* ---- topbar info + layout chrome ---- */
+  function updateChrome() {
+    const view = document.querySelector('section.active').dataset.view;
+    let open = false, info = '';
+    if (view === 'skills') {
+      open = !!skExpanded || !!query;
+      if (query) {
+        info = '<b>Search</b><span class="p">&ldquo;' + query + '&rdquo;</span>';
+      } else if (skExpanded) {
+        const kids = childrenOf(skExpanded);
+        if (skChild != null && kids[skChild]) info = '<b>' + kids[skChild].name + '</b><span class="p">' + kids[skChild].pct + '%</span>';
+        else if (skChild === kids.length) info = '<b>New subtopic</b>';
+        else info = '<b>' + state.skills[skExpanded].label + '</b><span class="p">' + state.skills[skExpanded].pct + '%</span>';
+      }
+    } else {
+      open = plSel != null && !!plWeek;
+      if (open) {
+        const p = state.plans.find(x => x.id === plWeek);
+        if (p && typeof plSel === 'number' && p.lessons && p.lessons[plSel]) {
+          const l = p.lessons[plSel];
+          info = '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min</span>';
+        } else if (p) {
+          info = p.status === 'future'
+            ? '<b>' + p.title + '</b><span class="p">not written yet</span>'
+            : '<b>' + p.title + '</b><span class="p">' + p.lessons.filter(l => l.done).length + '/' + p.lessons.length + ' done</span>';
+        }
+      }
+    }
+    document.body.classList.toggle('panelopen', open);
+    const ti = $('topInfo');
+    ti.innerHTML = info;
+    ti.classList.toggle('has', !!info && open);
+  }
+
   /* ---- skills sidebar ---- */
   function renderSkillSide() {
     const box = $('skillSideContent');
     $('skillMap').classList.toggle('dim', !!query);
     $('skillsBody').classList.toggle('withside', !!skExpanded || !!query);
-    document.querySelector('.sk-head').classList.toggle('shrunk', !!skExpanded || !!query);
+    updateChrome();
 
     if (query) {
       const q = query.toLowerCase();
@@ -1114,9 +1158,7 @@
           if (s.name.toLowerCase().includes(q))
             rows += '<li data-goto="' + k + ':' + i + '"><button class="siderow"><span class="dotc"></span><span class="t">' + s.name + '<small>' + state.skills[k].label.toLowerCase() + '</small></span><span class="p">' + s.pct + '%</span></button></li>';
         }));
-      box.innerHTML = '<span class="aitag">Search · whole map</span>' +
-        '<h3 style="margin-top:6px">&ldquo;' + query + '&rdquo;</h3>' +
-        '<ul class="siderows">' + (rows || '<li><div class="empty">Nothing found — your AI hasn’t taught you that one yet.</div></li>') + '</ul>';
+      box.innerHTML = '<ul class="siderows" style="margin-top:16px">' + (rows || '<li><div class="empty">Nothing found — your AI hasn’t taught you that one yet.</div></li>') + '</ul>';
       return;
     }
 
@@ -1128,7 +1170,6 @@
     if (skChild === kids.length) {
       box.innerHTML =
         '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' +
-        '<h3>A new subtopic</h3>' +
         '<p class="desc">Nothing on this map is hard-coded. The app only <em>suggests</em> a standard taxonomy over MCP (<span style="font-family:var(--mono); font-size:11px">get_skill_taxonomy</span>) — the six skills and their common subtopics. Your AI creates every node, and can go beyond the standard set whenever you do.</p>' +
         '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopics</b>.</div>';
       return;
@@ -1153,17 +1194,13 @@
           '<div class="aitip">Say <b>&ldquo;drill my ' + c.name.toLowerCase() + '&rdquo;</b> in voice mode — results land here via <b>update_skill</b>.</div>';
       }
       box.innerHTML =
-        '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' +
-        '<h3>' + c.name + '</h3>' +
-        '<div class="bigpct">' + c.pct + '<small>%</small></div>' + body;
+        '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' + body;
       animBars(box);
       return;
     }
 
     box.innerHTML =
-      '<h3 style="margin-top:6px; padding-right:26px">' + sk.label + '</h3>' +
-      '<div class="bigpct">' + sk.pct + '<small>%</small></div>' +
-      '<p class="desc">' + sk.desc + '</p>' +
+      '<p class="desc" style="margin-top:10px; padding-right:24px">' + sk.desc + '</p>' +
       '<span class="mono">Subtopics · created by your AI</span>' +
       '<ul class="siderows">' + kids.map((c, i) =>
         '<li data-child="' + i + '"><button class="siderow"><span class="dotc" style="background:' + (c.pct >= 80 ? 'var(--green)' : c.pct > 0 ? 'var(--coral)' : 'var(--faint)') + '"></span><span class="t">' + c.name + '<small>' + c.note + '</small></span><span class="p">' + c.pct + '%</span></button></li>').join('') +
@@ -1211,15 +1248,14 @@
   function renderPlanSide() {
     const box = $('planSideContent');
     $('planBody').classList.toggle('withside', plSel != null);
+    updateChrome();
     if (plSel == null || !plWeek) { box.innerHTML = ''; return; }
 
     const p = state.plans.find(x => x.id === plWeek);
 
     if (p.status === 'future') {
       box.innerHTML =
-        '<span class="aitag">' + p.range + '</span>' +
-        '<h3 style="margin-top:6px">' + p.title + ' — not written yet</h3>' +
-        '<p class="desc">Plans are <b>always short-term</b> — one week, then iterate. Your AI writes this one on Sunday, in lesson 5 of week 34, after reviewing what stuck and what didn’t.</p>' +
+        '<p class="desc" style="margin-top:10px; padding-right:24px">Plans are <b>always short-term</b> — one week, then iterate. Your AI writes this one on Sunday, in lesson 5 of week 34, after reviewing what stuck and what didn’t.</p>' +
         '<p class="desc">Likely focus, based on this week’s notes: <b>pretérito</b>, more news pieces, and “encuesta” until it behaves.</p>' +
         '<div class="aitip">Impatient? Say <b>&ldquo;plan next week now&rdquo;</b> in voice mode — it calls <b>create_plan</b> whenever you ask.</div>';
       return;
@@ -1248,8 +1284,7 @@
           '<div class="aitip">These are the nodes this lesson feeds on your <b>skill map</b> — tap one to jump there.</div>';
       }
       box.innerHTML =
-        '<h3 style="margin-top:6px; padding-right:26px">' + l.title + '</h3>' +
-        '<p class="desc">' + l.obj + '</p>' +
+        '<p class="desc" style="margin-top:10px; padding-right:24px">' + l.obj + '</p>' +
         '<div class="ptabs">' +
           ['agenda', 'materials', 'nodes'].map(t =>
             '<button data-ptab="' + t + '" class="' + (t === plTab ? 'on' : '') + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>').join('') +
@@ -1257,13 +1292,8 @@
       return;
     }
 
-    const done = p.lessons.filter(l => l.done).length;
     box.innerHTML =
-      '<span class="aitag">' + p.range + ' · written by ChatGPT via MCP</span>' +
-      '<h3 style="margin-top:4px">' + p.title + '</h3>' +
-      '<div class="bigpct">' + done + '<small>/' + p.lessons.length + '</small></div>' +
-      bar(planPct(p)) +
-      '<p class="desc">Focus: <b>' + p.focus + '</b>' + (p.result ? ' · ' + p.result : '') + '</p>' +
+      '<p class="desc" style="margin-top:10px; padding-right:24px">' + p.range + ' · written by ChatGPT via MCP.<br>Focus: <b>' + p.focus + '</b>' + (p.result ? ' · ' + p.result : '') + '</p>' +
       '<span class="mono">Lessons · click for full detail</span>' +
       '<ul class="siderows">' + p.lessons.map((l, i) => {
         const isNext = p.status === 'current' && nextLesson() && nextLesson().n === l.n;
@@ -1352,6 +1382,7 @@
       });
       if (btn.dataset.target === 'skills') { PL.stop(); SK.start(); }
       else { SK.stop(); PL.start(); }
+      updateChrome();
       window.scrollTo({ top: 0 });
     });
   });
