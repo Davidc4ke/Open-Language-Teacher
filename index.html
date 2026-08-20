@@ -1,379 +1,430 @@
 <title>Open Language Teacher</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
   :root {
-    --paper: #FAF9F5;
-    --surface: #FFFFFF;
-    --ink: #232630;
-    --muted: #6E7280;
-    --faint: #9A9DA8;
-    --line: #E5E2D9;
-    --red: #B23A2E;
-    --red-ink: #FFFFFF;
-    --red-soft: #F7E9E5;
-    --blue: #3D5A80;
-    --blue-soft: #EAF0F6;
-    --green: #3E7C50;
-    --green-soft: #E6F0E8;
-    --amber: #96690F;
-    --amber-soft: #F6EDD7;
-    --chip: #F1EFE7;
-    --mono-bg: #F4F2EA;
-    --sim-bg: #F3F1EA;
-    --shadow: 0 1px 2px rgba(35,38,48,.05), 0 10px 28px rgba(35,38,48,.07);
-    --serif: 'Literata', Georgia, 'Times New Roman', serif;
-    --sans: 'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
-    --mono: 'Spline Sans Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --bg: #ECEFF4;
+    --card: #FFFFFF;
+    --ink: #17203A;
+    --navy: #1E2B4D;
+    --navy-ink: #FFFFFF;
+    --muted: #66708A;
+    --faint: #9AA3B8;
+    --line: #E3E7EF;
+    --blue: #2E63E7;
+    --blue-ink: #FFFFFF;
+    --blue-soft: #E7EEFC;
+    --green: #35935B;
+    --green-soft: #E2F1E8;
+    --coral: #DA6A4C;
+    --coral-soft: #FAE9E3;
+    --chip: #F1F4F9;
+    --mono-bg: #F4F6FA;
+    --shadow: 0 1px 2px rgba(23,32,58,.04), 0 12px 32px rgba(23,32,58,.08);
+    --shadow-lg: 0 2px 4px rgba(23,32,58,.05), 0 20px 48px rgba(23,32,58,.12);
+    --sans: 'Nunito Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #14161C;
-      --surface: #1C1F27;
-      --ink: #E9E7DF;
-      --muted: #9AA0AC;
-      --faint: #6E7280;
-      --line: #2D313C;
-      --red: #E0745F;
-      --red-ink: #1A120F;
-      --red-soft: #382520;
-      --blue: #8FB0D8;
-      --blue-soft: #232C3A;
-      --green: #84BD90;
-      --green-soft: #1F2E23;
-      --amber: #D9A94E;
-      --amber-soft: #33290F;
-      --chip: #242833;
-      --mono-bg: #20242E;
-      --sim-bg: #181B22;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.35);
+      --bg: #12151C;
+      --card: #1B2029;
+      --ink: #E8EBF3;
+      --navy: #E8EBF3;
+      --navy-ink: #141A2B;
+      --muted: #97A1B8;
+      --faint: #67718C;
+      --line: #2A3140;
+      --blue: #7FA3F2;
+      --blue-ink: #101828;
+      --blue-soft: #223354;
+      --green: #6FC28F;
+      --green-soft: #1E3226;
+      --coral: #E98F72;
+      --coral-soft: #3A241C;
+      --chip: #232A38;
+      --mono-bg: #202632;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 32px rgba(0,0,0,.4);
+      --shadow-lg: 0 2px 4px rgba(0,0,0,.4), 0 20px 48px rgba(0,0,0,.5);
     }
   }
   :root[data-theme="dark"] {
-    --paper: #14161C;
-    --surface: #1C1F27;
-    --ink: #E9E7DF;
-    --muted: #9AA0AC;
-    --faint: #6E7280;
-    --line: #2D313C;
-    --red: #E0745F;
-    --red-ink: #1A120F;
-    --red-soft: #382520;
-    --blue: #8FB0D8;
-    --blue-soft: #232C3A;
-    --green: #84BD90;
-    --green-soft: #1F2E23;
-    --amber: #D9A94E;
-    --amber-soft: #33290F;
-    --chip: #242833;
-    --mono-bg: #20242E;
-    --sim-bg: #181B22;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.35);
+    --bg: #12151C;
+    --card: #1B2029;
+    --ink: #E8EBF3;
+    --navy: #E8EBF3;
+    --navy-ink: #141A2B;
+    --muted: #97A1B8;
+    --faint: #67718C;
+    --line: #2A3140;
+    --blue: #7FA3F2;
+    --blue-ink: #101828;
+    --blue-soft: #223354;
+    --green: #6FC28F;
+    --green-soft: #1E3226;
+    --coral: #E98F72;
+    --coral-soft: #3A241C;
+    --chip: #232A38;
+    --mono-bg: #202632;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 32px rgba(0,0,0,.4);
+    --shadow-lg: 0 2px 4px rgba(0,0,0,.4), 0 20px 48px rgba(0,0,0,.5);
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  html { height: 100%; }
   body {
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
     font-family: var(--sans);
     font-size: 15px;
     line-height: 1.5;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
   }
-  button { font-family: var(--sans); font-size: 14px; cursor: pointer; color: var(--ink); }
+  button { font-family: var(--sans); font-size: 14px; cursor: pointer; color: var(--ink); background: none; border: 0; }
   h1, h2, h3 { margin: 0; text-wrap: balance; }
 
-  /* ---------- shell ---------- */
+  .mlabel {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--muted);
+  }
+  .mtag {
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: .16em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; white-space: nowrap; flex: none;
+  }
+  .mtag.done   { background: var(--green-soft); color: var(--green); }
+  .mtag.today  { background: var(--blue-soft);  color: var(--blue); }
+  .mtag.queued { background: var(--chip);       color: var(--faint); }
+  .mtag.topic  { background: var(--chip);       color: var(--muted); }
+  .mtag.res    { background: var(--coral-soft); color: var(--coral); }
+
+  /* ================= top bar ================= */
   .topbar {
-    display: flex; align-items: center; gap: 14px;
-    padding: 0 20px; height: 58px;
-    border-bottom: 1px solid var(--line);
-    background: var(--paper);
+    flex: none;
+    margin: 14px 16px 0;
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    min-height: 58px;
+    overflow-x: auto;
   }
-  .wordmark {
-    font-family: var(--serif); font-weight: 700; font-size: 19px; letter-spacing: -.01em;
-    display: flex; align-items: baseline; gap: 8px; white-space: nowrap;
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 17px; white-space: nowrap; margin-right: 8px; }
+  .mark {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2.5px solid var(--blue);
+    display: grid; place-items: center; flex: none;
   }
-  .wordmark .dot { color: var(--red); }
-  .wordmark small {
-    font-family: var(--sans); font-weight: 500; font-size: 10px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .14em;
+  .mark::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+
+  .topnav { display: flex; align-items: center; gap: 6px; }
+  .topnav .sep { width: 20px; height: 1.5px; background: var(--line); flex: none; }
+  .topnav button {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px;
+    font-weight: 700; font-size: 14px; color: var(--muted);
+    white-space: nowrap;
   }
-  .pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    border: 1px solid var(--line); border-radius: 999px;
-    background: var(--surface); padding: 4px 12px;
-    font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap;
+  .topnav button .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; }
+  .topnav button:hover { color: var(--ink); background: var(--chip); }
+  .topnav button .badge {
+    font-size: 11.5px; font-weight: 800;
+    background: var(--chip); color: var(--muted);
+    border-radius: 999px; padding: 1px 8px;
+    font-variant-numeric: tabular-nums;
   }
-  .pill b { color: var(--ink); font-weight: 600; }
-  .topbar .spacer { flex: 1; }
-  .avatar {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--blue); color: var(--paper);
+  .topnav button.active { background: var(--navy); color: var(--navy-ink); }
+  .topnav button.active .dot { background: var(--blue); }
+  .topnav button.active .badge { background: rgba(255,255,255,.18); color: var(--navy-ink); }
+  :root[data-theme="dark"] .topnav button.active .badge { background: rgba(0,0,0,.15); }
+
+  .topbar .spacer { flex: 1; min-width: 10px; }
+  .iconbtn {
+    width: 36px; height: 36px; border-radius: 50%; flex: none;
     display: grid; place-items: center;
-    font-weight: 700; font-size: 13px; flex: none;
+    color: var(--muted); font-size: 15px;
+  }
+  .iconbtn:hover { background: var(--chip); color: var(--ink); }
+  .cta-soft {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--blue-soft); color: var(--blue);
+    font-weight: 800; border-radius: 999px; padding: 9px 16px;
+    white-space: nowrap; flex: none;
+  }
+  .cta-soft:hover { filter: brightness(.97); }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex: none;
+    background: var(--navy); color: var(--navy-ink);
+    display: grid; place-items: center; font-weight: 900; font-size: 14px;
   }
   #simToggle { display: none; }
 
+  /* ================= shell ================= */
   .shell {
+    flex: 1; min-height: 0;
     display: grid;
-    grid-template-columns: 196px minmax(0, 1fr) 384px;
-    height: calc(100vh - 58px);
+    grid-template-columns: minmax(0, 1fr) 404px;
+    gap: 16px;
+    padding: 16px;
   }
-
-  /* ---------- sidebar ---------- */
-  .side {
-    border-right: 1px solid var(--line);
-    padding: 18px 12px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .side button.nav {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; text-align: left;
-    background: none; border: 0; border-radius: 8px;
-    padding: 9px 12px; font-weight: 500; color: var(--muted);
-  }
-  .side button.nav .glyph { width: 16px; text-align: center; color: var(--faint); font-size: 13px; }
-  .side button.nav:hover { background: var(--chip); color: var(--ink); }
-  .side button.nav.active { background: var(--red-soft); color: var(--red); font-weight: 600; }
-  .side button.nav.active .glyph { color: var(--red); }
-  .side .foot {
-    margin-top: auto; padding: 10px 12px;
-    font-size: 12px; color: var(--muted);
-    border-top: 1px solid var(--line);
-  }
-  .statusdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-right: 6px; }
-  .statusdot.off { background: var(--faint); }
-
-  /* ---------- main ---------- */
-  main { overflow-y: auto; padding: 28px 32px 60px; }
-  section[data-view] { display: none; max-width: 860px; margin: 0 auto; }
+  main { overflow-y: auto; min-width: 0; padding: 4px; }
+  section[data-view] { display: none; max-width: 920px; margin: 0 auto; }
   section[data-view].active { display: block; }
-  .view-head { margin-bottom: 22px; }
-  .view-head h1 { font-family: var(--serif); font-size: 27px; font-weight: 700; letter-spacing: -.01em; }
-  .view-head p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+
+  .view-head { padding: 12px 6px 20px; }
+  .view-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -.01em; }
+  .view-head p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; font-size: 14.5px; }
+  .view-head p b { color: var(--ink); }
 
   .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    background: var(--card);
+    border-radius: 18px;
     box-shadow: var(--shadow);
   }
-  .card .pad { padding: 18px 20px; }
+  .pad { padding: 20px 22px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .mt { margin-top: 16px; }
+  .mb8 { margin-bottom: 10px; }
+
+  .progress { height: 6px; border-radius: 999px; background: var(--chip); overflow: hidden; }
+  .progress i { display: block; height: 100%; border-radius: 999px; background: var(--blue); transition: width .6s ease; }
 
   /* stat tiles */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
-  .stat { padding: 14px 16px; }
-  .stat .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
-  .stat .value { font-family: var(--serif); font-size: 30px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
-  .stat .sub { font-size: 12px; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+  .stat { padding: 16px 18px; }
+  .stat .value { font-size: 32px; font-weight: 900; line-height: 1.2; font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .stat .sub { font-size: 12.5px; color: var(--muted); }
 
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-
-  .eyebrow {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .13em; color: var(--muted); margin-bottom: 8px;
+  /* buttons */
+  .btn-navy {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--navy); color: var(--navy-ink);
+    font-weight: 800; font-size: 14px;
+    border-radius: 999px; padding: 10px 18px;
   }
-  .eyebrow .accent { color: var(--red); }
-
-  /* today's lesson */
-  .today-card { border-color: var(--red); border-width: 1px; }
-  .today-card h3 { font-family: var(--serif); font-size: 20px; font-weight: 700; }
-  .steps { margin: 12px 0 0; padding: 0; list-style: none; }
-  .steps li { display: flex; gap: 10px; padding: 5px 0; color: var(--muted); font-size: 14px; }
-  .steps li::before { content: "▸"; color: var(--red); flex: none; }
-  .btnrow { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-  .btn {
-    border: 1px solid var(--line); background: var(--surface);
-    border-radius: 8px; padding: 8px 14px; font-weight: 600;
+  .btn-navy:hover { filter: brightness(1.12); }
+  .btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    border: 1.5px solid var(--line); background: var(--card);
+    color: var(--ink); font-weight: 800; font-size: 14px;
+    border-radius: 999px; padding: 10px 18px;
   }
-  .btn:hover { background: var(--chip); }
-  .btn.primary { background: var(--red); border-color: var(--red); color: var(--red-ink); }
-  .btn.primary:hover { filter: brightness(1.06); }
+  .btn-outline:hover { background: var(--chip); }
+  .btn-outline:disabled, .btn-navy:disabled { opacity: .45; cursor: default; }
+  .quietlink {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--muted); font-weight: 700; font-size: 13px;
+  }
+  .quietlink:hover { color: var(--ink); }
   .hint { font-size: 12.5px; color: var(--muted); }
 
+  /* today card */
+  .today-card h3 { font-size: 20px; font-weight: 900; margin-top: 8px; }
+  .steps { margin: 12px 0 0; padding: 0; list-style: none; }
+  .steps li { display: flex; gap: 10px; padding: 5px 0; color: var(--muted); font-size: 13.5px; }
+  .steps li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex: none; margin-top: 6px; }
+  .btnrow { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
   .promptbox {
-    margin-top: 12px;
-    font-family: var(--mono); font-size: 12.5px;
-    background: var(--mono-bg); border: 1px dashed var(--line);
-    border-radius: 8px; padding: 10px 12px; color: var(--muted);
+    margin-top: 14px;
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--mono-bg); border-radius: 12px;
+    padding: 10px 14px; color: var(--muted);
     overflow-x: auto; white-space: nowrap;
   }
 
+  /* list rows (right-panel style) */
+  .rowlist { list-style: none; margin: 0; padding: 0; }
+  .rowlist li { display: flex; align-items: center; gap: 11px; padding: 10px 4px; font-size: 14px; border-bottom: 1px solid var(--line); }
+  .rowlist li:last-child { border-bottom: 0; }
+  .rowlist .bullet { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .rowlist .t { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rowlist .t small { display: block; font-weight: 600; font-size: 12px; color: var(--muted); }
+
   /* how it works */
-  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
-  .how .card { padding: 16px; }
-  .how h4 { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .how .card { padding: 18px; }
+  .hownode {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid var(--blue); background: var(--blue-soft); color: var(--blue);
+    display: grid; place-items: center; font-weight: 900; font-size: 15px;
+    margin-bottom: 10px;
+  }
+  .how h4 { margin: 0 0 5px; font-size: 14.5px; font-weight: 800; }
   .how p { margin: 0; font-size: 13px; color: var(--muted); }
-  .how .k { font-family: var(--serif); font-style: italic; color: var(--red); font-size: 15px; }
 
-  /* plan mini list */
-  .mini-plan { list-style: none; margin: 0; padding: 0; }
-  .mini-plan li {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 0; border-bottom: 1px solid var(--line);
-    font-size: 14px;
-  }
-  .mini-plan li:last-child { border-bottom: 0; }
-  .mini-plan .n { font-family: var(--mono); font-size: 11.5px; color: var(--faint); width: 18px; flex: none; }
-  .mini-plan .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  .tag {
-    font-size: 11px; font-weight: 600; border-radius: 999px;
-    padding: 2px 9px; white-space: nowrap; flex: none;
-  }
-  .tag.done  { background: var(--green-soft); color: var(--green); }
-  .tag.today { background: var(--red-soft); color: var(--red); }
-  .tag.next  { background: var(--chip); color: var(--muted); }
-  .tag.topic { background: var(--blue-soft); color: var(--blue); font-weight: 500; }
-  .tag.res   { background: var(--amber-soft); color: var(--amber); }
-
-  /* ---------- vocabulary ---------- */
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  /* ================= vocabulary ================= */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 6px 18px; }
   .filters button {
-    border: 1px solid var(--line); background: var(--surface);
-    border-radius: 999px; padding: 5px 14px; font-size: 13px; font-weight: 500; color: var(--muted);
+    border-radius: 999px; padding: 7px 16px;
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    background: var(--card); box-shadow: var(--shadow);
   }
-  .filters button:hover { background: var(--chip); color: var(--ink); }
-  .filters button.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .filters button:hover { color: var(--ink); }
+  .filters button.on { background: var(--navy); color: var(--navy-ink); }
 
-  .vocab-col h2 {
-    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
-    display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px;
-  }
-  .vocab-col h2 .count { font-family: var(--mono); font-weight: 500; font-size: 12px; color: var(--muted); }
-  .vocab-col h2 .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; align-self: center; }
-  .wordlist { list-style: none; margin: 0; padding: 0; }
-  .wordlist li { border-bottom: 1px solid var(--line); }
-  .wordlist li:last-child { border-bottom: 0; }
+  .vocab-col > .mlabel { display: flex; align-items: center; gap: 8px; padding: 0 6px 10px; }
+  .vocab-col .count { margin-left: auto; letter-spacing: 0; }
+  .vocab-col .swatch { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .wordlist { list-style: none; margin: 0; padding: 8px; }
+  .wordlist li { border-radius: 12px; }
   .wordrow {
     display: flex; align-items: center; gap: 10px;
-    width: 100%; background: none; border: 0; text-align: left;
-    padding: 10px 14px;
+    width: 100%; text-align: left;
+    padding: 10px 12px; border-radius: 12px;
   }
   .wordrow:hover { background: var(--chip); }
-  .headword { font-family: var(--serif); font-weight: 700; font-size: 16px; color: var(--red); flex: none; }
-  .gloss { color: var(--muted); font-size: 13.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .headword { font-weight: 800; font-size: 15px; flex: none; }
+  .gloss { color: var(--muted); font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dots { display: flex; gap: 3px; flex: none; }
   .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
   .dots i.f { background: var(--green); }
-  .dots.learning i.f { background: var(--amber); }
-  .ex {
-    display: none; padding: 0 14px 12px 14px;
-    font-size: 13.5px; color: var(--muted);
-  }
-  .ex .es { font-family: var(--serif); font-style: italic; color: var(--ink); }
+  .dots.learning i.f { background: var(--coral); }
+  .ex { display: none; padding: 2px 12px 12px 31px; font-size: 13px; color: var(--muted); }
+  .ex .es { font-weight: 700; font-style: italic; color: var(--ink); }
+  li.open { background: var(--chip); }
   li.open .ex { display: block; }
-  li.open .wordrow { background: var(--chip); }
-  .more { padding: 10px 14px; font-size: 12.5px; color: var(--faint); }
-  .empty { padding: 22px 14px; font-size: 13.5px; color: var(--muted); font-style: italic; }
-  .vocab-note { margin-top: 16px; font-size: 13px; color: var(--muted); max-width: 68ch; }
+  .more { padding: 10px 14px; font-size: 12px; color: var(--faint); font-weight: 600; }
+  .empty { padding: 22px 14px; font-size: 13px; color: var(--muted); font-style: italic; }
 
-  /* ---------- plan ---------- */
-  .plan-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 20px; }
-  .lesson-card { margin-bottom: 12px; }
-  .lesson-card .pad { display: flex; gap: 14px; }
-  .lesson-card.today-l { border-color: var(--red); }
-  .lesson-card.done-l { opacity: .78; }
-  .lesson-n {
-    font-family: var(--serif); font-weight: 700; font-size: 21px;
-    color: var(--faint); width: 30px; flex: none; text-align: center;
-    font-variant-numeric: tabular-nums;
+  .legendcard {
+    display: inline-flex; flex-direction: column; gap: 6px;
+    margin: 18px 6px 0; padding: 14px 18px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .04em;
   }
-  .lesson-card.today-l .lesson-n { color: var(--red); }
+  .legendcard .g { color: var(--green); } .legendcard .c { color: var(--coral); }
+
+  /* ================= lesson plan ================= */
+  .plan-meta { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 6px 18px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--card); box-shadow: var(--shadow);
+    border-radius: 999px; padding: 6px 14px;
+    font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap;
+  }
+  .pill b { color: var(--ink); font-weight: 800; }
+
+  .strip-wrap { overflow-x: auto; }
+  .strip { display: flex; min-width: 620px; padding: 26px 18px 22px; position: relative; }
+  .strip::before {
+    content: ""; position: absolute; left: 60px; right: 60px; top: 84px;
+    height: 2px; background: var(--line);
+  }
+  .stop { flex: 1; min-width: 116px; text-align: center; position: relative; padding: 0 8px; }
+  .stop .mlabel { display: block; margin-bottom: 14px; }
+  .node {
+    width: 56px; height: 56px; border-radius: 50%;
+    margin: 0 auto 12px;
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 15px; font-variant-numeric: tabular-nums;
+    border: 2.5px solid var(--line); background: var(--card); color: var(--faint);
+    position: relative; z-index: 1;
+  }
+  .stop.done .node  { border-color: var(--green); background: var(--green-soft); color: var(--green); font-size: 12px; }
+  .stop.today .node { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); box-shadow: 0 0 0 6px color-mix(in srgb, var(--blue) 12%, transparent); }
+  .stop.queued { opacity: .6; }
+  .stop .st { font-size: 12.5px; font-weight: 800; line-height: 1.3; margin-bottom: 8px; min-height: 33px; }
+
+  .lesson-card { margin-bottom: 14px; }
+  .lesson-card .pad { display: flex; gap: 16px; align-items: flex-start; }
+  .lesson-card.today-l { box-shadow: var(--shadow-lg); outline: 2px solid var(--blue); outline-offset: -2px; }
+  .lesson-card.done-l { opacity: .72; }
+  .lnode {
+    width: 44px; height: 44px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; font-weight: 900; font-size: 14px;
+    border: 2.5px solid var(--line); color: var(--faint); background: var(--card);
+  }
+  .lesson-card.done-l .lnode { border-color: var(--green); background: var(--green-soft); color: var(--green); font-size: 11px; }
+  .lesson-card.today-l .lnode { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
   .lesson-body { flex: 1; min-width: 0; }
-  .lesson-body h3 { font-family: var(--serif); font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .lesson-body .mins { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--muted); }
-  .lesson-steps { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13.5px; color: var(--muted); }
-  .lesson-steps li { padding: 2px 0; display: flex; gap: 8px; }
-  .lesson-steps li::before { content: "·"; color: var(--faint); }
-  .plan-note {
-    margin-top: 20px; padding: 14px 16px;
-    background: var(--amber-soft); border-radius: 10px;
-    font-size: 13.5px; color: var(--amber);
-  }
-  .plan-history { margin-top: 20px; font-size: 13px; color: var(--muted); }
+  .lesson-body h3 { font-size: 16.5px; font-weight: 900; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lesson-body .mins { font-size: 12px; font-weight: 700; color: var(--faint); }
+  .lesson-steps { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+  .lesson-steps li { padding: 2.5px 0; display: flex; gap: 9px; }
+  .lesson-steps li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); flex: none; margin-top: 7px; }
+  .plan-note { margin-top: 18px; padding: 16px 20px; font-size: 13.5px; color: var(--muted); }
+  .plan-note b { color: var(--ink); }
+  .plan-history { margin: 18px 6px 0; font-size: 13px; color: var(--muted); }
 
-  /* ---------- mcp ---------- */
-  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 14px; font-size: 14px; }
-  .kv dt { color: var(--muted); }
-  .kv dd { margin: 0; font-weight: 500; }
-  .kv dd code { font-family: var(--mono); font-size: 12.5px; background: var(--mono-bg); padding: 2px 7px; border-radius: 6px; }
+  /* ================= mcp ================= */
+  .kv { display: grid; grid-template-columns: 128px 1fr; gap: 8px 14px; font-size: 13.5px; }
+  .kv dt { color: var(--muted); font-weight: 600; }
+  .kv dd { margin: 0; font-weight: 800; }
+  .kv dd code, .setup code { font-family: var(--mono); font-size: 11px; font-weight: 500; background: var(--mono-bg); padding: 2px 8px; border-radius: 8px; }
+  .statusdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--green); margin-right: 7px; }
+  .statusdot.off { background: var(--faint); }
   .toolrows { list-style: none; margin: 0; padding: 0; }
-  .toolrows li {
-    display: flex; align-items: baseline; gap: 12px;
-    padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px;
-  }
+  .toolrows li { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
   .toolrows li:last-child { border-bottom: 0; }
-  .toolrows .tn { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--blue); flex: none; width: 190px; }
+  .toolrows .tn { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--blue); flex: none; width: 196px; }
   .toolrows .td { color: var(--muted); flex: 1; }
   .guide {
-    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
-    background: var(--mono-bg); border-radius: 10px;
-    padding: 16px 18px; overflow-x: auto; color: var(--ink);
-    margin: 0;
+    font-family: var(--mono); font-size: 12px; line-height: 1.7;
+    background: var(--mono-bg); border-radius: 14px;
+    padding: 18px 20px; overflow-x: auto; color: var(--ink); margin: 0;
   }
-  .guide .c { color: var(--muted); }
+  .guide .c { color: var(--faint); }
   .setup { counter-reset: step; list-style: none; margin: 0; padding: 0; }
-  .setup li { display: flex; gap: 12px; padding: 8px 0; font-size: 14px; }
+  .setup li { display: flex; gap: 13px; padding: 9px 0; font-size: 13.5px; align-items: flex-start; }
   .setup li::before {
     counter-increment: step; content: counter(step);
-    font-family: var(--serif); font-weight: 700; color: var(--red);
-    width: 20px; flex: none; text-align: center;
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    display: grid; place-items: center;
+    border: 2px solid var(--blue); background: var(--blue-soft); color: var(--blue);
+    font-weight: 900; font-size: 12px;
   }
-  .setup li code { font-family: var(--mono); font-size: 12px; background: var(--mono-bg); padding: 1px 6px; border-radius: 5px; }
-  .mt { margin-top: 20px; }
-  .mb8 { margin-bottom: 8px; }
 
-  /* ---------- simulator ---------- */
+  /* ================= simulator ================= */
   .sim {
-    border-left: 1px solid var(--line);
-    background: var(--sim-bg);
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
     display: flex; flex-direction: column;
-    min-height: 0;
+    min-height: 0; overflow: hidden;
   }
-  .sim-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
-  .sim-head .eyebrow { margin-bottom: 2px; }
-  .sim-head h2 { font-family: var(--serif); font-size: 18px; font-weight: 700; }
-  .sim-head p { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
-  .sim-controls { display: flex; gap: 8px; padding: 12px 18px; flex-wrap: wrap; }
-  .sim-controls .btn { font-size: 13px; padding: 7px 12px; }
-  .sim-controls .btn.blue { background: var(--blue); border-color: var(--blue); color: var(--paper); }
-  .sim-controls .btn:disabled { opacity: .45; cursor: default; }
-
-  .voice { display: flex; align-items: center; gap: 10px; padding: 0 18px 10px; height: 34px; }
+  .sim-head { padding: 22px 22px 14px; }
+  .sim-head h2 { font-size: 26px; font-weight: 900; letter-spacing: -.01em; }
+  .sim-head .subtitle { margin: 4px 0 10px; font-size: 13px; color: var(--muted); }
+  .sim-head .subtitle b { color: var(--ink); }
+  .sim-controls { display: flex; flex-direction: column; gap: 9px; padding: 6px 22px 4px; }
+  .sim-controls .btn-outline { width: 100%; }
+  .sim-controls .btn-outline .play { color: var(--blue); }
+  .voice { display: flex; align-items: center; gap: 10px; padding: 12px 22px 6px; }
   .bars { display: flex; align-items: center; gap: 3px; height: 22px; }
-  .bars i { width: 4px; height: 6px; border-radius: 2px; background: var(--blue); opacity: .45; }
+  .bars i { width: 4px; height: 6px; border-radius: 2px; background: var(--blue); opacity: .4; }
   .voice.speaking .bars i { opacity: 1; animation: bar .9s ease-in-out infinite; }
   .voice.speaking .bars i:nth-child(2) { animation-delay: .12s; }
   .voice.speaking .bars i:nth-child(3) { animation-delay: .24s; }
   .voice.speaking .bars i:nth-child(4) { animation-delay: .36s; }
   .voice.speaking .bars i:nth-child(5) { animation-delay: .48s; }
   @keyframes bar { 0%,100% { height: 6px; } 50% { height: 20px; } }
-  .voice .vlabel { font-size: 12px; color: var(--muted); }
+  .voice .vlabel { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 
   .transcript {
-    flex: 1; overflow-y: auto; padding: 6px 18px 24px;
+    flex: 1; overflow-y: auto; padding: 8px 22px 18px;
     display: flex; flex-direction: column; gap: 10px;
   }
-  .bub { max-width: 88%; border-radius: 12px; padding: 9px 13px; font-size: 13.5px; line-height: 1.5; animation: pop .28s ease both; }
-  .bub .who { display: block; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px; opacity: .65; }
-  .bub.ai { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); }
-  .bub.user { align-self: flex-end; background: var(--blue); color: var(--paper); }
-  .bub .es { font-family: var(--serif); font-style: italic; }
-  .sysline { align-self: center; font-size: 11.5px; color: var(--faint); padding: 2px 0; animation: pop .28s ease both; }
+  .bub { max-width: 90%; border-radius: 16px; padding: 10px 14px; font-size: 13px; line-height: 1.5; animation: pop .28s ease both; }
+  .bub .who { display: block; font-family: var(--mono); font-size: 8.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 4px; opacity: .6; }
+  .bub.ai { align-self: flex-start; background: var(--chip); border-bottom-left-radius: 6px; }
+  .bub.user { align-self: flex-end; background: var(--blue); color: var(--blue-ink); border-bottom-right-radius: 6px; }
+  .bub .es { font-weight: 800; font-style: italic; }
+  .sysline { align-self: center; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--faint); padding: 3px 0; animation: pop .28s ease both; }
   .toolcall {
     align-self: stretch;
-    font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+    font-family: var(--mono); font-size: 11px; line-height: 1.6;
     background: var(--mono-bg); border-left: 3px solid var(--blue);
-    border-radius: 6px; padding: 8px 11px;
-    animation: pop .28s ease both;
-    overflow-x: auto;
+    border-radius: 10px; padding: 9px 13px;
+    animation: pop .28s ease both; overflow-x: auto;
   }
-  .toolcall .tn { color: var(--blue); font-weight: 600; }
+  .toolcall .tn { color: var(--blue); font-weight: 700; }
   .toolcall .args { color: var(--muted); white-space: pre; }
-  .toolcall .fx { color: var(--green); font-weight: 600; }
-  @keyframes pop { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  .toolcall .fx { color: var(--green); font-weight: 700; }
+  .sim-foot { padding: 12px 22px 16px; border-top: 1px solid var(--line); display: flex; justify-content: center; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
   .flash { animation: flashbg 1.4s ease both; }
   @keyframes flashbg { 0% { background-color: var(--green-soft); } 100% { background-color: transparent; } }
@@ -382,52 +433,54 @@
     .bub, .toolcall, .sysline { animation: none; }
     .voice.speaking .bars i { animation: none; height: 14px; }
     .flash { animation: none; background: var(--green-soft); }
+    .progress i { transition: none; }
   }
 
-  /* ---------- responsive ---------- */
-  @media (max-width: 1180px) {
-    .shell { grid-template-columns: 176px minmax(0,1fr); }
+  /* ================= responsive ================= */
+  @media (max-width: 1220px) {
+    .shell { grid-template-columns: minmax(0,1fr); }
     .sim {
-      position: fixed; top: 58px; right: 0; bottom: 0; width: min(400px, 100vw);
-      transform: translateX(100%); transition: transform .25s ease;
-      box-shadow: var(--shadow); z-index: 30;
+      position: fixed; top: 86px; right: 16px; bottom: 16px; width: min(404px, calc(100vw - 32px));
+      transform: translateX(calc(100% + 32px)); transition: transform .25s ease;
+      box-shadow: var(--shadow-lg); z-index: 30;
     }
     .sim.openpanel { transform: none; }
     #simToggle { display: inline-flex; }
   }
-  @media (max-width: 800px) {
-    .shell { grid-template-columns: minmax(0,1fr); }
-    .side {
-      flex-direction: row; border-right: 0; border-bottom: 1px solid var(--line);
-      padding: 8px 12px; overflow-x: auto;
-    }
-    .side .foot { display: none; }
-    .shell { grid-template-rows: auto 1fr; height: auto; }
-    main { padding: 20px 16px 60px; }
+  @media (max-width: 820px) {
+    body { overflow: auto; height: auto; }
+    .shell { height: auto; padding: 12px; }
+    main { overflow: visible; }
+    .topbar { margin: 12px 12px 0; }
     .stats, .how { grid-template-columns: 1fr 1fr; }
     .grid2 { grid-template-columns: 1fr; }
-    .topbar .pill.lang small { display: none; }
+    .brand span.bn { display: none; }
+    .sim { top: 12px; }
   }
 </style>
 
 <header class="topbar">
-  <div class="wordmark">Open Language Teacher<span class="dot">.</span><small>mockup</small></div>
-  <span class="pill lang"><b>Spanish</b> <small>from Dutch · A2</small></span>
-  <span class="pill" id="streakPill">🔥 <b id="streakTop">6</b>-day streak</span>
+  <div class="brand"><span class="mark"></span><span class="bn">Open Language Teacher</span></div>
+
+  <nav class="topnav">
+    <button data-target="dashboard" class="active"><span class="dot"></span>Dashboard<span class="badge" id="navDashBadge">40%</span></button>
+    <span class="sep"></span>
+    <button data-target="vocab"><span class="dot"></span>Vocabulary<span class="badge" id="navVocabBadge">12</span></button>
+    <span class="sep"></span>
+    <button data-target="plan"><span class="dot"></span>Plan<span class="badge" id="navPlanBadge">2/5</span></button>
+    <span class="sep"></span>
+    <button data-target="mcp"><span class="dot" id="navMcpDot" style="background:var(--green)"></span>MCP</button>
+  </nav>
+
   <div class="spacer"></div>
-  <button class="btn" id="simToggle">Your AI</button>
+  <button class="iconbtn" title="Share (mockup)">⇧</button>
+  <button class="iconbtn" title="Settings (mockup)">⚙</button>
+  <button class="iconbtn" id="themeToggle" title="Toggle theme">☾</button>
+  <button class="cta-soft" id="simToggle">◉ Your AI</button>
   <div class="avatar" title="David">D</div>
 </header>
 
 <div class="shell">
-
-  <nav class="side">
-    <button class="nav active" data-target="dashboard"><span class="glyph">◈</span>Dashboard</button>
-    <button class="nav" data-target="vocab"><span class="glyph">A→</span>Vocabulary</button>
-    <button class="nav" data-target="plan"><span class="glyph">▤</span>Lesson plan</button>
-    <button class="nav" data-target="mcp"><span class="glyph">⇄</span>MCP connection</button>
-    <div class="foot"><span class="statusdot" id="sideDot"></span><span id="sideStatus">MCP linked · ChatGPT</span></div>
-  </nav>
 
   <main>
 
@@ -435,46 +488,50 @@
     <section data-view="dashboard" class="active">
       <div class="view-head">
         <h1 id="greeting">Hola, David.</h1>
-        <p id="dashSub">Week plan · day 3 of 7. Your data lives here — your own AI does the teaching.</p>
+        <p id="dashSub"><b>40%</b> of this week's plan complete. Your data lives here — your own AI does the teaching.</p>
+        <div class="progress" style="max-width:340px; margin-top:12px;"><i id="dashBar" style="width:40%"></i></div>
       </div>
 
       <div class="stats">
-        <div class="card stat"><div class="label">Words known</div><div class="value" id="statKnown">214</div><div class="sub">+9 this week</div></div>
-        <div class="card stat"><div class="label">In learning</div><div class="value" id="statLearning">12</div><div class="sub">news · slang · talk</div></div>
-        <div class="card stat"><div class="label">Lessons done</div><div class="value" id="statLessons">2/5</div><div class="sub">this week's plan</div></div>
-        <div class="card stat"><div class="label">Day streak</div><div class="value" id="statStreak">6</div><div class="sub">keep it alive today</div></div>
+        <div class="card stat"><span class="mlabel">Words known</span><div class="value" id="statKnown">214</div><div class="sub">+9 this week</div></div>
+        <div class="card stat"><span class="mlabel">In learning</span><div class="value" id="statLearning">12</div><div class="sub">news · slang · talk</div></div>
+        <div class="card stat"><span class="mlabel">Lessons done</span><div class="value" id="statLessons">2/5</div><div class="sub">this week's plan</div></div>
+        <div class="card stat"><span class="mlabel">Day streak</span><div class="value" id="statStreak">6</div><div class="sub">keep it alive today</div></div>
       </div>
 
       <div class="grid2">
-        <div class="card today-card pad" id="todayCard">
-          <div class="eyebrow"><span class="accent">Today</span> · pull into your AI</div>
+        <div class="card pad today-card">
+          <span class="mlabel">Today · pull into your AI</span>
           <h3 id="todayTitle">Lesson 3 · News words in conversation</h3>
           <ul class="steps" id="todaySteps"></ul>
           <div class="btnrow">
-            <button class="btn primary" id="copyPrompt">Copy prompt for your AI</button>
-            <span class="hint" id="copyHint">or just say it in voice mode →</span>
+            <button class="btn-navy" id="copyPrompt">▷&nbsp; Start in your AI</button>
+            <span class="hint" id="copyHint">copies the prompt — or just say it in voice mode</span>
           </div>
           <div class="promptbox">"Start my next Spanish lesson from Open Language Teacher."</div>
         </div>
 
         <div class="card pad">
-          <div class="eyebrow">This week's plan</div>
-          <ul class="mini-plan" id="miniPlan"></ul>
-          <div class="hint" style="margin-top:10px;">Written by <b>your AI</b> during onboarding · always short-term, iterated weekly.</div>
+          <span class="mlabel mb8" style="display:block">This week's plan</span>
+          <ul class="rowlist" id="miniPlan"></ul>
+          <div class="hint" style="margin-top:12px;">Written by <b>your AI</b> during onboarding · always short-term, iterated weekly.</div>
         </div>
       </div>
 
       <div class="how">
         <div class="card">
-          <h4><span class="k">1 —</span> Your data lives here</h4>
+          <div class="hownode">1</div>
+          <h4>Your data lives here</h4>
           <p>Profile, vocabulary lists and lesson plans. Plain, portable data — no AI inside the app.</p>
         </div>
         <div class="card">
-          <h4><span class="k">2 —</span> Your own AI teaches</h4>
+          <div class="hownode">2</div>
+          <h4>Your own AI teaches</h4>
           <p>ChatGPT voice mode, Claude, whatever you already pay for. It holds the actual lesson in chat or voice.</p>
         </div>
         <div class="card">
-          <h4><span class="k">3 —</span> MCP connects them</h4>
+          <div class="hownode">3</div>
+          <h4>MCP connects them</h4>
           <p>The AI pulls the next lesson, follows the app's teaching guide, and writes results back when you finish.</p>
         </div>
       </div>
@@ -491,16 +548,19 @@
 
       <div class="grid2">
         <div class="vocab-col">
-          <h2><span class="swatch" style="background:var(--amber)"></span>Learning queue <span class="count" id="learnCount"></span></h2>
+          <span class="mlabel"><span class="swatch" style="background:var(--coral)"></span>Learning queue <span class="count" id="learnCount"></span></span>
           <div class="card"><ul class="wordlist" id="learningList"></ul></div>
         </div>
         <div class="vocab-col">
-          <h2><span class="swatch" style="background:var(--green)"></span>Known <span class="count" id="knownCount"></span></h2>
+          <span class="mlabel"><span class="swatch" style="background:var(--green)"></span>Known <span class="count" id="knownCount"></span></span>
           <div class="card"><ul class="wordlist" id="knownList"></ul></div>
         </div>
       </div>
 
-      <p class="vocab-note">Recall strength: <b>●○○</b> just met · <b>●●○</b> recalled once or twice · <b>●●●</b> solid → moves to <b style="color:var(--green)">Known</b>. Strengths decay slowly so old words resurface in review lessons.</p>
+      <div class="card legendcard">
+        <span><span class="c">●</span>○○ just met &nbsp;·&nbsp; <span class="c">●●</span>○ recalled once or twice</span>
+        <span><span class="g">●●●</span> solid — graduates to the Known list</span>
+      </div>
     </section>
 
     <!-- ======================= LESSON PLAN ======================= -->
@@ -511,16 +571,18 @@
       </div>
 
       <div class="plan-meta">
-        <span class="pill" id="planRange"><b>18 – 24 Aug</b></span>
+        <span class="pill"><b>18 – 24 Aug</b></span>
         <span class="pill">created by <b id="planAuthor">ChatGPT · via MCP</b></span>
         <span class="pill"><b id="planProgress">2 of 5</b>&nbsp;done</span>
       </div>
 
+      <div class="card strip-wrap" style="margin-bottom:16px;"><div class="strip" id="planStrip"></div></div>
+
       <div id="lessonCards"></div>
 
-      <div class="plan-note"><b>Plans are always short-term.</b> One week — or three days — then your AI reviews what stuck, what didn't, and writes the next plan. Easy iterations beat grand curricula.</div>
+      <div class="card plan-note"><b>Plans are always short-term.</b> One week — or three days — then your AI reviews what stuck, what didn't, and writes the next plan. Easy iterations beat grand curricula.</div>
 
-      <div class="plan-history">Previous · <b>Week of 11 – 17 Aug</b> — completed 5/5 · focus: restaurant &amp; travel basics · <span style="color:var(--green)">✓ archived</span></div>
+      <div class="plan-history">Previous · <b>Week of 11 – 17 Aug</b> — completed 5/5 · focus: restaurant &amp; travel basics · <span style="color:var(--green); font-weight:700;">✓ archived</span></div>
     </section>
 
     <!-- ======================= MCP ======================= -->
@@ -532,7 +594,7 @@
 
       <div class="grid2">
         <div class="card pad">
-          <div class="eyebrow">Status</div>
+          <span class="mlabel mb8" style="display:block">Status</span>
           <dl class="kv">
             <dt>Connection</dt><dd id="mcpStatus"><span class="statusdot"></span>Connected</dd>
             <dt>Client</dt><dd id="mcpClient">ChatGPT — voice mode</dd>
@@ -543,7 +605,7 @@
         </div>
 
         <div class="card pad">
-          <div class="eyebrow">Set up in 3 steps</div>
+          <span class="mlabel mb8" style="display:block">Set up in 3 steps</span>
           <ol class="setup">
             <li>Create your profile here in the web app — language, native tongue, that's it.</li>
             <li>Add the server URL as a connector in your AI (ChatGPT → Settings → Connectors, or Claude → custom connector).</li>
@@ -553,11 +615,11 @@
       </div>
 
       <div class="card pad mt">
-        <div class="eyebrow mb8">Tools exposed to your AI</div>
+        <span class="mlabel mb8" style="display:block">Tools exposed to your AI</span>
         <ul class="toolrows">
           <li><span class="tn">get_profile</span><span class="td">read level, goals, native language, streak</span></li>
           <li><span class="tn">update_profile</span><span class="td">save onboarding answers — estimated words known, goals, topics</span></li>
-          <li><span class="tn">get_plan_instructions</span><span class="td">how this app wants plans &amp; lessons structured (see guide below)</span><span class="tag res">resource</span></li>
+          <li><span class="tn">get_plan_instructions</span><span class="td">how this app wants plans &amp; lessons structured (see guide below)</span><span class="mtag res">resource</span></li>
           <li><span class="tn">create_plan</span><span class="td">write a short-term plan — 3 to 7 days, never more</span></li>
           <li><span class="tn">get_vocab</span><span class="td">read the known list and learning queue, filtered by topic</span></li>
           <li><span class="tn">add_words</span><span class="td">queue new words with translations and example sentences</span></li>
@@ -569,7 +631,7 @@
       </div>
 
       <div class="card pad mt">
-        <div class="eyebrow mb8">The lesson-authoring guide <span style="text-transform:none; letter-spacing:0;">— the app instructs, the AI creates</span></div>
+        <span class="mlabel mb8" style="display:block">The lesson-authoring guide — the app instructs, the AI creates</span>
         <pre class="guide"><span class="c"># resource: olt://guide/lesson-authoring (read by your AI)</span>
 
 1. Plans are SHORT — 3 to 7 days, never more. Iterate weekly.
@@ -591,21 +653,25 @@
   <!-- ======================= SIMULATOR ======================= -->
   <aside class="sim" id="simPanel">
     <div class="sim-head">
-      <div class="eyebrow">Concept demo</div>
-      <h2>Your AI · voice mode</h2>
-      <p>This panel simulates ChatGPT voice mode driving the app over MCP. Press play and watch the app update live.</p>
+      <h2>Your AI</h2>
+      <p class="subtitle"><b id="simWeekLabel">2 of 5</b> lessons this week · simulates ChatGPT voice mode driving the app over MCP</p>
+      <div class="progress"><i id="simBar" style="width:40%"></i></div>
     </div>
     <div class="sim-controls">
-      <button class="btn blue" id="playOnboard">▶ Onboarding</button>
-      <button class="btn blue" id="playLesson">▶ Voice lesson</button>
-      <button class="btn" id="simReset">Reset</button>
+      <button class="btn-outline" id="playOnboard"><span class="play">▷</span> Play the onboarding</button>
+      <button class="btn-outline" id="playLesson"><span class="play">▷</span> Play a voice lesson</button>
     </div>
     <div class="voice" id="voiceRow">
       <div class="bars"><i></i><i></i><i></i><i></i><i></i></div>
       <span class="vlabel" id="voiceLabel">idle</span>
     </div>
     <div class="transcript" id="transcript">
-      <div class="sysline">Pick a journey above — onboarding builds the profile from scratch; the lesson completes today's session.</div>
+      <div class="sysline">PICK A JOURNEY ABOVE — ONBOARDING BUILDS THE PROFILE FROM SCRATCH; THE LESSON COMPLETES TODAY'S SESSION</div>
+    </div>
+    <div class="sim-foot">
+      <button class="quietlink" id="simReset">↺ Reset demo</button>
+      <span style="flex:1"></span>
+      <button class="quietlink" id="browseTools">≡ Browse the MCP tools</button>
     </div>
   </aside>
 
@@ -679,7 +745,7 @@
     return '<li data-word="' + w.es + '">' +
       '<button class="wordrow"><span class="headword">' + w.es + '</span>' +
       '<span class="gloss">' + w.en + '</span>' +
-      '<span class="tag topic">' + w.topic + '</span>' + dots(w.p, cls) + '</button>' +
+      '<span class="mtag topic">' + w.topic + '</span>' + dots(w.p, cls) + '</button>' +
       '<div class="ex"><span class="es">' + w.ex + '</span></div></li>';
   }
 
@@ -699,6 +765,7 @@
 
     $('learnCount').textContent = '(' + state.learning.length + ')';
     $('knownCount').textContent = '(' + (state.known.length + state.knownExtra) + ')';
+    $('navVocabBadge').textContent = state.learning.length;
   }
 
   function renderFilters() {
@@ -710,37 +777,59 @@
 
   function renderPlan() {
     const holder = $('lessonCards');
+    const strip = $('planStrip');
     if (!state.plan) {
-      holder.innerHTML = '<div class="card pad"><div class="empty">No plan yet. Link your AI and run onboarding — it writes your first week.</div></div>';
+      strip.innerHTML = '<div class="empty" style="width:100%; text-align:center;">No plan yet. Link your AI and run onboarding — it writes your first week.</div>';
+      holder.innerHTML = '';
       $('planProgress').textContent = '0 of 0';
       $('planAuthor').textContent = '—';
+      $('navPlanBadge').textContent = '—';
       return;
     }
     const next = nextLesson();
+
+    strip.innerHTML = state.plan.lessons.map(l => {
+      const isToday = next && l.n === next.n;
+      const cls = l.done ? 'done' : (isToday ? 'today' : 'queued');
+      const nodeTxt = l.done ? '100%' : l.n;
+      const tag = l.done ? '<span class="mtag done">done</span>'
+        : (isToday ? '<span class="mtag today">today</span>' : '<span class="mtag queued">queued</span>');
+      return '<div class="stop ' + cls + '"><span class="mlabel">Day ' + l.n + '</span>' +
+        '<div class="node">' + nodeTxt + '</div>' +
+        '<div class="st">' + l.title + '</div>' + tag + '</div>';
+    }).join('');
+
     holder.innerHTML = state.plan.lessons.map(l => {
       const isToday = next && l.n === next.n;
       const cls = l.done ? 'done-l' : (isToday ? 'today-l' : '');
-      const tag = l.done ? '<span class="tag done">✓ done</span>'
-        : (isToday ? '<span class="tag today">today</span>' : '<span class="tag next">upcoming</span>');
+      const tag = l.done ? '<span class="mtag done">✓ done</span>'
+        : (isToday ? '<span class="mtag today">today</span>' : '<span class="mtag queued">queued</span>');
       return '<div class="card lesson-card ' + cls + '" data-lesson="' + l.n + '"><div class="pad">' +
-        '<div class="lesson-n">' + l.n + '</div>' +
+        '<div class="lnode">' + (l.done ? '100%' : l.n) + '</div>' +
         '<div class="lesson-body"><h3>' + l.title + ' ' + tag + ' <span class="mins">~' + l.mins + ' min</span></h3>' +
         '<ul class="lesson-steps">' + l.steps.map(s => '<li>' + s + '</li>').join('') + '</ul>' +
         '</div></div></div>';
     }).join('');
+
     const done = state.plan.lessons.filter(l => l.done).length;
     $('planProgress').textContent = done + ' of ' + state.plan.lessons.length;
     $('planAuthor').textContent = state.plan.author;
+    $('navPlanBadge').textContent = done + '/' + state.plan.lessons.length;
   }
 
   function renderDashboard() {
     const done = state.plan ? state.plan.lessons.filter(l => l.done).length : 0;
     const total = state.plan ? state.plan.lessons.length : 0;
+    const pct = total ? Math.round(done / total * 100) : 0;
+
     $('statKnown').textContent = state.known.length + state.knownExtra;
     $('statLearning').textContent = state.learning.length;
     $('statLessons').textContent = done + '/' + total;
     $('statStreak').textContent = state.streak;
-    $('streakTop').textContent = state.streak;
+    $('navDashBadge').textContent = pct + '%';
+    $('dashBar').style.width = pct + '%';
+    $('simBar').style.width = pct + '%';
+    $('simWeekLabel').textContent = done + ' of ' + total;
 
     const next = nextLesson();
     if (next) {
@@ -757,20 +846,21 @@
     $('miniPlan').innerHTML = state.plan
       ? state.plan.lessons.map(l => {
           const isToday = next && l.n === next.n;
-          const tag = l.done ? '<span class="tag done">done</span>'
-            : (isToday ? '<span class="tag today">today</span>' : '<span class="tag next">soon</span>');
-          return '<li><span class="n">' + l.n + '</span><span class="t">' + l.title + '</span>' + tag + '</li>';
+          const bullet = l.done ? 'var(--green)' : (isToday ? 'var(--blue)' : 'var(--line)');
+          const tag = l.done ? '<span class="mtag done">done</span>'
+            : (isToday ? '<span class="mtag today">today</span>' : '<span class="mtag queued">queued</span>');
+          return '<li><span class="bullet" style="background:' + bullet + '"></span>' +
+            '<span class="t">' + l.title + '<small>Lesson ' + l.n + ' · ~' + l.mins + ' min</small></span>' + tag + '</li>';
         }).join('')
-      : '<li><span class="t empty" style="padding:6px 0">Onboarding creates your first plan.</span></li>';
+      : '<li><span class="t" style="font-weight:600; color:var(--muted); font-style:italic;">Onboarding creates your first plan.</span></li>';
 
-    $('dashSub').textContent = state.plan
-      ? 'Week plan · ' + done + ' of ' + total + ' lessons done. Your data lives here — your own AI does the teaching.'
+    $('dashSub').innerHTML = state.plan
+      ? '<b>' + pct + '%</b> of this week\'s plan complete. Your data lives here — your own AI does the teaching.'
       : 'Fresh profile. Link your AI over MCP to start onboarding.';
   }
 
   function renderConnection() {
-    $('sideDot').className = 'statusdot' + (state.connected ? '' : ' off');
-    $('sideStatus').textContent = state.connected ? 'MCP linked · ChatGPT' : 'MCP not linked';
+    $('navMcpDot').style.background = state.connected ? 'var(--green)' : 'var(--faint)';
     $('mcpStatus').innerHTML = state.connected
       ? '<span class="statusdot"></span>Connected'
       : '<span class="statusdot off"></span>Waiting for your AI…';
@@ -787,14 +877,26 @@
   }
 
   /* ---------------- navigation & interactions ---------------- */
-  document.querySelectorAll('.side .nav').forEach(btn => {
+  document.querySelectorAll('.topnav button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.side .nav').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.topnav button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.querySelectorAll('section[data-view]').forEach(s =>
         s.classList.toggle('active', s.dataset.view === btn.dataset.target));
       document.querySelector('main').scrollTop = 0;
     });
+  });
+  function gotoView(name) {
+    const btn = document.querySelector('.topnav button[data-target="' + name + '"]');
+    if (btn) btn.click();
+  }
+
+  $('themeToggle').addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme === 'dark' ||
+      (root.dataset.theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    root.dataset.theme = dark ? 'light' : 'dark';
+    $('themeToggle').textContent = dark ? '☾' : '☀';
   });
 
   $('topicFilters').addEventListener('click', e => {
@@ -818,6 +920,7 @@
   });
 
   $('simToggle').addEventListener('click', () => $('simPanel').classList.toggle('openpanel'));
+  $('browseTools').addEventListener('click', () => { gotoView('mcp'); $('simPanel').classList.remove('openpanel'); });
 
   /* ---------------- simulator ---------------- */
   const transcript = $('transcript');
@@ -864,7 +967,7 @@
           setSpeaking(null);
         } else {
           addBubble(ev.t, ev.text);
-          setSpeaking(ev.t === 'ai' ? 'AI speaking…' : 'you speaking…');
+          setSpeaking(ev.t === 'ai' ? 'AI speaking' : 'you speaking');
         }
         if (ev.run) { ev.run(); }
       }, t));
@@ -886,7 +989,7 @@
     setSpeaking(null);
     state = deepCopy(DEFAULT);
     renderAll();
-    transcript.innerHTML = '<div class="sysline">Reset. Pick a journey above.</div>';
+    transcript.innerHTML = '<div class="sysline">RESET · PICK A JOURNEY ABOVE</div>';
   }
   $('simReset').addEventListener('click', resetSim);
 
@@ -896,10 +999,10 @@
   }
 
   const onboardingEvents = [
-    { t: 'sys',  text: 'Voice mode started in ChatGPT — new profile, nothing linked yet', d: 1600 },
+    { t: 'sys',  text: 'VOICE MODE STARTED IN CHATGPT — NEW PROFILE, NOTHING LINKED YET', d: 1600 },
     { t: 'user', text: '&ldquo;Link my Open Language Teacher profile — code OLT-4F2K.&rdquo;', d: 2000 },
     { t: 'tool', name: 'link_profile', args: '{ code: "OLT-4F2K" }', fx: 'connected — app status updated',
-      run: () => { state.connected = true; state.client = 'ChatGPT — voice mode'; renderConnection(); flash($('sideStatus').parentElement); }, d: 2000 },
+      run: () => { state.connected = true; state.client = 'ChatGPT — voice mode'; renderConnection(); }, d: 2000 },
     { t: 'ai',   text: 'Linked! I can see a brand-new Spanish profile. Roughly how many Spanish words would you say you already know?', d: 2600 },
     { t: 'user', text: '&ldquo;Maybe two hundred? I can order food and greet people.&rdquo;', d: 2200 },
     { t: 'ai',   text: 'A solid A2 base. And what do you want Spanish <em>for</em> — conversations, reading, travel, following the news?', d: 2600 },
@@ -921,7 +1024,7 @@
         renderVocab(); renderDashboard(); flash($('statLearning').parentElement);
       }, d: 2400 },
     { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. ¡Hasta pronto!', d: 2400 },
-    { t: 'sys',  text: 'Onboarding complete — check Dashboard, Vocabulary and Lesson plan', d: 1200 }
+    { t: 'sys',  text: 'ONBOARDING COMPLETE — CHECK DASHBOARD, VOCABULARY AND PLAN', d: 1200 }
   ];
 
   $('playOnboard').addEventListener('click', () => runScenario(onboardingEvents, emptyProfile));
@@ -951,7 +1054,7 @@
   }
 
   const lessonEvents = [
-    { t: 'sys',  text: 'Voice mode · profile already linked', d: 1400 },
+    { t: 'sys',  text: 'VOICE MODE · PROFILE ALREADY LINKED', d: 1400 },
     { t: 'user', text: '&ldquo;Start my next Spanish lesson.&rdquo;', d: 1800 },
     { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News words in conversation (~15 min)\n→ notes from lesson 2: "encuesta was shaky"', d: 2400 },
     { t: 'ai',   text: 'Lesson three — news words in conversation. Warm-up first, repeat after me: <span class="es">la noticia… el titular… la encuesta.</span>', d: 2800 },
@@ -967,7 +1070,7 @@
     { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "encuesta still shaky —\n  repeat in lesson 4 warm-up" }', fx: 'lesson done · streak +1',
       run: completeNext, d: 2400 },
     { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">la noticia</span> just graduated to your known list. Same time tomorrow for slang?', d: 2600 },
-    { t: 'sys',  text: 'Session synced — see Dashboard and Vocabulary for the updates', d: 1200 }
+    { t: 'sys',  text: 'SESSION SYNCED — SEE DASHBOARD AND VOCABULARY FOR THE UPDATES', d: 1200 }
   ];
 
   $('playLesson').addEventListener('click', () => {
