@@ -199,13 +199,18 @@
     transition: stroke-dashoffset 1s cubic-bezier(.3,.8,.3,1), stroke .3s;
   }
   .nring b {
-    position: absolute; inset: 0; display: grid; place-content: center;
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums;
     background: var(--card); border-radius: 50%; margin: 8px;
     box-shadow: var(--shadow);
     transition: background-color .35s, color .3s, box-shadow .3s;
   }
   .fnode.child .nring b { font-size: 11.5px; margin: 7px; }
+  .nico { display: block; line-height: 0; }
+  .nico svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .fnode.child .nico svg { width: 13px; height: 13px; }
+  .nring .pt { line-height: 1.1; }
   .nlabel { font-weight: 800; font-size: 13px; pointer-events: none; white-space: nowrap; }
   .fnode.child .nlabel { font-size: 11.5px; font-weight: 700; color: var(--muted); max-width: 110px; white-space: normal; text-align: center; line-height: 1.2; }
   .nsub { letter-spacing: .14em; font-size: 8px; color: var(--faint); pointer-events: none; white-space: nowrap; }
@@ -515,9 +520,9 @@
       { es: 'entender',    en: 'to understand', topic: 'Conversation', p: 2, ex: 'No entiendo — ¿puedes repetir?' }
     ],
     skills: {
-      vocab: { pct: 72, label: 'Vocabulary', pos: [24, 26],
+      vocab: { pct: 72, label: 'Vocabulary', icon: 'book', pos: [24, 26],
         desc: 'Every piece your AI has taught you, grouped by theme. The first 1,000 high-frequency words cover most of daily speech — that’s the race you’re running.' },
-      grammar: { pct: 41, label: 'Grammar', pos: [64, 16],
+      grammar: { pct: 41, label: 'Grammar', icon: 'branch', pos: [64, 16],
         desc: 'The patterns that glue words together — graded like words, recall by recall, always inside real sentences.',
         concepts: [
           { name: 'Present tense',     s: 3, ex: 'Hablo, comes, vive — regular verbs are solid.' },
@@ -527,7 +532,7 @@
           { name: 'Por vs para',       s: 1, ex: 'Gracias por venir · esto es para ti.' },
           { name: 'Subjunctive intro', s: 0, ex: 'Espero que tengas razón.' }
         ] },
-      speaking: { pct: 55, label: 'Speaking', meta: '34 conversations', pos: [42, 74],
+      speaking: { pct: 55, label: 'Speaking', icon: 'mic', meta: '34 conversations', pos: [42, 74],
         desc: 'Graded live in voice mode on the five CEFR aspects of spoken language.',
         subs: [
           { name: 'Fluency',       pct: 55, note: 'keeping going without long pauses' },
@@ -536,7 +541,7 @@
           { name: 'Interaction',   pct: 60, note: 'turn-taking, asking back, repair moves' },
           { name: 'Coherence',     pct: 44, note: 'linking ideas — sin embargo, por cierto' }
         ] },
-      listening: { pct: 63, label: 'Listening', meta: '41 stories heard', pos: [86, 40],
+      listening: { pct: 63, label: 'Listening', icon: 'ear', meta: '41 stories heard', pos: [86, 40],
         desc: 'Trained entirely by ear, split the way listening research splits it.',
         subs: [
           { name: 'Gist',                 pct: 70, note: 'catch the overall meaning of a story' },
@@ -544,14 +549,14 @@
           { name: 'Inference',            pct: 45, note: 'what’s meant but never said' },
           { name: 'Sound discrimination', pct: 66, note: 'pero vs perro, by ear alone' }
         ] },
-      reading: { pct: 48, label: 'Reading', meta: '12 stories read', pos: [14, 66],
+      reading: { pct: 48, label: 'Reading', icon: 'read', meta: '12 stories read', pos: [14, 66],
         desc: 'Volume plus precision: lots of easy reading, a little hard reading.',
         subs: [
           { name: 'Extensive reading', pct: 58, note: 'long easy stories built from your own pieces' },
           { name: 'Scanning',          pct: 45, note: 'find the fact fast — real Spanish headlines' },
           { name: 'Intensive reading', pct: 40, note: 'short hard texts, every word accounted for' }
         ] },
-      writing: { pct: 26, label: 'Writing', meta: '9 notes written', pos: [76, 78],
+      writing: { pct: 26, label: 'Writing', icon: 'pen', meta: '9 notes written', pos: [76, 78],
         desc: 'The quiet skill — trained in chat mode, where your AI corrects as you type.',
         subs: [
           { name: 'Messages & chat',   pct: 34, note: 'informal register, emoji-proof' },
@@ -688,6 +693,26 @@
   const KINDS = { warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
   const CIRC = 163.4;
 
+  /* Standard icon set — shipped by the app, chosen per node over MCP (icon: "...") */
+  const ICONS = {
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    branch: '<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+    mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>',
+    ear: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+    read: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
+    news: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>',
+    chat: '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 8.5-8.5h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+    tag: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+    star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+    coffee: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>'
+  };
+  function iconSvg(name) {
+    return ICONS[name] ? '<i class="nico"><svg viewBox="0 0 24 24">' + ICONS[name] + '</svg></i>' : '';
+  }
+  const TOPIC_ICONS = { News: 'news', Slang: 'tag', Conversation: 'chat', Travel: 'globe', Basics: 'star', Food: 'coffee' };
+
   let state = deepCopy(DEFAULT);
   let query = '';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -715,7 +740,7 @@
         '<span class="nring"><svg viewBox="0 0 60 60">' +
         '<circle class="t" cx="30" cy="30" r="26"></circle>' +
         '<circle class="f" cx="30" cy="30" r="26"></circle></svg>' +
-        '<b>' + (o.ghost ? '+' : (o.text != null ? o.text : o.pct + '%')) + '</b></span>' +
+        '<b>' + (o.ghost ? '+' : iconSvg(o.icon) + '<span class="pt">' + (o.text != null ? o.text : o.pct + '%') + '</span>') + '</b></span>' +
         (o.label ? '<span class="nlabel">' + o.label + '</span>' : '') +
         (o.sub ? '<span class="nsub mono">' + o.sub + '</span>' : '');
       canvas.appendChild(el);
@@ -860,7 +885,7 @@
   }
   function childrenOf(k) {
     const sk = state.skills[k];
-    if (k === 'vocab') return TOPICS.map(t => { const s = topicStats(t); return { name: t, pct: s.pct, note: s.total + ' pieces · ' + s.mastered + ' mastered', type: 'topic' }; });
+    if (k === 'vocab') return TOPICS.map(t => { const s = topicStats(t); return { name: t, pct: s.pct, note: s.total + ' pieces · ' + s.mastered + ' mastered', type: 'topic', icon: TOPIC_ICONS[t] }; });
     if (k === 'grammar') return (sk.concepts || []).map(c => ({ name: c.name, pct: Math.round(c.s / 3 * 100), note: c.s === 3 ? 'solid' : c.s === 0 ? 'not started' : 'in progress', type: 'concept', ex: c.ex, s: c.s }));
     return (sk.subs || []).map(s => ({ name: s.name, pct: s.pct, note: s.note, type: 'metric' }));
   }
@@ -905,7 +930,7 @@
     skExpanded = null; skChild = null;
     SKILL_KEYS.forEach((k, i) => {
       const sk = state.skills[k];
-      const n = SK.makeNode({ kind: 'skill', key: k, px: sk.pos[0], py: sk.pos[1], pct: sk.pct, label: sk.label, sub: nodeSub(k) });
+      const n = SK.makeNode({ kind: 'skill', key: k, px: sk.pos[0], py: sk.pos[1], pct: sk.pct, icon: sk.icon, label: sk.label, sub: nodeSub(k) });
       if (!reduced) { n.s = 0; n.ts = 0; setTimeout(() => { n.ts = 1; }, 80 * i); }
     });
   }
@@ -923,7 +948,7 @@
     kids.push({ ghost: true, i: kids.length });
     bloom(SK, parent, kids, (o) => o.ghost
       ? { kind: 'ghost', key: 'ghost', idx: o.i, ghost: true }
-      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, label: o.c.name });
+      : { kind: 'child', key: k, idx: o.i, pct: o.c.pct, icon: o.c.icon, label: o.c.name });
     renderSkillSide();
   }
 
@@ -954,12 +979,13 @@
     SK.nodes.forEach(n => {
       if (n.kind === 'skill') {
         const sk = state.skills[n.key];
-        n.el.querySelector('.nring b').textContent = sk.pct + '%';
+        const pt = n.el.querySelector('.nring .pt'); if (pt) pt.textContent = sk.pct + '%';
         const subEl = n.el.querySelector('.nsub'); if (subEl) subEl.textContent = nodeSub(n.key);
         setRing(n.el, sk.pct);
       } else if (n.kind === 'child' && skExpanded) {
         const c = childrenOf(skExpanded)[n.idx];
-        if (c) { n.el.querySelector('.nring b').textContent = c.pct + '%'; setRing(n.el, c.pct); }
+        const pt = n.el.querySelector('.nring .pt');
+        if (c && pt) { pt.textContent = c.pct + '%'; setRing(n.el, c.pct); }
       }
     });
   }
@@ -1171,7 +1197,7 @@
       box.innerHTML =
         '<button class="backlink" data-back="skill">← ' + sk.label + '</button>' +
         '<p class="desc">Nothing on this map is hard-coded. The app only <em>suggests</em> a standard taxonomy over MCP (<span style="font-family:var(--mono); font-size:11px">get_skill_taxonomy</span>) — the six skills and their common subtopics. Your AI creates every node, and can go beyond the standard set whenever you do.</p>' +
-        '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopics</b>.</div>';
+        '<div class="aitip">Just say it in voice mode: <b>&ldquo;Add a football vocabulary pack&rdquo;</b> or <b>&ldquo;start grading my past tense&rdquo;</b> — a node appears on this map via <b>add_subtopics</b>, with an icon your AI picks from the app&rsquo;s standard set (book, mic, globe, tag…).</div>';
       return;
     }
 
