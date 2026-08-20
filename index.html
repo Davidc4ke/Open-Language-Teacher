@@ -148,7 +148,8 @@
   /* =========================================================
      NODE FIELDS (skills + plan)
      ========================================================= */
-  .sk-head { display: flex; align-items: center; gap: 20px; margin: 12px max(16px, calc((100% - 1060px) / 2)); transition: margin .45s cubic-bezier(.3,.8,.3,1); position: relative; z-index: 10; }
+  .sk-head { display: flex; align-items: center; justify-content: flex-end; gap: 20px; margin: 12px max(16px, calc((100% - 1060px) / 2)); transition: margin .45s cubic-bezier(.3,.8,.3,1); position: relative; z-index: 10; }
+  .searchpill { flex: 0 1 auto !important; width: 25%; min-width: 280px; }
   body.panelopen .sk-head { margin: 12px 368px 12px 16px; }
   .searchpill {
     flex: 1; display: flex; align-items: center; gap: 12px;
@@ -272,6 +273,11 @@
   .fnode.done-n .nring .f { stroke: var(--green); }
   .fnode.done-n .nring b { color: var(--green); }
   .fnode.done-n .nico { color: inherit; }
+  .fnode.part .nring { width: 50px; height: 50px; }
+  .fnode.part .nring b { margin: 6px; }
+  .fnode.part .pt { display: none; }
+  .fnode.part .nico svg { width: 15px; height: 15px; }
+  .fnode.part .nlabel { font-size: 10.5px; max-width: 96px; }
   .fnode.ghost .nring b { background: transparent; box-shadow: none; border: 2px dashed var(--faint); color: var(--faint); font-size: 18px; font-weight: 600; }
   .fnode.ghost .nring .t, .fnode.ghost .nring .f { stroke: transparent; }
   .fnode.ghost:hover .nring b { border-color: var(--blue); color: var(--blue); }
@@ -356,6 +362,35 @@
   .loglines { list-style: none; margin: 4px 0 0; padding: 0; font-size: 12.5px; color: var(--muted); }
   .loglines li { padding: 3px 0 3px 16px; position: relative; }
   .loglines li::before { content: ""; position: absolute; left: 2px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+  /* lesson component content (script / story / news / deck / drill / rubric) */
+  .scriptrows { list-style: none; margin: 6px 0 0; padding: 0; }
+  .scriptrows li { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; line-height: 1.55; }
+  .scriptrows li:last-child { border-bottom: 0; }
+  .spk {
+    font-family: var(--mono); font-size: 8px; font-weight: 700; letter-spacing: .1em;
+    border-radius: 999px; padding: 3px 8px; flex: none; height: fit-content; margin-top: 3px;
+    background: var(--chip); color: var(--muted);
+  }
+  .spk.AI { color: var(--blue); } .spk.YOU { color: var(--coral); }
+  .spk.IF { color: var(--amber); } .spk.CUE { color: var(--faint); }
+  .storyzh { margin: 8px 0 0; font-size: 17px; line-height: 2; font-weight: 600; }
+  .sk-side .zi { border-bottom: 2px dotted var(--blue); cursor: pointer; border-radius: 3px; padding: 0 1px; transition: background-color .2s; }
+  .sk-side .zi.onz { background: var(--chip); }
+  .sk-side .glossline { margin-top: 6px; min-height: 15px; font-family: var(--mono); font-size: 11px; color: var(--blue); }
+  .newsit { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .newsit:last-of-type { border-bottom: 0; }
+  .newsit b { display: block; font-size: 15px; font-weight: 800; }
+  .newsit small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .newsmeta { display: flex; align-items: center; gap: 10px; margin-top: 5px; font-size: 11.5px; }
+  .newsmeta a { color: var(--blue); font-weight: 800; text-decoration: none; }
+  .newsmeta a:hover { text-decoration: underline; }
+  .newsmeta span { color: var(--faint); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+  .newsit .task { color: var(--green); font-weight: 700; }
+  .deckrow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .deckrow:last-of-type { border-bottom: 0; }
+  .deckrow .zh { font-weight: 800; font-size: 15px; flex: none; }
+  .deckrow .g { flex: 1; min-width: 0; color: var(--muted); font-size: 12.5px; }
 
   .dots { display: flex; gap: 4px; flex: none; }
   .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .4s; }
@@ -742,7 +777,19 @@
             ],
             mats: [{ t: 'pack', name: 'Greetings pack · 8 pieces', d: 'from week 32' }],
             words: ['你好', '谢谢'], grammar: ['Word order & time'],
-            log: ['10/10 recalled', 'tone pair in 你好 (nǐ hǎo) now solid'] },
+            log: ['10/10 recalled', 'tone pair in 你好 (nǐ hǎo) now solid'],
+            parts: [
+              { kind: 'drill', name: 'Recall drill · 10', icon: 'mic', color: 'blue', prompts: [
+                { q: 'hello', a: '你好 nǐ hǎo' }, { q: 'thank you', a: '谢谢 xièxie' }, { q: 'the bill', a: '买单 mǎidān' },
+                { q: 'train', a: '火车 huǒchē' }, { q: 'city', a: '城市 chéngshì' }, { q: 'beach', a: '海滩 hǎitān' },
+                { q: 'friend', a: '朋友 péngyou' }, { q: 'to travel', a: '旅行 lǚxíng' }, { q: 'to understand', a: '明白 míngbai' },
+                { q: 'by the way', a: '顺便说 shùnbiàn shuō' }] },
+              { kind: 'script', name: 'Teaching script', icon: 'mic', color: 'coral', lines: [
+                { s: 'CUE', t: 'Voice mode. Fast pace — this is a warm-up, not a lesson. 10 minutes hard cap.' },
+                { s: 'AI', t: 'English prompt, Chinese answer, no thinking time: hello… thank you… the bill…' },
+                { s: 'IF', t: 'Any word takes >3s: note it, keep moving, drill it again at the end.' },
+                { s: 'AI', t: '自我介绍 — name, city, and why Chinese. One follow-up question, then wrap.' }] }
+            ] },
           { n: 2, title: 'First news words', mins: 15, done: true, icon: 'news', color: 'violet', mode: 'reading',
             obj: 'Meet the five core news pieces — in context, never as a list. A reading lesson: no microphone, just text.',
             steps: [
@@ -756,7 +803,24 @@
               { t: 'pack', name: 'News pack · 5 pieces', d: 'suggested by goal: “follow Chinese news”' }
             ],
             words: ['新闻', '标题', '政府', '调查', '罢工'], grammar: ['Measure words'],
-            log: ['4/5 recalled next day', '调查 shaky — flagged for lesson 3'] },
+            log: ['4/5 recalled next day', '调查 shaky — flagged for lesson 3'],
+            parts: [
+              { kind: 'script', name: 'Teaching script', icon: 'read', color: 'violet', lines: [
+                { s: 'CUE', t: 'Reading mode — no microphone. Everything happens in chat, materials render as MCP apps.' },
+                { s: 'AI', t: '五个新词，一个一个来 — each word arrives inside a real sentence, never as a list.' },
+                { s: 'AI', t: 'Serve the story as ui://olt/story with tap-to-reveal pinyin. No audio version.' },
+                { s: 'IF', t: 'More than 4 taps on the same word: queue it for tomorrow’s warm-up via add_words.' },
+                { s: 'AI', t: 'Close with flashcards EN→中文, typed answers. Accept pinyin, praise characters.' }] },
+              { kind: 'story', name: 'Story · 地铁罢工 (v1)', icon: 'read', color: 'teal',
+                stats: '72 pieces · 96% known · seeds: 了, 条',
+                html: '今天早上，<span class="zi" data-py="标题 biāotí — headline">标题</span>写着：地铁<span class="zi" data-py="罢工 bàgōng — to strike">罢工</span>。很多人只好走路上班。',
+                en: 'This morning the headline read: subway strike. Many people had no choice but to walk to work.',
+                qs: ['标题说了什么？ — What did the headline say?'] },
+              { kind: 'deck', name: 'News pack · 5', icon: 'book', color: 'blue', cards: [
+                { zh: '新闻', en: 'xīnwén · the news', p: 2 }, { zh: '标题', en: 'biāotí · headline', p: 1 },
+                { zh: '政府', en: 'zhèngfǔ · government', p: 2 }, { zh: '调查', en: 'diàochá · survey', p: 1 },
+                { zh: '罢工', en: 'bàgōng · strike', p: 0 }] }
+            ] },
           { n: 3, title: 'News in conversation', mins: 15, done: false, today: true, icon: 'mic', color: 'coral', mode: 'voice',
             obj: 'Push the news pieces from recognition into speech.',
             steps: [
@@ -770,7 +834,34 @@
               { t: 'news', name: '3 real headlines · 人民日报', d: 'scan for the one about transport' }
             ],
             words: ['新闻', '标题', '调查', '不过'], grammar: ['了 (completed)'],
-            note: 'From lesson 2: “调查 still shaky — open with it.”' },
+            note: 'From lesson 2: “调查 still shaky — open with it.”',
+            parts: [
+              { kind: 'script', name: 'Teaching script', icon: 'mic', color: 'coral', lines: [
+                { s: 'CUE', t: 'Voice mode. Keep every AI turn under 12 seconds. Correct tones by echo, never by lecture.' },
+                { s: 'AI', t: '今天我们聊新闻。Repeat after me: 新闻 xīnwén… 标题 biāotí… 调查 diàochá.' },
+                { s: 'YOU', t: '新闻… 标题… 调查。' },
+                { s: 'IF', t: '调查 tone drifts: echo the pair 调查/调查 once, then move on. Max one retry — no tone lectures.' },
+                { s: 'AI', t: '很好。Now the story — I read, you follow in the reader (ui://olt/story).' },
+                { s: 'AI', t: '第一个问题：标题说了什么？ — expected: 地铁罢工 / the subway strike.' },
+                { s: 'AI', t: '第二个问题：根据调查，政府怎么样？ — expected: 失去了支持 (losing support).' },
+                { s: 'AI', t: 'Conversation: 你这周看了什么新闻？ Follow up twice; feed 不过 if the learner contrasts two ideas.' },
+                { s: 'IF', t: 'Learner stalls >5s: offer the scaffold 我看了一条关于…的新闻 and let them finish it.' },
+                { s: 'AI', t: 'Flashcards to close (ui://olt/flashcards): 标题, 调查, 罢工, 政府, 不过 — EN prompt, 中文 answer.' },
+                { s: 'CUE', t: 'Wrap: update_word_strength, then complete_lesson with a note for lesson 4.' }] },
+              { kind: 'story', name: 'Story · 地铁罢工', icon: 'read', color: 'teal',
+                stats: '72 pieces · 96% known · seeds: 了 (completed), 条 (measure word)',
+                html: '今天早上，<span class="zi" data-py="标题 biāotí — headline">标题</span>写着：地铁<span class="zi" data-py="罢工 bàgōng — to strike">罢工</span>。很多人只好走路上班。根据一项<span class="zi" data-py="调查 diàochá — survey, poll">调查</span>，<span class="zi" data-py="政府 zhèngfǔ — government">政府</span>已经失去了很多支持。<span class="zi" data-py="不过 búguò — however">不过</span>，也有人说：走路挺好的！',
+                en: 'This morning the headline read: subway strike. Many people had no choice but to walk to work. According to a survey, the government has already lost a lot of support. However, some people said: walking is actually quite nice!',
+                qs: ['标题说了什么？ — What did the headline say?', '根据调查，政府怎么样？ — What is happening to the government?'] },
+              { kind: 'news', name: 'Real headlines · 3', icon: 'news', color: 'violet', items: [
+                { zh: '多地地铁将延长运营时间', py: 'Metro hours to be extended in several cities', src: '人民网 · people.com.cn', url: 'https://www.people.com.cn', diff: '82% known', task: 'Scan: which word means “extend”?' },
+                { zh: '调查显示：年轻人更爱坐高铁', py: 'Survey: young people prefer high-speed rail', src: '新华网 · news.cn', url: 'https://www.news.cn', diff: '76% known', task: 'Find 调查 in the wild.' },
+                { zh: '今日头条：城市交通新政策', py: 'Today’s headline: new urban transport policy', src: '央视网 · cctv.com', url: 'https://news.cctv.com', diff: '71% known', task: 'Read the headline aloud — tones count.' }] },
+              { kind: 'deck', name: 'Flashcard deck · 6', icon: 'book', color: 'blue', cards: [
+                { zh: '新闻', en: 'xīnwén · the news', p: 2 }, { zh: '标题', en: 'biāotí · headline', p: 1 },
+                { zh: '调查', en: 'diàochá · survey', p: 1 }, { zh: '罢工', en: 'bàgōng · strike', p: 0 },
+                { zh: '政府', en: 'zhèngfǔ · government', p: 2 }, { zh: '不过', en: 'búguò · however', p: 1 }] }
+            ] },
           { n: 4, title: 'Slang starter', mins: 15, done: false, icon: 'tag', color: 'rose', mode: 'chat',
             obj: 'First real slang — sound like a person, not a textbook. Runs in chat, where slang actually lives.',
             steps: [
@@ -783,7 +874,23 @@
               { t: 'audio', name: 'Street-pace dialogue (1.0×)', d: 'first full-speed material this week' },
               { t: 'pack', name: 'Slang pack · 4 pieces', d: 'goal: “real slang, not textbook stuff”' }
             ],
-            words: ['给力', '靠谱', '老铁', '躺平'], grammar: [] },
+            words: ['给力', '靠谱', '老铁', '躺平'], grammar: [],
+            parts: [
+              { kind: 'script', name: 'Teaching script', icon: 'chat', color: 'rose', lines: [
+                { s: 'CUE', t: 'Chat mode. Match the learner’s energy. Slang register: friends only — flag it every time.' },
+                { s: 'AI', t: '开场：老铁！最近怎么样？ — wait for a typed reply, any register is fine.' },
+                { s: 'AI', t: 'Introduce 给力 / 靠谱 / 躺平 one at a time, each inside a two-line chat exchange.' },
+                { s: 'IF', t: 'Learner uses slang in the wrong register (e.g. to a boss): laugh, then show the neutral version.' },
+                { s: 'AI', t: 'Roleplay: plan a weekend over chat, using at least two slang pieces. Then swap roles.' }] },
+              { kind: 'story', name: 'Dialogue · 老铁！', icon: 'chat', color: 'coral',
+                stats: 'chat register · street pace · 4 slang seeds',
+                html: '— <span class="zi" data-py="老铁 lǎotiě — buddy, mate">老铁</span>！周末去看演出吗？<br>— 什么演出？<span class="zi" data-py="靠谱 kàopǔ — reliable, legit">靠谱</span>吗？<br>— 特别<span class="zi" data-py="给力 gěilì — awesome">给力</span>的乐队！<br>— 行，不想在家<span class="zi" data-py="躺平 tǎngpíng — to coast, opt out">躺平</span>了，走！',
+                en: '— Mate! Gig this weekend? — What gig? Is it legit? — A seriously awesome band! — Fine, I’m done coasting at home. Let’s go!',
+                qs: ['谁不想躺平了？ — Who is done coasting at home?'] },
+              { kind: 'deck', name: 'Slang pack · 4', icon: 'tag', color: 'rose', cards: [
+                { zh: '给力', en: 'gěilì · awesome', p: 1 }, { zh: '靠谱', en: 'kàopǔ · reliable, legit', p: 2 },
+                { zh: '老铁', en: 'lǎotiě · buddy, mate', p: 0 }, { zh: '躺平', en: 'tǎngpíng · to coast', p: 0 }] }
+            ] },
           { n: 5, title: 'Review & mini exam', mins: 20, done: false, icon: 'star', color: 'amber', mode: 'voice',
             obj: 'Prove the week stuck — then let the AI write the next one.',
             steps: [
@@ -793,7 +900,20 @@
               { k: 'plan', name: 'AI writes week 35', min: 2, d: 'create_plan, after reviewing results' }
             ],
             mats: [{ t: 'rubric', name: 'CEFR-lite exam rubric', d: 'the same five spoken-language aspects' }],
-            words: [], grammar: ['是…的 (emphasis)'] }
+            words: [], grammar: ['是…的 (emphasis)'],
+            parts: [
+              { kind: 'rubric', name: 'Exam rubric · CEFR-lite', icon: 'star', color: 'amber', rows: [
+                { a: 'Fluency', d: 'Keeps going 60s+ on a familiar topic; pauses to think, not to translate.' },
+                { a: 'Tones', d: 'Core pairs stable (调查, 政府); self-corrects without prompting.' },
+                { a: 'Accuracy', d: '了 and measure words right in 4 of 5 sentences.' },
+                { a: 'Interaction', d: 'Asks at least two questions back; repairs a breakdown in Chinese.' },
+                { a: 'Coherence', d: 'Links ideas with 不过 / 因为 / 所以 at least three times.' }] },
+              { kind: 'script', name: 'Exam flow', icon: 'mic', color: 'coral', lines: [
+                { s: 'CUE', t: 'Voice mode. Grade silently during the conversation — never break the flow to score.' },
+                { s: 'AI', t: 'Flashcards first: all 12 practice pieces, shuffled, EN→中文.' },
+                { s: 'AI', t: 'Free conversation, learner picks the topic. Steer gently toward this week’s pieces.' },
+                { s: 'CUE', t: 'Score against the rubric, read the verdict kindly, then call create_plan for week 35.' }] }
+            ] }
         ] },
       { id: 'w35', title: 'Week 35', topic: 'Not written yet', range: '25 – 31 Aug', status: 'future', pos: [13, 76] }
     ]
@@ -804,6 +924,25 @@
   const KINDS = { warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
   const MODES = { voice: { icon: 'mic' }, chat: { icon: 'chat' }, reading: { icon: 'read' } };
   function modeOf(l) { return MODES[l.mode] ? l.mode : 'voice'; }
+
+  /* every lesson explodes into prepared components; older lessons derive them from the plan */
+  function partsOf(l) {
+    if (l.parts) return l.parts;
+    const ps = [{
+      kind: 'script', name: 'Teaching script', icon: MODES[modeOf(l)].icon, color: l.color || 'blue',
+      lines: [{ s: 'CUE', t: 'Archived outline — the full script regenerates on demand via get_next_lesson:' }]
+        .concat((l.steps || []).map(s => ({ s: 'AI', t: (KINDS[s.k] || s.k) + ': ' + s.name + (s.d ? ' — ' + s.d : '') })))
+    }];
+    if (l.words && l.words.length) ps.push({
+      kind: 'deck', name: 'Word pack · ' + l.words.length, icon: 'book', color: 'blue',
+      cards: l.words.map(zh => { const hit = allWords().find(x => x.w.es === zh); return hit ? { zh, en: hit.w.en, p: hit.w.p } : { zh, en: '', p: 3 }; })
+    });
+    (l.mats || []).forEach(m => ps.push({
+      kind: 'mat', name: m.name, d: m.d || '', color: 'amber',
+      icon: m.t === 'story' ? 'read' : m.t === 'audio' ? 'ear' : m.t === 'news' ? 'news' : m.t === 'rubric' ? 'star' : 'tag'
+    }));
+    return ps;
+  }
   const CIRC = 163.4;
 
   /* Standard icon set — shipped by the app, chosen per node over MCP (icon: "...") */
@@ -1157,7 +1296,7 @@
   }
 
   /* ================= PLAN field ================= */
-  let plWeek = null, plSel = null, plTab = 'agenda';
+  let plWeek = null, plSel = null, plTab = 'agenda', plPart = null;
 
   const PL = nodeField($('planMap'), $('planLines'), {
     onClick: n => {
@@ -1166,6 +1305,7 @@
         if (p.status === 'future') { plWeek === n.key ? plCollapse() : plSelectFuture(n); }
         else plWeek === n.key ? plCollapse() : plExpand(n.key);
       } else if (n.kind === 'day') plSelect(n.idx);
+      else if (n.kind === 'part') plPartSelect(n.part);
     },
     onBgClick: () => { if (plWeek) plCollapse(); },
     getLines: f => {
@@ -1196,6 +1336,14 @@
               r1: pts[i].ar, r2: pts[i + 1].ar,
               cls, wave: i % 2 ? -1 : 1
             });
+          }
+          if (typeof plSel === 'number') {
+            const day = days.find(n => n.idx === plSel);
+            if (day) f.nodes.filter(n => n.kind === 'part' && !n.dead).forEach(n => out.push({
+              x1: day.rx || day.bx, y1: day.ry || day.by,
+              x2: n.rx || n.bx, y2: n.ry || n.by,
+              cls: n.part === plPart ? 'act' : '', wave: n.part % 2 ? -0.5 : 0.5
+            }));
           }
         }
       }
@@ -1260,7 +1408,7 @@
 
   function plCollapse(rerender) {
     const p = plWeek ? state.plans.find(x => x.id === plWeek) : null;
-    PL.nodes.filter(n => n.kind === 'day').forEach(n => {
+    PL.nodes.filter(n => n.kind === 'day' || n.kind === 'part').forEach(n => {
       n.dead = true; n.ts = 0;
       if (p) { n.px = p.pos[0]; n.py = p.pos[1]; }
       n.el.classList.add('hid');
@@ -1270,7 +1418,7 @@
       n.ts = 1;
       n.el.classList.remove('hid', 'open', 'sel');
     });
-    plWeek = null; plSel = null;
+    plWeek = null; plSel = null; plPart = null;
     if (rerender !== false) renderPlanSide();
   }
 
@@ -1281,8 +1429,37 @@
   }
 
   function plSelect(i) {
-    plSel = i; plTab = 'agenda';
+    plSel = i; plTab = 'agenda'; plPart = null;
+    spawnParts(i);
     PL.nodes.forEach(n => n.el.classList.toggle('sel', n.kind === 'day' && n.idx === i));
+    renderPlanSide();
+  }
+
+  function spawnParts(i) {
+    PL.nodes.filter(n => n.kind === 'part').forEach(n => { n.dead = true; n.ts = 0; n.el.classList.add('hid'); });
+    PL.removeDead();
+    const p = state.plans.find(x => x.id === plWeek);
+    const l = p && p.lessons ? p.lessons[i] : null;
+    const day = PL.nodes.find(n => n.kind === 'day' && n.idx === i);
+    if (!l || !day) return;
+    const parts = partsOf(l);
+    const k = parts.length;
+    parts.forEach((pt, j) => {
+      PL.makeNode({
+        kind: 'part', key: plWeek, idx: i, part: j, small: true, cls: 'part',
+        px: Math.max(6, Math.min(94, day.px + (j - (k - 1) / 2) * 10)),
+        py: Math.min(90, day.py + 27),
+        fromX: day.bx, fromY: day.by,
+        pct: 100, text: '', icon: pt.icon, color: pt.color,
+        label: pt.name, sub: pt.kind
+      });
+    });
+  }
+
+  function plPartSelect(j) {
+    plPart = j;
+    PL.nodes.forEach(n => n.el.classList.toggle('sel',
+      n.kind === 'part' ? n.part === j : (n.kind === 'day' && n.idx === plSel)));
     renderPlanSide();
   }
 
@@ -1329,7 +1506,10 @@
         const p = state.plans.find(x => x.id === plWeek);
         if (p && typeof plSel === 'number' && p.lessons && p.lessons[plSel]) {
           const l = p.lessons[plSel];
-          info = '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min · ' + modeOf(l) + '</span>';
+          const pt = plPart != null ? partsOf(l)[plPart] : null;
+          info = pt
+            ? '<b>' + pt.name + '</b><span class="p">' + l.title + '</span>'
+            : '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min · ' + modeOf(l) + '</span>';
         } else if (p) {
           info = p.status === 'future'
             ? '<b>Next week</b><span class="p">' + p.title + ' · not written yet</span>'
@@ -1472,6 +1652,46 @@
     if (typeof plSel === 'number' && p.lessons[plSel]) {
       const l = p.lessons[plSel];
       const md = modeOf(l);
+      const parts = partsOf(l);
+
+      if (plPart != null && parts[plPart]) {
+        const pt = parts[plPart];
+        let pb = '';
+        if (pt.kind === 'script') {
+          pb = '<ul class="scriptrows">' + pt.lines.map(x =>
+            '<li><span class="spk ' + x.s + '">' + x.s + '</span><span>' + x.t + '</span></li>').join('') + '</ul>' +
+            '<div class="aitip">This exact script is what <b>get_next_lesson</b> hands your AI — it improvises around it, never against it.</div>';
+        } else if (pt.kind === 'story') {
+          pb = (pt.stats ? '<span class="mono">' + pt.stats + '</span>' : '') +
+            '<p class="storyzh">' + pt.html + '</p><div class="glossline"></div>' +
+            '<span class="mono">English</span><p class="desc">' + pt.en + '</p>' +
+            (pt.qs ? '<span class="mono">Comprehension</span><ul class="loglines">' + pt.qs.map(q => '<li>' + q + '</li>').join('') + '</ul>' : '') +
+            '<div class="aitip">Generated from <b>your own vocabulary</b> — tap the dotted words for pinyin, exactly as the in-chat MCP app renders them.</div>';
+        } else if (pt.kind === 'news') {
+          pb = pt.items.map(it =>
+            '<div class="newsit"><b>' + it.zh + '</b><small>' + it.py + '</small>' +
+            '<div class="newsmeta"><a href="' + it.url + '" target="_blank" rel="noopener">' + it.src + ' ↗</a><span>' + it.diff + '</span></div>' +
+            '<small class="task">' + it.task + '</small></div>').join('') +
+            '<div class="aitip">Picked from real sources this morning by your AI — filtered to your vocabulary level.</div>';
+        } else if (pt.kind === 'deck') {
+          pb = pt.cards.map(c => '<div class="deckrow"><span class="zh">' + c.zh + '</span><span class="g">' + c.en + '</span>' + dotsHtml(c.p || 0, false) + '</div>').join('') +
+            '<div class="aitip">Three solid recalls each and they graduate — results land via <b>update_word_strength</b>.</div>';
+        } else if (pt.kind === 'drill') {
+          pb = '<ul class="scriptrows">' + pt.prompts.map((x, i) =>
+            '<li><span class="spk CUE">' + (i + 1) + '</span><span><b>' + x.q + '</b> → ' + x.a + '</span></li>').join('') + '</ul>';
+        } else if (pt.kind === 'rubric') {
+          pb = pt.rows.map(r => '<div class="newsit"><b>' + r.a + '</b><small>' + r.d + '</small></div>').join('') +
+            '<div class="aitip">The exam is a conversation — your AI grades against this silently, never breaking the flow.</div>';
+        } else {
+          pb = '<p class="desc" style="margin-top:10px">' + (pt.d || '') + '</p>' +
+            '<div class="aitip">Archived material — the full text regenerates on demand via <b>get_next_lesson</b>.</div>';
+        }
+        box.innerHTML =
+          '<button class="backlink" data-back="lesson">← ' + l.title + '</button>' +
+          '<div class="modepill">' + iconSvg(pt.icon) + pt.kind + '</div>' + pb;
+        return;
+      }
+
       let body = '';
       if (plTab === 'agenda') {
         body = stepRows(l) +
@@ -1498,7 +1718,10 @@
         '<div class="ptabs">' +
           ['agenda', 'materials', 'nodes'].map(t =>
             '<button data-ptab="' + t + '" class="' + (t === plTab ? 'on' : '') + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>').join('') +
-        '</div>' + body;
+        '</div>' + body +
+        '<span class="mono">Prepared components · exploded on the map</span>' +
+        '<ul class="siderows">' + parts.map((pt, j) =>
+          '<li data-part="' + j + '"><button class="siderow"><span class="dotc" style="background:var(--c-' + (pt.color || 'blue') + ')"></span><span class="t">' + pt.name + '<small>' + pt.kind + '</small></span></button></li>').join('') + '</ul>';
       return;
     }
 
@@ -1530,6 +1753,25 @@
   }
 
   $('planSide').addEventListener('click', e => {
+    const back = e.target.closest('[data-back="lesson"]');
+    if (back) {
+      plPart = null;
+      PL.nodes.forEach(n => n.el.classList.toggle('sel', n.kind === 'day' && n.idx === plSel));
+      renderPlanSide();
+      return;
+    }
+    const pp = e.target.closest('li[data-part]');
+    if (pp) { plPartSelect(+pp.dataset.part); return; }
+    const z = e.target.closest('.zi');
+    if (z) {
+      const root = $('planSideContent');
+      const g = root.querySelector('.glossline');
+      const was = z.classList.contains('onz');
+      root.querySelectorAll('.zi').forEach(x => x.classList.remove('onz'));
+      if (was) { if (g) g.textContent = ''; }
+      else { z.classList.add('onz'); if (g) g.textContent = z.dataset.py; }
+      return;
+    }
     const tb = e.target.closest('[data-ptab]');
     if (tb) { plTab = tb.dataset.ptab; renderPlanSide(); return; }
     const gw = e.target.closest('[data-goword]');
