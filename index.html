@@ -121,7 +121,8 @@
   /* =========================================================
      NODE FIELDS (skills + plan)
      ========================================================= */
-  .sk-head { display: flex; align-items: center; gap: 20px; max-width: 1060px; margin: 12px auto; padding: 0 20px; }
+  .sk-head { display: flex; align-items: center; gap: 20px; max-width: 1060px; margin: 12px auto; padding: 0 20px; transition: padding .45s cubic-bezier(.3,.8,.3,1), max-width .45s cubic-bezier(.3,.8,.3,1); }
+  .sk-head.shrunk { max-width: none; padding: 0 366px 0 20px; }
   .searchpill {
     flex: 1; display: flex; align-items: center; gap: 12px;
     background: var(--card);
@@ -149,7 +150,7 @@
   .sk-body { position: relative; height: calc(100vh - 90px); min-height: 420px; }
   section[data-view="skills"] .sk-body { height: calc(100vh - 152px); }
   .sk-side {
-    position: absolute; top: 14px; right: 14px; bottom: 14px; z-index: 5;
+    position: fixed; top: 88px; right: 14px; bottom: 14px; z-index: 15;
     width: min(324px, calc(100vw - 28px));
     opacity: 0; transform: translateX(18px); pointer-events: none;
     box-shadow: 0 2px 4px rgba(23,32,58,.06), 0 24px 60px rgba(23,32,58,.16);
@@ -366,6 +367,8 @@
     .topbar { margin: 12px 12px 0; }
     .brand span { display: none; }
     .sk-head { flex-wrap: wrap; }
+    .sk-head.shrunk { padding: 0 20px; }
+    .sk-side { top: 78px; right: 10px; bottom: 10px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
   }
 </style>
@@ -1058,6 +1061,7 @@
     const box = $('skillSide');
     $('skillMap').classList.toggle('dim', !!query);
     $('skillsBody').classList.toggle('withside', !!skExpanded || !!query);
+    document.querySelector('.sk-head').classList.toggle('shrunk', !!skExpanded || !!query);
 
     if (query) {
       const q = query.toLowerCase();
