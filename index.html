@@ -91,11 +91,12 @@
   }
   .topinfo.has { display: flex; }
   .topinfo b { font-size: 14.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .topinfo .p { color: var(--blue); font-weight: 800; font-size: 13px; white-space: nowrap; flex: none; }
+  .topinfo .p { color: var(--blue); font-weight: 800; font-size: 13px; white-space: nowrap; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .langchip {
-    display: inline-flex; align-items: center; gap: 8px; flex: none;
+    display: inline-block; flex: none; max-width: min(38vw, 420px);
     background: var(--chip); border-radius: 999px; padding: 6px 14px 6px 12px;
     font-size: 12.5px; font-weight: 700; color: var(--muted); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
     margin-right: 4px;
   }
   .langchip b { font-size: 14px; font-weight: 900; color: var(--ink); }
@@ -264,6 +265,10 @@
   .fnode.child .nico svg { width: 13px; height: 13px; }
   .nring .pt { line-height: 1.1; }
   .nlabel { font-weight: 800; font-size: 13px; pointer-events: none; white-space: nowrap; }
+  .fnode.wk .nlabel {
+    max-width: 280px; white-space: normal; text-align: center; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
   .fnode.child .nlabel { font-size: 11.5px; font-weight: 700; color: var(--muted); max-width: 110px; white-space: normal; text-align: center; line-height: 1.2; }
   .nsub { letter-spacing: .14em; font-size: 8px; color: var(--faint); pointer-events: none; white-space: nowrap; }
   .fnode.sel .nring .f, .fnode.open .nring .f { stroke: var(--nc, var(--blue)); }
@@ -1466,15 +1471,17 @@
     }
   });
 
+  function trunc(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; }
+
   function weekNodeOpts(p) {
-    if (p.status === 'future') return { kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], ghost: true, label: 'Next week', sub: p.title + ' · ' + p.range };
+    if (p.status === 'future') return { kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], ghost: true, cls: 'wk', label: 'Next week', sub: p.title + ' · ' + p.range };
     const pct = planPct(p);
     return {
       kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], pct,
       text: p.status === 'past' ? '✓' : p.lessons.filter(l => l.done).length + '/' + p.lessons.length,
-      label: p.topic,
+      label: trunc(p.topic, 90),
       sub: p.title + (p.status === 'current' ? ' · now' : '') + ' · ' + p.range,
-      cls: p.status === 'past' ? 'done-n' : ''
+      cls: 'wk' + (p.status === 'past' ? ' done-n' : '')
     };
   }
 
@@ -2002,6 +2009,7 @@
       chip.innerHTML = lang
         ? '<b>' + lang + '</b>' + (s.profile.level ? ' · <span class="lvl">' + s.profile.level + '</span>' : '')
         : 'no language yet · run onboarding';
+      chip.title = lang ? lang + (s.profile.level ? ' · ' + s.profile.level : '') : 'The language you are learning';
     }
     $('gateName').textContent = ((s.me && s.me.name) || 'there').split(' ')[0];
     $('gateCode').textContent = s.pairCode || '—';

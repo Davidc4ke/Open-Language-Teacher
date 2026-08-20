@@ -159,7 +159,10 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
 10. Vocabulary topics: the "topic" string you pass to add_words automatically becomes a node on the learner's
    vocabulary map. Reuse existing topic names (see get_vocab) instead of inventing near-duplicates.
 11. After writing, READ BACK and verify: get_current_plan after create_plan/update_plan, get_vocab after
-   add_words. Confirm to the learner only what the read-back shows.`;
+   add_words. Confirm to the learner only what the read-back shows.
+12. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
+   level ≤ 48, plan title ≤ 40, plan focus ≤ 90 (one line), lesson titles ≤ 40. Long assessments go in
+   update_profile's levelNote; long teaching prose goes in lesson objectives and parts.`;
 
 const TAXONOMY = {
   note: 'Suggested standard scaffold. Your AI creates every node and may go beyond this set (add_subtopics).',
@@ -207,7 +210,7 @@ const PartZ = z.object({
   rows: z.array(z.object({ a: z.string().describe('Aspect'), d: z.string().describe('Descriptor') })).optional().describe('kind "rubric"')
 });
 const LessonZ = z.object({
-  title: z.string(),
+  title: z.string().max(40).describe('Short lesson title shown on the map node — max 40 chars'),
   mins: z.number().optional().describe('Total minutes, 10–20'),
   mode: z.enum(['voice', 'chat', 'reading']).optional(),
   icon: z.string().optional().describe('From the standard icon set'),
@@ -300,14 +303,17 @@ function buildMcp(user) {
   server.registerTool('update_profile', {
     title: 'Update profile', description: 'Save onboarding answers: level, estimated known words, goals, language pair. languageLabel is shown in the app topbar (e.g. "中文 Mandarin", "Español").',
     inputSchema: {
-      level: z.string().optional(), known_words: z.number().optional(),
+      level: z.string().max(48).optional().describe('SHORT label shown in the app topbar, e.g. "HSK 5 · upper-intermediate". Max 48 chars — put the detailed assessment in levelNote.'),
+      levelNote: z.string().optional().describe('Longer level assessment for your own reference (strengths, weaknesses, goals context). Never shown in the app chrome.'),
+      known_words: z.number().optional(),
       goals: z.array(z.string()).optional(), language: z.string().optional(),
-      languageLabel: z.string().optional(), from: z.string().optional(), name: z.string().optional()
+      languageLabel: z.string().max(24).optional().describe('Very short language tag for the topbar, e.g. "中文 Mandarin", "Español". Max 24 chars.'),
+      from: z.string().optional(), name: z.string().optional()
     }
   }, async (a) => {
     const s = mutate(uid, s => {
       Object.assign(s.profile, Object.fromEntries(Object.entries({
-        level: a.level, goals: a.goals, language: a.language, languageLabel: a.languageLabel, from: a.from, name: a.name
+        level: a.level, levelNote: a.levelNote, goals: a.goals, language: a.language, languageLabel: a.languageLabel, from: a.from, name: a.name
       }).filter(([, v]) => v !== undefined)));
       if (a.known_words != null) { s.profile.knownWords = a.known_words; s.knownExtra = Math.max(0, a.known_words - s.known.length); }
     });
@@ -421,7 +427,9 @@ function buildMcp(user) {
   server.registerTool('create_plan', {
     title: 'Create plan', description: 'Start a BRAND-NEW short-term plan (3–7 days) — only when there is no current plan, or the current week is finished. To adjust an existing plan use update_plan or update_lesson instead. Read get_plan_instructions first. Archives the current plan (if it has progress). Rejected with an error if the current plan has zero completed lessons, unless replace: true.',
     inputSchema: {
-      focus: z.string(), range: z.string().optional(), title: z.string().optional(),
+      focus: z.string().max(90).describe('One SHORT line shown under the plan node on the map — max 90 chars, not a paragraph'),
+      range: z.string().optional(),
+      title: z.string().max(40).optional().describe('Short plan title, e.g. "Week 1 · Real-life Chinese" — max 40 chars'),
       lessons: z.array(LessonZ).min(1).max(7),
       replace: z.boolean().optional().describe('Set true to confirm discarding a current plan that has no completed lessons yet. Without it, such a call is rejected so plans are not accidentally duplicated.')
     }
@@ -467,7 +475,9 @@ function buildMcp(user) {
   server.registerTool('update_plan', {
     title: 'Update plan', description: 'Adjust the CURRENT plan in place — no archiving, no duplicate on the map. Patch title/focus/range, and optionally replace the whole lesson list (done-flags, logs and notes of lessons with the same number are preserved). For a single lesson prefer update_lesson.',
     inputSchema: {
-      title: z.string().optional(), focus: z.string().optional(), range: z.string().optional(),
+      title: z.string().max(40).optional().describe('Short plan title — max 40 chars'),
+      focus: z.string().max(90).optional().describe('One short line shown under the plan node — max 90 chars'),
+      range: z.string().optional(),
       lessons: z.array(LessonZ).min(1).max(7).optional().describe('Full replacement lesson list (omit to keep lessons unchanged)')
     }
   }, async (a) => {
@@ -488,7 +498,7 @@ function buildMcp(user) {
     title: 'Update lesson', description: 'Patch ONE lesson of the current plan by its day number n. Only the fields you pass are replaced (steps/mats/parts replace that whole array). Use this to fix a title, add materials or attach prepared parts without touching the rest of the plan.',
     inputSchema: {
       lesson: z.number().describe('The lesson/day number n (see get_current_plan)'),
-      title: z.string().optional(), mins: z.number().optional(),
+      title: z.string().max(40).optional(), mins: z.number().optional(),
       mode: z.enum(['voice', 'chat', 'reading']).optional(),
       icon: z.string().optional(), color: z.string().optional(), obj: z.string().optional(),
       steps: z.array(StepZ).optional(), mats: z.array(MatZ).optional(),
