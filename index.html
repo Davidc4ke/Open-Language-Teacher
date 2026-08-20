@@ -526,7 +526,7 @@
         ] }
     },
     plans: [
-      { id: 'w33', title: 'Week 33', range: '11 – 17 Aug', status: 'past', pos: [18, 44],
+      { id: 'w33', title: 'Week 33', range: '11 – 17 Aug', status: 'past', pos: [13, 18],
         focus: 'restaurant & travel basics',
         result: 'completed 5/5 · 9 pieces mastered · reading +6',
         lessons: [
@@ -580,7 +580,7 @@
             words: [], grammar: [],
             log: ['9/11 mastered', 'fluency +4', 'goal shift logged: “more news, more slang”'] }
         ] },
-      { id: 'w34', title: 'Week 34', range: '18 – 24 Aug', status: 'current', pos: [50, 44],
+      { id: 'w34', title: 'Week 34', range: '18 – 24 Aug', status: 'current', pos: [13, 47],
         focus: 'news, slang & conversation',
         lessons: [
           { n: 1, title: 'Greetings & recall', mins: 10, done: true,
@@ -645,7 +645,7 @@
             mats: [{ t: 'rubric', name: 'CEFR-lite exam rubric', d: 'the same five spoken-language aspects' }],
             words: [], grammar: ['pretérito (past)'] }
         ] },
-      { id: 'w35', title: 'Week 35', range: '25 – 31 Aug', status: 'future', pos: [82, 44] }
+      { id: 'w35', title: 'Week 35', range: '25 – 31 Aug', status: 'future', pos: [13, 76] }
     ]
   };
 
@@ -943,26 +943,25 @@
     },
     onBgClick: () => { if (plWeek) plCollapse(); },
     getLines: f => {
-      if (plWeek && state.plans.find(x => x.id === plWeek && x.status !== 'future')) {
-        const parent = f.nodes.find(n => n.kind === 'week' && n.key === plWeek);
-        if (!parent) return [];
-        const days = f.nodes.filter(n => n.kind === 'day' && !n.dead).sort((a, b) => a.idx - b.idx);
-        const pts = [parent].concat(days);
-        const out = [];
-        for (let i = 0; i < pts.length - 1; i++) out.push({
-          x1: pts[i].rx || pts[i].bx, y1: pts[i].ry || pts[i].by,
-          x2: pts[i + 1].rx || pts[i + 1].bx, y2: pts[i + 1].ry || pts[i + 1].by,
-          cls: pts[i + 1].idx === plLesson ? 'act' : ''
-        });
-        return out;
-      }
-      const ws = f.nodes.filter(n => n.kind === 'week' && !n.dead && !n.el.classList.contains('hid'));
       const out = [];
+      const ws = f.nodes.filter(n => n.kind === 'week' && !n.dead);
       for (let i = 0; i < ws.length - 1; i++) out.push({
         x1: ws[i].rx || ws[i].bx, y1: ws[i].ry || ws[i].by,
         x2: ws[i + 1].rx || ws[i + 1].bx, y2: ws[i + 1].ry || ws[i + 1].by,
         cls: 'faint'
       });
+      if (plWeek && state.plans.find(x => x.id === plWeek && x.status !== 'future')) {
+        const parent = ws.find(n => n.key === plWeek);
+        if (parent) {
+          const days = f.nodes.filter(n => n.kind === 'day' && !n.dead).sort((a, b) => a.idx - b.idx);
+          const pts = [parent].concat(days);
+          for (let i = 0; i < pts.length - 1; i++) out.push({
+            x1: pts[i].rx || pts[i].bx, y1: pts[i].ry || pts[i].by,
+            x2: pts[i + 1].rx || pts[i + 1].bx, y2: pts[i + 1].ry || pts[i + 1].by,
+            cls: pts[i + 1].idx === plLesson ? 'act' : ''
+          });
+        }
+      }
       return out;
     }
   });
@@ -999,14 +998,13 @@
     const parent = PL.nodes.find(n => n.kind === 'week' && n.key === id);
     PL.nodes.forEach(n => {
       if (n.kind !== 'week') return;
-      if (n.key === id) { n.px = 8; n.py = 44; n.ts = 1.05; n.el.classList.add('open'); n.el.classList.remove('hid'); }
-      else { n.ts = 0; n.el.classList.add('hid'); n.el.classList.remove('open'); }
+      n.el.classList.toggle('open', n.key === id);
     });
     const next = p.status === 'current' ? p.lessons.find(l => !l.done) : null;
     p.lessons.forEach((l, i) => {
       PL.makeNode({
         kind: 'day', key: id, idx: i, small: true,
-        px: 22 + i * 15, py: 44,
+        px: 27 + i * 12.5, py: p.pos[1],
         fromX: parent.bx, fromY: parent.by,
         pct: l.done ? 100 : 0,
         text: l.done ? '✓' : l.n,
@@ -1027,8 +1025,6 @@
     });
     PL.removeDead();
     PL.nodes.filter(n => n.kind === 'week' || n.kind === 'none').forEach(n => {
-      const pp = state.plans.find(x => x.id === n.key);
-      if (pp) { n.px = pp.pos[0]; n.py = pp.pos[1]; }
       n.ts = 1;
       n.el.classList.remove('hid', 'open', 'sel');
     });
@@ -1394,9 +1390,9 @@
   function freshPlans() {
     const w34 = deepCopy(DEFAULT.plans.find(p => p.id === 'w34'));
     w34.lessons.forEach(l => { l.done = false; delete l.log; });
-    w34.pos = [34, 44];
+    w34.pos = [13, 30];
     const w35 = deepCopy(DEFAULT.plans.find(p => p.id === 'w35'));
-    w35.pos = [68, 44];
+    w35.pos = [13, 62];
     return [w34, w35];
   }
 
