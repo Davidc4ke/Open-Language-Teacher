@@ -188,6 +188,7 @@
   .mapcanvas {
     position: absolute; inset: 0; overflow: hidden;
     touch-action: none; cursor: grab;
+    user-select: none; -webkit-user-select: none;
     transition: opacity .3s;
   }
   .mapcanvas[data-bg="dots"] { background-image: radial-gradient(var(--gridc) 1.5px, transparent 1.5px); background-size: 26px 26px; }
@@ -516,6 +517,53 @@
   @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
   .ai-foot { padding: 12px 20px 16px; font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: #5A6378; border-top: 1px solid #1C2130; display: flex; align-items: center; gap: 8px; }
   .ai-foot i { width: 6px; height: 6px; border-radius: 50%; background: #6FC28F; flex: none; }
+  .ai-foot span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* prompt library */
+  .ai-scroll { flex: 1; overflow-y: auto; padding: 8px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .connectbox { background: #141824; border: 1px solid #2B3242; border-radius: 14px; padding: 14px; font-size: 12.5px; color: #B9C0D0; }
+  .connectbox b { color: #EDEFF6; font-size: 13.5px; }
+  .connectbox p { margin: 4px 0 10px; color: #8B93A8; font-size: 11.5px; line-height: 1.5; }
+  .kvrow { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px; color: #8B93A8; text-transform: uppercase; letter-spacing: .08em; }
+  .kvrow code { font-family: var(--mono); font-size: 10px; background: #0E1118; padding: 4px 8px; border-radius: 8px; color: #7FA3F2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-transform: none; letter-spacing: 0; }
+  .pcard { background: #12151F; border: 1px solid #262B38; border-radius: 14px; padding: 14px; }
+  .pcard b { font-size: 13.5px; color: #EDEFF6; }
+  .pcard p { margin: 3px 0 10px; font-size: 12px; color: #8B93A8; }
+  .ptext { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; color: #B9C0D0; background: #0E1118; border-radius: 10px; padding: 10px 12px; user-select: all; }
+  .copy { margin-top: 10px; border: 1px solid #2B3242; background: #141824; color: #7FA3F2; font-weight: 800; font-size: 11.5px; border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: var(--sans); transition: background-color .2s; }
+  .copy:hover { background: #1B2130; }
+
+  /* sync gate */
+  .gate {
+    position: fixed; inset: 0; z-index: 60;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: grid; place-items: center;
+  }
+  .gate[hidden] { display: none; }
+  .gatecard {
+    position: relative; width: min(460px, calc(100vw - 32px));
+    background: var(--card); border-radius: 24px; box-shadow: 0 2px 4px rgba(23,32,58,.06), 0 30px 80px rgba(23,32,58,.22);
+    padding: 30px 30px 24px;
+    animation: pop .35s cubic-bezier(.3,1.2,.4,1) both;
+  }
+  .gatecard h2 { margin: 0 0 4px; font-size: 22px; font-weight: 900; letter-spacing: -.01em; }
+  .gsub { margin: 0 0 14px; font-size: 13.5px; color: var(--muted); }
+  .gsteps { margin: 0; padding: 0 0 0 20px; font-size: 13px; color: var(--muted); }
+  .gsteps li { margin: 6px 0; }
+  .gsteps b { color: var(--ink); }
+  .gateurl { display: flex; gap: 8px; align-items: center; margin: 10px 0; }
+  .gateurl code {
+    flex: 1; min-width: 0; font-family: var(--mono); font-size: 11px; color: var(--blue);
+    background: var(--chip); border-radius: 10px; padding: 9px 12px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .gcopy { border: 0; cursor: pointer; border-radius: 999px; background: var(--navy); color: var(--navy-ink); font-family: var(--sans); font-weight: 800; font-size: 12px; padding: 9px 16px; flex: none; }
+  .gcopy:hover { filter: brightness(1.1); }
+  .gatecode-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .gatecode { font-family: var(--mono); font-size: 16px; font-weight: 700; letter-spacing: .12em; color: var(--ink); background: var(--chip); border-radius: 10px; padding: 5px 12px; }
+  .gatewait { display: flex; align-items: center; gap: 8px; margin-top: 18px; font-family: var(--mono); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  .gatewait i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: ping 2s ease-out infinite; }
 
   @media (prefers-reduced-motion: reduce) {
     .rv, .rv-run { opacity: 1; animation: none; }
@@ -548,7 +596,8 @@
   </nav>
   <div class="topinfo" id="topInfo"></div>
   <div class="spacer"></div>
-  <span class="langchip" title="Learning Mandarin Chinese from English"><b>中文</b> Mandarin · <span class="lvl">HSK 4</span></span>
+  <span class="langchip" title="The language you are learning"><b>中文</b> Mandarin · <span class="lvl">HSK 4</span></span>
+  <button class="iconbtn" id="logoutBtn" hidden title="Sign out">⎋</button>
   <button class="iconbtn" id="themeToggle" title="Toggle theme">☾</button>
   <button class="aibtn" id="aiOpen"><span class="live" id="liveDot"></span>Your AI</button>
 </header>
@@ -608,26 +657,59 @@
 
 </main>
 
-<!-- ============ YOUR AI — floats over the app, not part of it ============ -->
+<!-- ============ sync gate — shown until your AI makes its first MCP call ============ -->
+<div class="gate" id="gate" hidden>
+  <div class="gatecard">
+    <button class="sideclose" id="gateClose" title="Close">✕</button>
+    <h2>Sync with your AI</h2>
+    <p class="gsub">Hi <span id="gateName">there</span> — your teacher is your own AI. Connect it once over MCP:</p>
+    <ol class="gsteps">
+      <li>In ChatGPT: <b>Settings → Apps &amp; Connectors → Advanced → Developer mode</b>, then <b>Create connector</b> (authentication: none).</li>
+      <li>Paste your personal server URL:</li>
+    </ol>
+    <div class="gateurl"><code id="gateUrl">—</code><button class="gcopy" id="gateCopy">Copy URL</button></div>
+    <ol class="gsteps" start="3">
+      <li>In a chat, say: <b>&ldquo;Run my Open Language Teacher onboarding.&rdquo;</b></li>
+    </ol>
+    <div class="gatecode-row"><span>Your pair code</span><span class="gatecode" id="gateCode">—</span></div>
+    <div class="gatewait"><i></i>waiting for your AI&rsquo;s first call…</div>
+  </div>
+</div>
+
+<!-- ============ YOUR AI — prompt library (runs in ChatGPT / Claude, not here) ============ -->
 <aside class="ai" id="aiPanel">
   <div class="ai-head">
     <span class="ai-dot"></span>
-    <div><b>ChatGPT</b><small>voice &amp; chat · not part of this app</small></div>
+    <div><b>Your AI</b><small>prompts to run in ChatGPT / Claude</small></div>
     <button class="x" id="aiClose">✕</button>
   </div>
-  <div class="orbwrap">
-    <div class="orb"></div>
-    <span class="vstate" id="voiceLabel">Idle</span>
+  <div class="ai-scroll" id="aiScroll">
+    <div class="connectbox" id="connectBox" hidden>
+      <b>Connect first</b>
+      <p>Add this MCP connector to your AI (ChatGPT → Settings → Apps &amp; Connectors → Advanced → Developer mode → Create connector, auth: none).</p>
+      <div class="kvrow"><span>URL</span><code id="aiMcpUrl">—</code><button class="copy" data-copy-target="aiMcpUrl">Copy</button></div>
+      <div class="kvrow"><span>Code</span><code id="aiPairCode">—</code></div>
+    </div>
+    <div class="pcard"><b>Onboarding</b><p>Sets your language, level and goals — then your AI writes your first week.</p>
+      <div class="ptext">Run my Open Language Teacher onboarding: call link_profile, interview me about which language I want to learn, my current level and my goals, then read get_plan_instructions and get_skill_taxonomy, save everything with update_profile, add starter word packs with add_words, and write my first one-week plan with create_plan.</div>
+      <button class="copy">Copy prompt</button></div>
+    <div class="pcard"><b>Start today&rsquo;s lesson</b><p>Pulls the prepared script and holds the lesson in its mode.</p>
+      <div class="ptext">Start my next lesson from Open Language Teacher: call get_next_lesson and hold the lesson in its declared mode (voice, chat or reading). Afterwards record my results with update_word_strength and complete_lesson.</div>
+      <button class="copy">Copy prompt</button></div>
+    <div class="pcard"><b>Plan next week</b><p>Reviews what stuck and writes the next short plan.</p>
+      <div class="ptext">My week in Open Language Teacher is done. Review my results with get_profile and get_vocab, then write next week&rsquo;s plan with create_plan — short, about five lessons, following get_plan_instructions.</div>
+      <button class="copy">Copy prompt</button></div>
+    <div class="pcard"><b>Update my skills map</b><p>A quick assessment that moves the nodes.</p>
+      <div class="ptext">Give me a quick assessment across speaking, listening, reading and grammar, then update my Open Language Teacher skill map with update_skill and update_word_strength so the percentages reflect reality.</div>
+      <button class="copy">Copy prompt</button></div>
+    <div class="pcard"><b>Teach me new words</b><p>Grows the vocabulary map with a themed pack.</p>
+      <div class="ptext">Teach me five new words about [topic] in context, then add them to my Open Language Teacher practice queue with add_words — and if it&rsquo;s a new theme, create a subtopic node with add_subtopics.</div>
+      <button class="copy">Copy prompt</button></div>
+    <div class="pcard"><b>Log this session</b><p>Keeps the record straight for plan iteration.</p>
+      <div class="ptext">Summarize what we practiced with log_session in Open Language Teacher, and tell me which pieces are still shaky.</div>
+      <button class="copy">Copy prompt</button></div>
   </div>
-  <div class="ai-controls">
-    <button id="playOnboard"><span class="play">▷</span> Onboarding</button>
-    <button id="playLesson"><span class="play">▷</span> Today's lesson</button>
-    <button class="rst" id="simReset" title="Reset demo">↺</button>
-  </div>
-  <div class="transcript" id="transcript">
-    <div class="sysline">PLAY A JOURNEY — AND WATCH THE APP BEHIND ME UPDATE ITSELF</div>
-  </div>
-  <div class="ai-foot"><i></i>MCP · olt.app/mcp/u/david</div>
+  <div class="ai-foot"><i></i><span id="aiFootUrl">MCP · personal endpoint</span></div>
 </aside>
 
 <script>
@@ -1069,6 +1151,7 @@
 
     canvas.addEventListener('pointerdown', e => {
       if (e.target.closest('.fnode') || e.target.closest('.bgpick')) return;
+      e.preventDefault();
       const sx = e.clientX, sy = e.clientY, cx0 = f.tcam.x, cy0 = f.tcam.y;
       let moved = false;
       canvas.classList.add('grabbing');
@@ -1848,236 +1931,55 @@
     $('themeToggle').textContent = dark ? '☾' : '☀';
   });
 
-  /* ================= AI panel ================= */
+  /* ================= AI panel — prompt library ================= */
   const panel = $('aiPanel');
-  const transcript = $('transcript');
-  let playing = false;
-  let timers = [];
-
   function openAI() { panel.classList.add('open'); }
   function closeAI() { panel.classList.remove('open'); }
   $('aiOpen').addEventListener('click', () => panel.classList.contains('open') ? closeAI() : openAI());
   $('aiClose').addEventListener('click', closeAI);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAI(); });
 
-  function addBubble(kind, html) {
-    const div = document.createElement('div');
-    if (kind === 'sys') { div.className = 'sysline'; div.innerHTML = html; }
-    else if (kind === 'tool') { div.className = 'toolcall'; div.innerHTML = html; }
-    else if (kind === 'app') { div.className = 'appcard'; div.innerHTML = html; }
-    else {
-      div.className = 'bub ' + (kind === 'ai' ? 'ai-b' : 'user');
-      div.innerHTML = '<span class="who">' + (kind === 'ai' ? 'ChatGPT' : 'You') + '</span>' + html;
-    }
-    transcript.appendChild(div);
-    transcript.scrollTop = transcript.scrollHeight;
-  }
-
-  function setSpeaking(who) {
-    panel.classList.toggle('speak-ai', who === 'ai');
-    panel.classList.toggle('speak-user', who === 'user');
-    $('voiceLabel').textContent = who === 'ai' ? 'AI speaking' : (who === 'user' ? 'Listening to you' : 'Idle');
-  }
-
-  /* interactive MCP-app widgets inside the transcript */
-  transcript.addEventListener('click', e => {
-    const fl = e.target.closest('.flip');
-    if (fl) { fl.classList.toggle('flipped'); return; }
-    const z = e.target.closest('.zi');
-    if (z) {
-      const body = z.closest('.appbody');
-      const g = body.querySelector('.glossline');
-      const was = z.classList.contains('onz');
-      body.querySelectorAll('.zi').forEach(x => x.classList.remove('onz'));
-      if (was) { g.textContent = ''; }
-      else { z.classList.add('onz'); g.textContent = z.dataset.py; }
-    }
+  $('aiScroll').addEventListener('click', e => {
+    const b = e.target.closest('.copy');
+    if (!b) return;
+    const src = b.dataset.copyTarget ? $(b.dataset.copyTarget) : (b.closest('.pcard') && b.closest('.pcard').querySelector('.ptext'));
+    if (!src) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(src.textContent.trim());
+    const old = b.textContent; b.textContent = 'Copied ✓';
+    setTimeout(() => { b.textContent = old; }, 1400);
   });
 
-  function appCard(title, uri, body) {
-    return '<div class="apphead"><i></i>' + title + '<span>' + uri + '</span></div><div class="appbody">' + body + '</div>';
-  }
-  const APP_LESSON = appCard('OLT · Lesson', 'ui://olt/lesson-card',
-    '<b class="apptitle">News in conversation</b><span class="appmeta">day 3 · voice · ~15 min</span>' +
-    '<div class="approw"><i style="background:#E98F72"></i>Review lesson-2 words aloud<span>3m</span></div>' +
-    '<div class="approw"><i style="background:#7FA3F2"></i>Story recall: 「地铁罢工」<span>4m</span></div>' +
-    '<div class="approw"><i style="background:#5BC8C2"></i>Conversation: this week&rsquo;s news<span>5m</span></div>' +
-    '<div class="approw"><i style="background:#E3B45C"></i>Voice flashcards to close<span>3m</span></div>');
-  const APP_STORY = appCard('OLT · Story reader', 'ui://olt/story',
-    '<b class="apptitle">地铁罢工</b><span class="appmeta">72 pieces · 96% known · tap the dotted words</span>' +
-    '<p class="storytext">标题写着：地铁<span class="zi" data-py="罢工 bàgōng — to strike">罢工</span>。根据<span class="zi" data-py="调查 diàochá — survey, poll">调查</span>，<span class="zi" data-py="政府 zhèngfǔ — government">政府</span>失去了支持。</p>' +
-    '<div class="glossline"></div>');
-  const APP_CARDS = appCard('OLT · Flashcards', 'ui://olt/flashcards',
-    '<div class="flip"><div class="flipin"><div class="fface front">标题</div><div class="fface back">biāotí · headline<br><span style="font-size:10.5px;color:#8B93A8">2 solid recalls · 1 more to master</span></div></div></div>' +
-    '<div class="appcap">tap the card to flip · 4 of 5</div>');
-  const APP_PLAN = appCard('OLT · Week plan', 'ui://olt/plan',
-    '<b class="apptitle">News, slang &amp; talk</b><span class="appmeta">week 34 · 5 lessons · written just now</span>' +
-    '<div class="approw"><i style="background:#7FA3F2"></i>Greetings &amp; recall<span>voice · 10m</span></div>' +
-    '<div class="approw"><i style="background:#A98BF0"></i>First news words<span>reading · 15m</span></div>' +
-    '<div class="approw"><i style="background:#E98F72"></i>News in conversation<span>voice · 15m</span></div>' +
-    '<div class="approw"><i style="background:#E387B4"></i>Slang starter<span>chat · 15m</span></div>' +
-    '<div class="approw"><i style="background:#E3B45C"></i>Review &amp; mini exam<span>voice · 20m</span></div>');
+  /* ---- account gate: sync with your AI ---- */
+  let gateDismissed = false;
+  $('gateClose').addEventListener('click', () => { gateDismissed = true; $('gate').hidden = true; });
+  $('gateCopy').addEventListener('click', () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText($('gateUrl').textContent.trim());
+    $('gateCopy').textContent = 'Copied ✓';
+    setTimeout(() => { $('gateCopy').textContent = 'Copy URL'; }, 1400);
+  });
+  $('logoutBtn').addEventListener('click', async () => {
+    try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
+    location.href = '/login';
+  });
 
-  function runScenario(events, prep) {
-    if (playing) return;
-    playing = true;
-    $('playOnboard').disabled = true;
-    $('playLesson').disabled = true;
-    transcript.innerHTML = '';
-    if (prep) { prep(); renderAll(); }
-    let t = 400;
-    events.forEach(ev => {
-      timers.push(setTimeout(() => {
-        if (ev.t === 'tool') {
-          addBubble('tool',
-            '⚙ <span class="tn">' + ev.name + '</span>' +
-            (ev.args ? '\n<span class="args">' + ev.args + '</span>' : '') +
-            (ev.fx ? '\n<span class="fx">→ ' + ev.fx + '</span>' : ''));
-          setSpeaking(null);
-        } else if (ev.t === 'sys') {
-          addBubble('sys', ev.text);
-          setSpeaking(null);
-        } else {
-          addBubble(ev.t, ev.text);
-          setSpeaking(ev.t);
-        }
-        if (ev.run) ev.run();
-      }, t));
-      t += ev.d || 1900;
-    });
-    timers.push(setTimeout(() => {
-      setSpeaking(null);
-      playing = false;
-      $('playOnboard').disabled = false;
-      $('playLesson').disabled = false;
-    }, t + 300));
-  }
-
-  function resetSim() {
-    timers.forEach(clearTimeout); timers = [];
-    playing = false;
-    $('playOnboard').disabled = false;
-    $('playLesson').disabled = false;
-    setSpeaking(null);
-    state = deepCopy(DEFAULT);
-    renderAll();
-    transcript.innerHTML = '<div class="sysline">RESET · PLAY A JOURNEY ABOVE</div>';
-  }
-  $('simReset').addEventListener('click', resetSim);
-
-  /* ------- scenario: onboarding ------- */
-  function zeroSkills() {
-    const sk = deepCopy(DEFAULT.skills);
-    Object.keys(sk).forEach(k => {
-      sk[k].pct = 0;
-      if (sk[k].concepts) sk[k].concepts = [];
-      if (sk[k].subs) sk[k].subs.forEach(s => s.pct = 0);
-      if (sk[k].meta) sk[k].meta = '—';
-    });
-    return sk;
-  }
-  function freshPlans() {
-    const w34 = deepCopy(DEFAULT.plans.find(p => p.id === 'w34'));
-    w34.lessons.forEach(l => { l.done = false; delete l.log; });
-    w34.pos = [13, 30];
-    const w35 = deepCopy(DEFAULT.plans.find(p => p.id === 'w35'));
-    w35.pos = [13, 62];
-    return [w34, w35];
-  }
-
-  const onboardingEvents = [
-    { t: 'sys',  text: 'VOICE MODE · NEW PROFILE, NOTHING LINKED YET', d: 1600 },
-    { t: 'user', text: '&ldquo;Link my Open Language Teacher profile — code OLT-4F2K.&rdquo;', d: 2000 },
-    { t: 'tool', name: 'link_profile', args: '{ code: "OLT-4F2K" }', fx: 'connected', d: 2000 },
-    { t: 'ai',   text: 'Linked! A brand-new Mandarin profile. Roughly how many Chinese words would you say you already know?', d: 2600 },
-    { t: 'user', text: '&ldquo;Maybe six hundred? I passed HSK 3 last year and I can order food.&rdquo;', d: 2200 },
-    { t: 'ai',   text: 'Solid intermediate base. And what do you want Chinese <em>for</em> — conversations, reading, travel, the news?', d: 2600 },
-    { t: 'user', text: '&ldquo;Conversations mostly. And Chinese news… and real slang, not textbook stuff.&rdquo;', d: 2600 },
-    { t: 'tool', name: 'update_profile', args: '{ language: "zh-CN", from: "en",\n  level: "HSK 4 / B1", known_words: ~600,\n  goals: ["conversation", "news", "slang"] }', fx: 'profile saved · skill map estimated',
-      run: () => {
-        state.knownExtra = 610;
-        state.skills = deepCopy(DEFAULT.skills);
-        skBuild(); renderSkillSide();
-      }, d: 2200 },
-    { t: 'tool', name: 'get_plan_instructions', args: 'reads olt://guide/lesson-authoring', d: 2000 },
-    { t: 'ai',   text: 'The app asks me to keep plans short — one week, then iterate. Five ±15-minute lessons around news, slang and conversation. Sound good?', d: 3000 },
-    { t: 'user', text: '&ldquo;Perfect.&rdquo;', d: 1400 },
-    { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"],\n  modes: ["voice", "reading", "chat"] }', fx: 'plan written — check the Plan tab',
-      run: () => { state.plans = freshPlans(); plBuild(); renderPlanSide(); }, d: 2400 },
-    { t: 'app',  text: APP_PLAN, d: 3000 },
-    { t: 'tool', name: 'add_subtopics', args: '{ vocabulary: ["News", "Slang"],\n  grammar: ["了 (completed)", "把 construction"],\n  words: ["新闻", "标题", …12] }', fx: 'new nodes on your map',
-      run: () => {
-        state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
-        skBuild(); renderSkillSide(); flashSkill('vocab');
-      }, d: 2400 },
-    { t: 'ai',   text: 'Done — your week is waiting in the app. Say <em>&ldquo;start my lesson&rdquo;</em> whenever you&rsquo;re ready. 加油！', d: 2400 },
-    { t: 'sys',  text: 'ONBOARDING COMPLETE — THE MAPS FILLED THEMSELVES IN', d: 1200 }
-  ];
-
-  function playOnboard() {
-    runScenario(onboardingEvents, () => {
-      state = { connected: false, knownExtra: 0, streak: 0, learning: [], known: [], plans: [], skills: zeroSkills() };
-    });
-  }
-  $('playOnboard').addEventListener('click', playOnboard);
-
-  /* ------- scenario: voice lesson ------- */
-  function bumpWord(es, p) {
-    const w = state.learning.find(x => x.es === es);
-    if (!w) return;
-    w.p = p;
-    if (p >= 3) {
-      state.learning = state.learning.filter(x => x.es !== es);
-      state.known.unshift(w);
+  function applyAccountUi(s) {
+    $('logoutBtn').hidden = false;
+    const chip = document.querySelector('.langchip');
+    if (chip) {
+      const lang = s.profile && s.profile.languageLabel;
+      chip.innerHTML = lang
+        ? '<b>' + lang + '</b>' + (s.profile.level ? ' · <span class="lvl">' + s.profile.level + '</span>' : '')
+        : 'no language yet · run onboarding';
     }
-    skRefresh(); renderSkillSide();
-    flash(document.querySelector('#skillSide .wordlist li[data-word="' + es + '"]'));
+    $('gateName').textContent = ((s.me && s.me.name) || 'there').split(' ')[0];
+    $('gateCode').textContent = s.pairCode || '—';
+    $('gateUrl').textContent = s.mcpUrl || '—';
+    $('aiMcpUrl').textContent = s.mcpUrl || '—';
+    $('aiPairCode').textContent = s.pairCode || '—';
+    $('connectBox').hidden = !!s.synced;
+    $('gate').hidden = !!s.synced || gateDismissed;
+    $('aiFootUrl').textContent = 'MCP · ' + (s.mcpUrl || 'personal endpoint').replace(/^https?:\/\//, '');
   }
-
-  function completeNext() {
-    const p = curPlan();
-    const l = nextLesson();
-    if (!p || !l) return;
-    l.done = true;
-    l.log = ['story gist: perfect', 'conversation: 2 self-corrections', '调查 recalled once — one more to go'];
-    state.streak += 1;
-    state.skills.speaking.pct = Math.min(100, state.skills.speaking.pct + 4);
-    state.skills.listening.pct = Math.min(100, state.skills.listening.pct + 3);
-    state.skills.vocab.pct = Math.min(100, state.skills.vocab.pct + 1);
-    skRefresh(); renderSkillSide();
-    plBuild(); renderPlanSide();
-    flashSkill('speaking'); flashSkill('listening');
-  }
-
-  const lessonEvents = [
-    { t: 'sys',  text: 'VOICE MODE · PROFILE LINKED', d: 1400 },
-    { t: 'user', text: '&ldquo;Start my next Chinese lesson.&rdquo;', d: 1800 },
-    { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News in conversation (voice · ~15 min)\n→ note from lesson 2: "调查 was shaky"\n→ ui://olt/lesson-card (MCP app)', d: 2400 },
-    { t: 'sys',  text: 'MCP APP · SERVED BY THE OLT SERVER, RENDERED BY YOUR CLIENT', d: 1400 },
-    { t: 'app',  text: APP_LESSON, d: 2600 },
-    { t: 'ai',   text: 'Lesson three — there&rsquo;s your agenda. Warm-up first, repeat after me: <span class="es">新闻 xīnwén… 标题 biāotí… 调查 diàochá.</span>', d: 2800 },
-    { t: 'user', text: '&ldquo;新闻… 标题… 调查。&rdquo;', d: 2200 },
-    { t: 'ai',   text: 'Watch the fourth tone on 调查. Now a tiny story — I&rsquo;ll read it, you follow along in the reader. What was the headline about?', d: 3000 },
-    { t: 'app',  text: APP_STORY, d: 3000 },
-    { t: 'user', text: '&ldquo;地铁罢工 — the subway strike!&rdquo;', d: 1800 },
-    { t: 'ai',   text: '很好。Your turn — <span class="es">你这周看了什么新闻？</span>', d: 2400 },
-    { t: 'user', text: '&ldquo;嗯… 我看了一条关于政府调查的新闻。&rdquo;', d: 2400 },
-    { t: 'ai',   text: 'Great sentence — and you used the measure word 条 correctly. Flashcards to close: how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2600 },
-    { t: 'app',  text: APP_CARDS, d: 2400 },
-    { t: 'user', text: '&ldquo;标题！&rdquo;', d: 1600 },
-    { t: 'tool', name: 'update_word_strength', args: '{ "新闻": 3, "标题": 2,\n  "调查": 1 }', fx: '"新闻" graduated to mastered',
-      run: () => { bumpWord('调查', 1); bumpWord('标题', 2); bumpWord('新闻', 3); flashSkill('vocab'); }, d: 2600 },
-    { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "调查 tone still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · maps updated',
-      run: completeNext, d: 2400 },
-    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">新闻</span> just graduated, and your speaking node ticked up. Tomorrow is slang, and that one runs in <em>chat mode</em> — where slang actually lives. 明天见！', d: 2800 },
-    { t: 'sys',  text: 'SESSION SYNCED — THE SCORE IS KEPT BEHIND ME', d: 1200 }
-  ];
-
-  function playLesson() {
-    if (!curPlan() || !nextLesson()) state = deepCopy(DEFAULT);
-    runScenario(lessonEvents, null);
-  }
-  $('playLesson').addEventListener('click', playLesson);
 
   /* ================= init ================= */
   renderAll();
@@ -2090,9 +1992,10 @@
   async function syncState() {
     try {
       const r = await fetch('/api/state', { cache: 'no-store' });
-      if (!r.ok) return;
+      if (!r.ok) { if (r.status === 401) location.href = '/login'; return; }
       const s = await r.json();
-      if (typeof s.v === 'number' && s.v !== lastV && !playing) {
+      if ('synced' in s) applyAccountUi(s);
+      if (typeof s.v === 'number' && s.v !== lastV) {
         lastV = s.v;
         state = s;
         const keepWeek = plWeek, keepSel = plSel, keepPart = plPart;
