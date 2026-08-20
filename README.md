@@ -16,7 +16,10 @@ A web app for learning any language — where **your data lives in the app, but 
 - The AI asks how many words you know and what your goals are (conversation, reading, news from the language's home country, slang, specific subjects…). The mockup's worked example is an English speaker learning intermediate Mandarin (HSK 4 / B1).
 - It reads the app's **lesson-authoring guide** (an MCP resource) and writes a **short-term plan — always 3–7 days** — plus an initial learning queue of words.
 
-### A lesson (chat or voice)
+### A lesson (voice, chat, or reading mode)
+
+Each lesson declares a **mode**: a conversation lesson runs in voice mode, a slang lesson in chat (where slang actually lives), a news lesson in reading mode — no microphone, just text. Materials render as **[MCP Apps](https://github.com/modelcontextprotocol/ext-apps)** directly in the chat: `ui://` resources served by the OLT server and displayed by the client in sandboxed iframes — a lesson agenda card, a tap-to-reveal story reader, flip-to-answer flashcards, a week-plan card.
+
 - Say *"start my next lesson"* — the AI calls `get_next_lesson` and runs it: warm-up recall → new vocab → the words in a story/dialogue → conversation practice → voice flashcards.
 - At the end it calls `update_word_strength` and `complete_lesson` with notes for tomorrow.
 - At the end of each week, the AI reviews results and writes the next short plan. Easy iterations, never grand curricula.

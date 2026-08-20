@@ -296,6 +296,13 @@
   }
   .ptabs button:hover { color: var(--ink); transform: translateY(-1px); }
   .ptabs button.on { background: var(--navy); color: var(--navy-ink); }
+  .modepill {
+    display: inline-flex; align-items: center; gap: 7px; width: fit-content;
+    background: var(--chip); border-radius: 999px; padding: 5px 13px;
+    font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: capitalize;
+  }
+  .modepill .nico { color: var(--blue); }
+  .modepill .nico svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .sk-side .bigpct { font-size: 44px; font-weight: 900; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
   .sk-side .bigpct small { font-size: 20px; color: var(--faint); font-weight: 800; }
   .sk-side h3 { margin: 0 0 2px; font-size: 20px; font-weight: 900; letter-spacing: -.01em; }
@@ -439,6 +446,38 @@
   .toolcall .tn { color: #7FA3F2; font-weight: 700; }
   .toolcall .args { color: #8B93A8; white-space: pre; }
   .toolcall .fx { color: #6FC28F; font-weight: 700; }
+
+  /* MCP App widgets — ui:// resources rendered in-chat (ext-apps) */
+  .appcard {
+    align-self: stretch; overflow: hidden;
+    background: #12151F; border: 1px solid #262B38; border-radius: 14px;
+    animation: pop .3s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .apphead {
+    display: flex; align-items: center; gap: 7px; padding: 7px 12px;
+    background: #181C28; font-family: var(--mono); font-size: 8.5px;
+    letter-spacing: .14em; text-transform: uppercase; color: #8B93A8;
+  }
+  .apphead i { width: 6px; height: 6px; border-radius: 50%; background: #7FA3F2; flex: none; }
+  .apphead span { margin-left: auto; text-transform: none; letter-spacing: .04em; color: #5A6378; }
+  .appbody { padding: 12px 14px; font-size: 13px; color: #EDEFF6; }
+  .apptitle { display: block; font-weight: 800; font-size: 14.5px; }
+  .appmeta { display: block; font-family: var(--mono); font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: #5A6378; margin: 3px 0 8px; }
+  .approw { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: #B9C0D0; }
+  .approw i { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .approw span { margin-left: auto; font-family: var(--mono); font-size: 9px; color: #5A6378; }
+  .flip { perspective: 600px; cursor: pointer; height: 76px; }
+  .flipin { position: relative; width: 100%; height: 100%; transition: transform .5s cubic-bezier(.3,.8,.3,1); transform-style: preserve-3d; }
+  .flip.flipped .flipin { transform: rotateY(180deg); }
+  .fface { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; border-radius: 10px; background: #1B2130; font-weight: 800; }
+  .fface.front { font-size: 27px; }
+  .fface.back { transform: rotateY(180deg); color: #7FA3F2; font-size: 14px; text-align: center; padding: 0 10px; }
+  .appcap { margin-top: 8px; text-align: center; font-family: var(--mono); font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: #5A6378; }
+  .storytext { margin: 0; font-size: 16px; line-height: 1.9; }
+  .zi { border-bottom: 2px dotted #4E7CF6; cursor: pointer; border-radius: 3px; padding: 0 1px; transition: background-color .2s; }
+  .zi.onz { background: #24345C; }
+  .glossline { margin-top: 8px; min-height: 15px; font-family: var(--mono); font-size: 11px; color: #7FA3F2; }
+
   @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
   .ai-foot { padding: 12px 20px 16px; font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: #5A6378; border-top: 1px solid #1C2130; display: flex; align-items: center; gap: 8px; }
   .ai-foot i { width: 6px; height: 6px; border-radius: 50%; background: #6FC28F; flex: none; }
@@ -538,7 +577,7 @@
 <aside class="ai" id="aiPanel">
   <div class="ai-head">
     <span class="ai-dot"></span>
-    <div><b>ChatGPT</b><small>voice mode · not part of this app</small></div>
+    <div><b>ChatGPT</b><small>voice &amp; chat · not part of this app</small></div>
     <button class="x" id="aiClose">✕</button>
   </div>
   <div class="orbwrap">
@@ -641,17 +680,17 @@
       { id: 'w33', title: 'Week 33', topic: 'Food & getting around', range: '11 – 17 Aug', status: 'past', pos: [13, 25],
         focus: 'restaurant & travel basics',
         lessons: [
-          { n: 1, title: 'Menu survival', mins: 12, done: true, icon: 'coffee', color: 'amber',
+          { n: 1, title: 'Menu survival', mins: 12, done: true, icon: 'coffee', color: 'amber', mode: 'reading',
             obj: 'Order in a small restaurant without switching to English.',
             steps: [
               { k: 'vocab', name: 'New: 点菜, 买单, 好吃', min: 4, d: 'menu pieces in context' },
               { k: 'story', name: 'Story: 「在小饭馆」', min: 4, d: '68 pieces, 95% already known' },
-              { k: 'cards', name: 'Voice flashcards', min: 4, d: 'hear English, answer in Chinese' }
+              { k: 'cards', name: 'Flashcards', min: 4, d: 'see English, answer in Chinese' }
             ],
             mats: [{ t: 'story', name: '在小饭馆', d: 'generated from your vocabulary' }],
             words: ['点菜', '买单', '好吃'], grammar: ['Measure words'],
             log: ['3/3 new pieces recalled next day', 'tone on 买单 (mǎidān) drifted twice'] },
-          { n: 2, title: 'Ordering & paying', mins: 14, done: true, icon: 'chat', color: 'coral',
+          { n: 2, title: 'Ordering & paying', mins: 14, done: true, icon: 'chat', color: 'coral', mode: 'voice',
             obj: 'Hold a full restaurant exchange by voice.',
             steps: [
               { k: 'warm', name: 'Recall menu pieces aloud', min: 3, d: '' },
@@ -661,7 +700,7 @@
             mats: [{ t: 'audio', name: 'Waiter dialogue (0.8×)', d: 'slowed native audio' }],
             words: ['请', '麻烦你'], grammar: ['Word order & time'],
             log: ['ordering fluent', 'numbers above 100 still slow'] },
-          { n: 3, title: 'Directions & transport', mins: 15, done: true, icon: 'globe', color: 'teal',
+          { n: 3, title: 'Directions & transport', mins: 15, done: true, icon: 'globe', color: 'teal', mode: 'voice',
             obj: 'Never be lost in a Chinese city again.',
             steps: [
               { k: 'vocab', name: 'New: 火车, 城市, 拐弯', min: 4, d: '' },
@@ -671,8 +710,8 @@
             mats: [{ t: 'story', name: '最后一班火车', d: 'HSK 3, 了-aspect seeds' }],
             words: ['火车', '城市'], grammar: ['了 (completed)'],
             log: ['gist 100%', 'detail questions 1/2'] },
-          { n: 4, title: 'Hotel check-in', mins: 12, done: true, icon: 'tag', color: 'violet',
-            obj: 'Survive reception, complaints included.',
+          { n: 4, title: 'Hotel check-in', mins: 12, done: true, icon: 'tag', color: 'violet', mode: 'chat',
+            obj: 'Survive reception, complaints included — typed, WeChat register.',
             steps: [
               { k: 'talk', name: 'Roleplay: check-in with a problem', min: 8, d: 'the room is wrong — fix it politely' },
               { k: 'cards', name: 'Flashcards: hotel pack', min: 4, d: '' }
@@ -680,7 +719,7 @@
             mats: [{ t: 'pack', name: 'Hotel pack · 6 pieces', d: '' }],
             words: ['房间', '钥匙'], grammar: ['把 construction'],
             log: ['complaint handled with humour', '把 used correctly 4/5'] },
-          { n: 5, title: 'Review & exam', mins: 18, done: true, icon: 'star', color: 'blue',
+          { n: 5, title: 'Review & exam', mins: 18, done: true, icon: 'star', color: 'blue', mode: 'voice',
             obj: 'Prove week 33 stuck; seed week 34.',
             steps: [
               { k: 'cards', name: 'All 11 practice pieces', min: 6, d: '' },
@@ -694,7 +733,7 @@
       { id: 'w34', title: 'Week 34', topic: 'News, slang & talk', range: '18 – 24 Aug', status: 'current', pos: [13, 47],
         focus: 'news, slang & conversation',
         lessons: [
-          { n: 1, title: 'Greetings & recall', mins: 10, done: true, icon: 'chat', color: 'blue',
+          { n: 1, title: 'Greetings & recall', mins: 10, done: true, icon: 'chat', color: 'blue', mode: 'voice',
             obj: 'Re-activate what you already own before the new week begins.',
             steps: [
               { k: 'warm', name: 'Rapid recall: 10 known pieces', min: 3, d: 'AI prompts in English, you answer by voice' },
@@ -704,13 +743,13 @@
             mats: [{ t: 'pack', name: 'Greetings pack · 8 pieces', d: 'from week 32' }],
             words: ['你好', '谢谢'], grammar: ['Word order & time'],
             log: ['10/10 recalled', 'tone pair in 你好 (nǐ hǎo) now solid'] },
-          { n: 2, title: 'First news words', mins: 15, done: true, icon: 'news', color: 'violet',
-            obj: 'Meet the five core news pieces — in context, never as a list.',
+          { n: 2, title: 'First news words', mins: 15, done: true, icon: 'news', color: 'violet', mode: 'reading',
+            obj: 'Meet the five core news pieces — in context, never as a list. A reading lesson: no microphone, just text.',
             steps: [
               { k: 'vocab', name: 'New: 新闻、标题、政府、调查、罢工', min: 5, d: 'each inside a real sentence' },
               { k: 'story', name: 'Micro-story: 「地铁罢工」', min: 4, d: '72 pieces, 96% already known' },
-              { k: 'warm', name: 'Repeat-after-me drill', min: 3, d: 'shadowing at 0.9× speed, tones marked' },
-              { k: 'cards', name: 'Voice flashcards EN→中文', min: 3, d: '' }
+              { k: 'story', name: 'Tap-to-read check', min: 3, d: 'unknown characters reveal pinyin — an MCP app in your chat' },
+              { k: 'cards', name: 'Flashcards EN→中文', min: 3, d: 'flashcard app, tap to flip' }
             ],
             mats: [
               { t: 'story', name: '地铁罢工', d: 'generated from your vocabulary + 5 new pieces' },
@@ -718,7 +757,7 @@
             ],
             words: ['新闻', '标题', '政府', '调查', '罢工'], grammar: ['Measure words'],
             log: ['4/5 recalled next day', '调查 shaky — flagged for lesson 3'] },
-          { n: 3, title: 'News in conversation', mins: 15, done: false, today: true, icon: 'mic', color: 'coral',
+          { n: 3, title: 'News in conversation', mins: 15, done: false, today: true, icon: 'mic', color: 'coral', mode: 'voice',
             obj: 'Push the news pieces from recognition into speech.',
             steps: [
               { k: 'warm', name: 'Review lesson-2 words aloud', min: 3, d: 'open with 调查 — it was shaky' },
@@ -732,8 +771,8 @@
             ],
             words: ['新闻', '标题', '调查', '不过'], grammar: ['了 (completed)'],
             note: 'From lesson 2: “调查 still shaky — open with it.”' },
-          { n: 4, title: 'Slang starter', mins: 15, done: false, icon: 'tag', color: 'rose',
-            obj: 'First real slang — sound like a person, not a textbook.',
+          { n: 4, title: 'Slang starter', mins: 15, done: false, icon: 'tag', color: 'rose', mode: 'chat',
+            obj: 'First real slang — sound like a person, not a textbook. Runs in chat, where slang actually lives.',
             steps: [
               { k: 'vocab', name: 'New: 给力、靠谱、老铁、躺平', min: 4, d: 'register notes: with friends, never with your boss' },
               { k: 'story', name: 'Dialogue: running into a friend', min: 4, d: 'street pace, real fillers' },
@@ -745,7 +784,7 @@
               { t: 'pack', name: 'Slang pack · 4 pieces', d: 'goal: “real slang, not textbook stuff”' }
             ],
             words: ['给力', '靠谱', '老铁', '躺平'], grammar: [] },
-          { n: 5, title: 'Review & mini exam', mins: 20, done: false, icon: 'star', color: 'amber',
+          { n: 5, title: 'Review & mini exam', mins: 20, done: false, icon: 'star', color: 'amber', mode: 'voice',
             obj: 'Prove the week stuck — then let the AI write the next one.',
             steps: [
               { k: 'cards', name: 'All 12 practice pieces', min: 5, d: 'three solid recalls each to graduate' },
@@ -763,6 +802,8 @@
   const SKILL_KEYS = ['vocab', 'grammar', 'speaking', 'listening', 'reading', 'writing'];
   const TOPICS = ['News', 'Slang', 'Conversation', 'Travel', 'Basics', 'Food'];
   const KINDS = { warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
+  const MODES = { voice: { icon: 'mic' }, chat: { icon: 'chat' }, reading: { icon: 'read' } };
+  function modeOf(l) { return MODES[l.mode] ? l.mode : 'voice'; }
   const CIRC = 163.4;
 
   /* Standard icon set — shipped by the app, chosen per node over MCP (icon: "...") */
@@ -1210,7 +1251,7 @@
         text: l.done ? '✓' : l.n,
         icon: l.icon, color: l.color,
         label: l.title,
-        sub: 'day ' + l.n + ' · ' + l.mins + ' min',
+        sub: 'day ' + l.n + ' · ' + l.mins + ' min · ' + modeOf(l),
         cls: next && l.n === next.n ? 'sel' : ''
       });
     });
@@ -1288,7 +1329,7 @@
         const p = state.plans.find(x => x.id === plWeek);
         if (p && typeof plSel === 'number' && p.lessons && p.lessons[plSel]) {
           const l = p.lessons[plSel];
-          info = '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min</span>';
+          info = '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min · ' + modeOf(l) + '</span>';
         } else if (p) {
           info = p.status === 'future'
             ? '<b>Next week</b><span class="p">' + p.title + ' · not written yet</span>'
@@ -1430,12 +1471,13 @@
 
     if (typeof plSel === 'number' && p.lessons[plSel]) {
       const l = p.lessons[plSel];
+      const md = modeOf(l);
       let body = '';
       if (plTab === 'agenda') {
         body = stepRows(l) +
           (l.log ? '<span class="mono">Session log</span><ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') +
           (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '') +
-          (!l.done && !l.log ? '<div class="aitip">Say <b>&ldquo;start my lesson&rdquo;</b> in voice mode — your AI pulls this exact script via <b>get_next_lesson</b>.</div>' : '');
+          (!l.done && !l.log ? '<div class="aitip">' + (md === 'voice' ? 'Say' : 'Type') + ' <b>&ldquo;start my lesson&rdquo;</b> — this one runs in <b>' + md + ' mode</b>' + (md !== 'voice' ? ', with the materials rendered as MCP apps right in the chat' : '') + '. Your AI pulls the exact script via <b>get_next_lesson</b>.</div>' : '');
       } else if (plTab === 'materials') {
         body = (l.mats && l.mats.length
           ? '<ul class="siderows">' + l.mats.map(m =>
@@ -1451,7 +1493,8 @@
           '<div class="aitip">These are the nodes this lesson feeds on your <b>skill map</b> — tap one to jump there.</div>';
       }
       box.innerHTML =
-        '<p class="desc" style="margin-top:10px; padding-right:24px">' + l.obj + '</p>' +
+        '<div class="modepill" style="margin-top:8px">' + iconSvg(MODES[md].icon) + md + ' lesson</div>' +
+        '<p class="desc" style="padding-right:24px">' + l.obj + '</p>' +
         '<div class="ptabs">' +
           ['agenda', 'materials', 'nodes'].map(t =>
             '<button data-ptab="' + t + '" class="' + (t === plTab ? 'on' : '') + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>').join('') +
@@ -1464,7 +1507,7 @@
       '<span class="mono">Lessons · click for full detail</span>' +
       '<ul class="siderows">' + p.lessons.map((l, i) => {
         const isNext = p.status === 'current' && nextLesson() && nextLesson().n === l.n;
-        return '<li data-lesson="' + i + '"><button class="siderow"><span class="dotc" style="background:var(--c-' + (l.color || 'blue') + ')' + (l.done || isNext ? '' : '; opacity:.4') + '"></span><span class="t">' + l.title + '<small>day ' + l.n + ' · ' + l.mins + ' min' + (l.done ? ' · done' : isNext ? ' · today' : '') + '</small></span></button></li>';
+        return '<li data-lesson="' + i + '"><button class="siderow"><span class="dotc" style="background:var(--c-' + (l.color || 'blue') + ')' + (l.done || isNext ? '' : '; opacity:.4') + '"></span><span class="t">' + l.title + '<small>day ' + l.n + ' · ' + l.mins + ' min · ' + modeOf(l) + (l.done ? ' · done' : isNext ? ' · today' : '') + '</small></span></button></li>';
       }).join('') + '</ul>' +
       '<div class="aitip"><b>Plans stay short — always.</b> One week, then your AI reviews what stuck and writes the next. No grand curricula.</div>';
   }
@@ -1578,6 +1621,7 @@
     const div = document.createElement('div');
     if (kind === 'sys') { div.className = 'sysline'; div.innerHTML = html; }
     else if (kind === 'tool') { div.className = 'toolcall'; div.innerHTML = html; }
+    else if (kind === 'app') { div.className = 'appcard'; div.innerHTML = html; }
     else {
       div.className = 'bub ' + (kind === 'ai' ? 'ai-b' : 'user');
       div.innerHTML = '<span class="who">' + (kind === 'ai' ? 'ChatGPT' : 'You') + '</span>' + html;
@@ -1591,6 +1635,45 @@
     panel.classList.toggle('speak-user', who === 'user');
     $('voiceLabel').textContent = who === 'ai' ? 'AI speaking' : (who === 'user' ? 'Listening to you' : 'Idle');
   }
+
+  /* interactive MCP-app widgets inside the transcript */
+  transcript.addEventListener('click', e => {
+    const fl = e.target.closest('.flip');
+    if (fl) { fl.classList.toggle('flipped'); return; }
+    const z = e.target.closest('.zi');
+    if (z) {
+      const body = z.closest('.appbody');
+      const g = body.querySelector('.glossline');
+      const was = z.classList.contains('onz');
+      body.querySelectorAll('.zi').forEach(x => x.classList.remove('onz'));
+      if (was) { g.textContent = ''; }
+      else { z.classList.add('onz'); g.textContent = z.dataset.py; }
+    }
+  });
+
+  function appCard(title, uri, body) {
+    return '<div class="apphead"><i></i>' + title + '<span>' + uri + '</span></div><div class="appbody">' + body + '</div>';
+  }
+  const APP_LESSON = appCard('OLT · Lesson', 'ui://olt/lesson-card',
+    '<b class="apptitle">News in conversation</b><span class="appmeta">day 3 · voice · ~15 min</span>' +
+    '<div class="approw"><i style="background:#E98F72"></i>Review lesson-2 words aloud<span>3m</span></div>' +
+    '<div class="approw"><i style="background:#7FA3F2"></i>Story recall: 「地铁罢工」<span>4m</span></div>' +
+    '<div class="approw"><i style="background:#5BC8C2"></i>Conversation: this week&rsquo;s news<span>5m</span></div>' +
+    '<div class="approw"><i style="background:#E3B45C"></i>Voice flashcards to close<span>3m</span></div>');
+  const APP_STORY = appCard('OLT · Story reader', 'ui://olt/story',
+    '<b class="apptitle">地铁罢工</b><span class="appmeta">72 pieces · 96% known · tap the dotted words</span>' +
+    '<p class="storytext">标题写着：地铁<span class="zi" data-py="罢工 bàgōng — to strike">罢工</span>。根据<span class="zi" data-py="调查 diàochá — survey, poll">调查</span>，<span class="zi" data-py="政府 zhèngfǔ — government">政府</span>失去了支持。</p>' +
+    '<div class="glossline"></div>');
+  const APP_CARDS = appCard('OLT · Flashcards', 'ui://olt/flashcards',
+    '<div class="flip"><div class="flipin"><div class="fface front">标题</div><div class="fface back">biāotí · headline<br><span style="font-size:10.5px;color:#8B93A8">2 solid recalls · 1 more to master</span></div></div></div>' +
+    '<div class="appcap">tap the card to flip · 4 of 5</div>');
+  const APP_PLAN = appCard('OLT · Week plan', 'ui://olt/plan',
+    '<b class="apptitle">News, slang &amp; talk</b><span class="appmeta">week 34 · 5 lessons · written just now</span>' +
+    '<div class="approw"><i style="background:#7FA3F2"></i>Greetings &amp; recall<span>voice · 10m</span></div>' +
+    '<div class="approw"><i style="background:#A98BF0"></i>First news words<span>reading · 15m</span></div>' +
+    '<div class="approw"><i style="background:#E98F72"></i>News in conversation<span>voice · 15m</span></div>' +
+    '<div class="approw"><i style="background:#E387B4"></i>Slang starter<span>chat · 15m</span></div>' +
+    '<div class="approw"><i style="background:#E3B45C"></i>Review &amp; mini exam<span>voice · 20m</span></div>');
 
   function runScenario(events, prep) {
     if (playing) return;
@@ -1676,8 +1759,9 @@
     { t: 'tool', name: 'get_plan_instructions', args: 'reads olt://guide/lesson-authoring', d: 2000 },
     { t: 'ai',   text: 'The app asks me to keep plans short — one week, then iterate. Five ±15-minute lessons around news, slang and conversation. Sound good?', d: 3000 },
     { t: 'user', text: '&ldquo;Perfect.&rdquo;', d: 1400 },
-    { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"] }', fx: 'plan written — check the Plan tab',
+    { t: 'tool', name: 'create_plan', args: '{ days: 7, lessons: 5,\n  focus: ["news", "slang", "conversation"],\n  modes: ["voice", "reading", "chat"] }', fx: 'plan written — check the Plan tab',
       run: () => { state.plans = freshPlans(); plBuild(); renderPlanSide(); }, d: 2400 },
+    { t: 'app',  text: APP_PLAN, d: 3000 },
     { t: 'tool', name: 'add_subtopics', args: '{ vocabulary: ["News", "Slang"],\n  grammar: ["了 (completed)", "把 construction"],\n  words: ["新闻", "标题", …12] }', fx: 'new nodes on your map',
       run: () => {
         state.learning = deepCopy(DEFAULT.learning).map(w => (w.p = 0, w));
@@ -1725,20 +1809,24 @@
   const lessonEvents = [
     { t: 'sys',  text: 'VOICE MODE · PROFILE LINKED', d: 1400 },
     { t: 'user', text: '&ldquo;Start my next Chinese lesson.&rdquo;', d: 1800 },
-    { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News in conversation (~15 min)\n→ note from lesson 2: "调查 was shaky"', d: 2400 },
-    { t: 'ai',   text: 'Lesson three. Warm-up first — repeat after me: <span class="es">新闻 xīnwén… 标题 biāotí… 调查 diàochá.</span>', d: 2800 },
+    { t: 'tool', name: 'get_next_lesson', args: '→ Lesson 3 · News in conversation (voice · ~15 min)\n→ note from lesson 2: "调查 was shaky"\n→ ui://olt/lesson-card (MCP app)', d: 2400 },
+    { t: 'sys',  text: 'MCP APP · SERVED BY THE OLT SERVER, RENDERED BY YOUR CLIENT', d: 1400 },
+    { t: 'app',  text: APP_LESSON, d: 2600 },
+    { t: 'ai',   text: 'Lesson three — there&rsquo;s your agenda. Warm-up first, repeat after me: <span class="es">新闻 xīnwén… 标题 biāotí… 调查 diàochá.</span>', d: 2800 },
     { t: 'user', text: '&ldquo;新闻… 标题… 调查。&rdquo;', d: 2200 },
-    { t: 'ai',   text: 'Watch the fourth tone on 调查. A tiny story: <span class="es">&ldquo;标题写着：地铁罢工。根据调查，政府失去了支持…&rdquo;</span> — what was the headline about?', d: 3200 },
+    { t: 'ai',   text: 'Watch the fourth tone on 调查. Now a tiny story — I&rsquo;ll read it, you follow along in the reader. What was the headline about?', d: 3000 },
+    { t: 'app',  text: APP_STORY, d: 3000 },
     { t: 'user', text: '&ldquo;地铁罢工 — the subway strike!&rdquo;', d: 1800 },
     { t: 'ai',   text: '很好。Your turn — <span class="es">你这周看了什么新闻？</span>', d: 2400 },
     { t: 'user', text: '&ldquo;嗯… 我看了一条关于政府调查的新闻。&rdquo;', d: 2400 },
     { t: 'ai',   text: 'Great sentence — and you used the measure word 条 correctly. Flashcards to close: how do you say <em>&ldquo;headline&rdquo;</em>?', d: 2600 },
+    { t: 'app',  text: APP_CARDS, d: 2400 },
     { t: 'user', text: '&ldquo;标题！&rdquo;', d: 1600 },
     { t: 'tool', name: 'update_word_strength', args: '{ "新闻": 3, "标题": 2,\n  "调查": 1 }', fx: '"新闻" graduated to mastered',
       run: () => { bumpWord('调查', 1); bumpWord('标题', 2); bumpWord('新闻', 3); flashSkill('vocab'); }, d: 2600 },
     { t: 'tool', name: 'complete_lesson', args: '{ lesson: 3, note: "调查 tone still shaky —\n  repeat tomorrow", skills: { speaking: +4,\n  listening: +3 } }', fx: 'lesson done · streak +1 · maps updated',
       run: completeNext, d: 2400 },
-    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">新闻</span> just graduated, and your speaking node ticked up. Same time tomorrow for slang?', d: 2600 },
+    { t: 'ai',   text: 'That&rsquo;s the session — <span class="es">新闻</span> just graduated, and your speaking node ticked up. Tomorrow is slang, and that one runs in <em>chat mode</em> — where slang actually lives. 明天见！', d: 2800 },
     { t: 'sys',  text: 'SESSION SYNCED — THE SCORE IS KEPT BEHIND ME', d: 1200 }
   ];
 
