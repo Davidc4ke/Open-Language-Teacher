@@ -72,7 +72,7 @@ function fullSeedState(name) {
 }
 function blankState(name) {
   const s = structuredClone(seed);
-  s.learning = []; s.known = []; s.knownExtra = 0; s.streak = 0; s.plans = []; s.sessions = [];
+  s.learning = []; s.known = []; s.knownExtra = 0; s.streak = 0; s.plans = []; s.sessions = []; s.life = [];
   for (const k of Object.keys(s.skills)) {
     const sk = s.skills[k];
     sk.pct = 0;
@@ -173,7 +173,15 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    know — proactively queue it with add_words (word, gloss, example, a fitting topic) so it enters their
    practice rotation. In voice mode collect them and add them all during the "sync lesson" step. Tell the
    learner you saved them.
-14. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
+14. LIFE NOTES: personalized lessons need the learner's world — capture it in three layers, all via
+   add_life_notes: (a) onboarding gains a 2-minute life sketch (the ~5 places of their week, key people,
+   routines, interests, current events); (b) AMBIENT harvest — lessons are already an interview about
+   their life, so whenever they mention a place/person/event, save it and say you saved it; (c) planning
+   next week starts with "anything new this week?". When writing stories, examples or walks, call
+   get_life_notes and anchor the material in their REAL places and people (least-recently-used first,
+   plus one fresh event); afterwards stamp what you used via add_life_notes {used}. Save only what the
+   learner tells you.
+15. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
    level ≤ 48, plan title ≤ 40, plan focus ≤ 90 (one line), lesson titles ≤ 40. Long assessments go in
    update_profile's levelNote; long teaching prose goes in lesson objectives and parts.`;
 
@@ -361,6 +369,63 @@ function buildMcp(user) {
   server.registerTool('get_skill_taxonomy', {
     title: 'Skill taxonomy', description: 'The suggested standard skill/subtopic scaffold plus the icon, color, mode and part-kind sets.', inputSchema: {}
   }, async () => text(TAXONOMY));
+
+  server.registerTool('add_life_notes', {
+    title: 'Add life notes', description: 'Save small facts about the learner\'s world — places they go, people around them, routines, interests, and current events in their life. These power personalized lessons (stories, walks, examples anchored in their real week). Save only what the learner tells you, and tell them what you saved. Upserts by (kind, name).',
+    inputSchema: {
+      notes: z.array(z.object({
+        kind: z.enum(['place', 'person', 'routine', 'interest', 'event']),
+        name: z.string().max(60).describe('Short label, e.g. "BJJ gym", "coach", "Tuesday training", "Chinese dramas", "moving apartment"'),
+        detail: z.string().max(200).optional().describe('One line of texture: senses, timing, why it matters')
+      })).optional(),
+      used: z.array(z.string()).optional().describe('Names of notes you just built a lesson/walk on — stamps them so future lessons rotate to fresher anchors')
+    }
+  }, async ({ notes = [], used = [] }) => {
+    const now = new Date().toISOString();
+    let saved = [], updated = [];
+    const s = mutate(uid, s => {
+      s.life = s.life || [];
+      for (const n of notes) {
+        const hit = s.life.find(x => x.kind === n.kind && x.name.toLowerCase() === n.name.toLowerCase());
+        if (hit) { if (n.detail) hit.detail = n.detail; updated.push(n.name); }
+        else { s.life.push({ kind: n.kind, name: n.name, detail: n.detail || '', addedAt: now, lastUsed: null }); saved.push(n.name); }
+      }
+      for (const u of used) {
+        const hit = s.life.find(x => x.name.toLowerCase() === String(u).toLowerCase());
+        if (hit) hit.lastUsed = now;
+      }
+    });
+    return text({ ok: true, saved, updated, total: (s.life || []).length });
+  });
+
+  server.registerTool('get_life_notes', {
+    title: 'Get life notes', description: 'Read the learner\'s world: places, people, routines, interests, current events. Sorted least-recently-used first — prefer the top anchors when writing walks/stories so lessons rotate through their life, and mix in one fresh "event" for emotional salience. After authoring, pass the anchors you used to add_life_notes {used: [...]}.',
+    inputSchema: { kind: z.enum(['place', 'person', 'routine', 'interest', 'event']).optional() }
+  }, async ({ kind }) => {
+    const s = S();
+    let notes = (s.life || []).filter(n => !kind || n.kind === kind);
+    notes = notes.slice().sort((a, b) => String(a.lastUsed || '') < String(b.lastUsed || '') ? -1 : 1);
+    return text({
+      notes,
+      hint: notes.length
+        ? 'Top entries are least-recently used — build on those first. If notes are thin, ask the learner one casual question about their week and save the answer.'
+        : 'Empty. Do a 2-minute life sketch: the ~5 places of their week, key people, routines, interests, and anything happening right now — save it all with add_life_notes.'
+    });
+  });
+
+  server.registerTool('delete_life_note', {
+    title: 'Delete life note', description: 'Remove one life note at the learner\'s request.',
+    inputSchema: { kind: z.enum(['place', 'person', 'routine', 'interest', 'event']), name: z.string() }
+  }, async ({ kind, name }) => {
+    let out = null;
+    mutate(uid, s => {
+      s.life = s.life || [];
+      const before = s.life.length;
+      s.life = s.life.filter(x => !(x.kind === kind && x.name.toLowerCase() === name.toLowerCase()));
+      out = { ok: s.life.length < before, remaining: s.life.length };
+    });
+    return text(out);
+  });
 
   server.registerTool('get_vocab', {
     title: 'Get vocabulary', description: 'Read the learner\'s pieces: the practice queue and the mastered list, optionally filtered by topic.',
