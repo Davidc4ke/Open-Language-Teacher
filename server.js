@@ -146,6 +146,10 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    (story or dialogue) → active practice (conversation) → flashcard check → call complete_lesson with a note.
 3. Every lesson declares a MODE: "voice" (spoken, have the learner SAY every new piece aloud),
    "chat" (typed — right for slang and writing), or "reading" (no microphone, text + tap-to-read).
+   VOICE CAVEAT: voice models cannot make tool calls reliably. Always fetch the lesson from TEXT chat
+   (get_next_lesson), then have the learner switch to voice only for the lesson itself. Tell them at the
+   START and again at the END: exit voice mode and type "sync lesson" — only then save results with
+   update_word_strength and complete_lesson.
 4. Prepare COMPONENTS per lesson (the "parts" array): a turn-by-turn teaching script with AI/YOU/IF/CUE lines,
    stories generated from the learner's own vocabulary (aim ≥95% known pieces), real news links at their level,
    flashcard decks, drills, and an exam rubric for review lessons. The app shows all of it to the learner.
@@ -546,12 +550,15 @@ function buildMcp(user) {
   });
 
   server.registerTool('get_next_lesson', {
-    title: 'Get next lesson', description: 'Pull the next undone lesson with its full script and components. Hold the lesson in the declared mode, then call complete_lesson.', inputSchema: {}
+    title: 'Get next lesson', description: 'Pull the next undone lesson with its full script and components. Call this from TEXT chat — voice models cannot make tool calls reliably. The result tells you how to run the lesson in its declared mode and how results get saved.', inputSchema: {}
   }, async () => {
     const s = S();
     const p = curPlan(s), l = nextLesson(s);
     if (!l) return text({ ok: false, message: p ? 'Week complete — review results and call create_plan for the next week.' : 'No plan yet — run onboarding (update_profile, add_words) and call create_plan.' });
-    return text({ ok: true, plan: p.title, focus: p.focus, lesson: l, reminder: 'Run it in ' + (l.mode || 'voice') + ' mode. Afterwards call update_word_strength and complete_lesson {lesson:' + l.n + ', note, log, skills}.' });
+    const protocol = (l.mode || 'voice') === 'voice'
+      ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it, record results with update_word_strength and complete_lesson {lesson: ' + l.n + ', note, log, skills}.'
+      : 'Run this ' + l.mode + ' lesson right here in text chat. Afterwards call update_word_strength and complete_lesson {lesson: ' + l.n + ', note, log, skills}.';
+    return text({ ok: true, plan: p.title, focus: p.focus, lesson: l, protocol });
   });
 
   server.registerTool('complete_lesson', {

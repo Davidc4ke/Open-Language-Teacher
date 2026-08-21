@@ -703,8 +703,11 @@
     <div class="pcard"><b>Onboarding</b><p>Sets your language, level and goals — then your AI writes your first week.</p>
       <div class="ptext">Run my Open Language Teacher onboarding: call link_profile, interview me about which language I want to learn, my current level and my goals, then read get_plan_instructions and get_skill_taxonomy, save everything with update_profile, add starter word packs with add_words, and write my first one-week plan with create_plan.</div>
       <button class="copy">Copy prompt</button></div>
-    <div class="pcard"><b>Start today&rsquo;s lesson</b><p>Pulls the prepared script and holds the lesson in its mode.</p>
-      <div class="ptext">Start my next lesson from Open Language Teacher: call get_next_lesson and hold the lesson in its declared mode (voice, chat or reading). Afterwards record my results with update_word_strength and complete_lesson.</div>
+    <div class="pcard"><b>Start today&rsquo;s lesson</b><p>Type this in text chat — your AI preps the lesson, then you switch to voice if it&rsquo;s a voice lesson.</p>
+      <div class="ptext">Start my next lesson from Open Language Teacher. I&rsquo;m typing this in text mode on purpose — tool calls don&rsquo;t work in voice mode. Call get_next_lesson and show me the agenda. If it&rsquo;s a voice lesson, tell me to switch to voice mode and hold the lesson there, and remind me at the start AND at the end that I must exit voice mode and type &ldquo;sync lesson&rdquo; when we finish. Chat and reading lessons run right here.</div>
+      <button class="copy">Copy prompt</button></div>
+    <div class="pcard"><b>Sync lesson</b><p>Type this after a voice lesson — saves everything to the app.</p>
+      <div class="ptext">Sync lesson: we just finished my voice lesson. Save my results to Open Language Teacher now — update_word_strength for every piece we drilled, complete_lesson with a session log and a note for tomorrow, and update_skill where I earned it.</div>
       <button class="copy">Copy prompt</button></div>
     <div class="pcard"><b>Plan next week</b><p>Reviews what stuck and writes the next short plan.</p>
       <div class="ptext">My week in Open Language Teacher is done. Review my results with get_profile and get_vocab, then write next week&rsquo;s plan with create_plan — short, about five lessons, following get_plan_instructions.</div>
@@ -1826,7 +1829,9 @@
         body = stepRows(l) +
           (l.log ? '<span class="mono">Session log</span><ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') +
           (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '') +
-          (!l.done && !l.log ? '<div class="aitip">' + (md === 'voice' ? 'Say' : 'Type') + ' <b>&ldquo;start my lesson&rdquo;</b> — this one runs in <b>' + md + ' mode</b>' + (md !== 'voice' ? ', with the materials rendered as MCP apps right in the chat' : '') + '. Your AI pulls the exact script via <b>get_next_lesson</b>.</div>' : '');
+          (!l.done && !l.log ? '<div class="aitip">' + (md === 'voice'
+            ? 'Type <b>&ldquo;start my lesson&rdquo;</b> in the text chat — your AI preps the script, then you switch to <b>voice mode</b> for the lesson. Finish by typing <b>&ldquo;sync lesson&rdquo;</b> so your results are saved.'
+            : 'Type <b>&ldquo;start my lesson&rdquo;</b> — this one runs in <b>' + md + ' mode</b>, with the materials rendered as MCP apps right in the chat. Your AI pulls the exact script via <b>get_next_lesson</b>.') + '</div>' : '');
       } else if (plTab === 'materials') {
         body = (l.mats && l.mats.length
           ? '<ul class="siderows">' + l.mats.map(normMat).map(m =>
