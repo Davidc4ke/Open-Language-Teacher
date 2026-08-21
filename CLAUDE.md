@@ -21,3 +21,8 @@ Check:
 - "Check" = what he should look at, test, or decide.
 - If a group is empty, leave it out.
 - Keep each bullet to one line if possible.
+
+# No emojis
+
+- Never use emojis. Not in replies, not in the app, not in mockups, not in commits.
+- Use plain text or simple line icons instead.
