@@ -787,6 +787,16 @@ app.get('/api/state', requireApi('learner'), (req, res) => {
   const s = getState(u.id);
   res.json({ ...s, synced: !!u.synced, pairCode: u.pair_code, mcpUrl: mcpUrlFor(u), me: { name: u.name, username: u.username } });
 });
+app.post('/api/positions', requireApi('learner'), (req, res) => {
+  const { skills = {}, plans = {} } = req.body || {};
+  const ok = p => Array.isArray(p) && p.length === 2 && p.every(v => typeof v === 'number' && isFinite(v));
+  const clamp = p => p.map(v => Math.max(0, Math.min(100, Math.round(v * 10) / 10)));
+  const s = mutate(req.user.id, s => {
+    for (const [k, p] of Object.entries(skills)) if (s.skills[k] && ok(p)) s.skills[k].pos = clamp(p);
+    for (const [id, p] of Object.entries(plans)) { const pl = s.plans.find(x => x.id === id); if (pl && ok(p)) pl.pos = clamp(p); }
+  });
+  res.json({ ok: true, v: s.v });
+});
 app.post('/api/reset', requireApi('learner'), (req, res) => {
   const s = req.user.username === 'demo' ? fullSeedState(req.user.name) : blankState(req.user.name);
   s.v = (getState(req.user.id).v || 1) + 1;

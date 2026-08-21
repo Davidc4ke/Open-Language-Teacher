@@ -23,6 +23,12 @@
       --shadow:0 1px 2px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.45);
     }
   }
+  :root[data-theme="dark"] {
+    --bg:#12151C; --card:#1B2029; --ink:#E8EBF3; --navy:#E8EBF3; --navy-ink:#141A2B;
+    --muted:#97A1B8; --faint:#67718C; --line:#2A3140; --blue:#7FA3F2; --coral:#E98F72;
+    --chip:#232A38; --glow:rgba(127,163,242,.12);
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.45);
+  }
   * { box-sizing:border-box; }
   body {
     margin:0; min-height:100vh; display:grid; place-items:center;
@@ -55,6 +61,7 @@
   .err { margin-top:14px; min-height:18px; font-size:13px; font-weight:700; color:var(--coral); }
   .foot { margin-top:18px; font-size:12px; color:var(--faint); text-align:center; }
 </style>
+<script>try { const t = localStorage.getItem('olt-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}</script>
 </head>
 <body>
   <form class="card" id="f">

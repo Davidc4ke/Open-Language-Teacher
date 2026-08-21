@@ -630,6 +630,8 @@
   }
 </style>
 
+<script>try { const t = localStorage.getItem('olt-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}</script>
+
 <header class="topbar">
   <div class="brand"><span class="mark"></span><span>Open Language Teacher</span></div>
   <nav class="topnav">
@@ -1228,6 +1230,7 @@
           window.removeEventListener('pointermove', move);
           window.removeEventListener('pointerup', up);
           if (!moved && opts.onClick) opts.onClick(n);
+          if (moved && opts.onDragEnd) opts.onDragEnd(n);
         };
         window.addEventListener('pointermove', move);
         window.addEventListener('pointerup', up);
@@ -1335,6 +1338,23 @@
     return Math.max(16, Math.min(50, ((w - sw) / 2) / w * 100));
   }
 
+  /* persist dragged node positions (skill hubs + week nodes) */
+  let posT = null;
+  function queuePosSave() {
+    clearTimeout(posT);
+    posT = setTimeout(async () => {
+      try {
+        const body = {
+          skills: Object.fromEntries(SKILL_KEYS.map(k => [k, state.skills[k].pos])),
+          plans: Object.fromEntries(state.plans.filter(p => p.pos).map(p => [p.id, p.pos]))
+        };
+        const r = await fetch('/api/positions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const d = await r.json();
+        if (d && typeof d.v === 'number') { lastV = d.v; state.v = d.v; } // our own write — no re-render needed
+      } catch (e) { /* static mode */ }
+    }, 700);
+  }
+
   /* simple voice mode: the browser speaks in the learner's target language */
   const canSpeak = 'speechSynthesis' in window;
   let voiceList = [];
@@ -1429,6 +1449,11 @@
     onClick: n => {
       if (n.kind === 'skill') { skExpanded === n.key ? skCollapse() : skExpand(n.key); }
       else skSelect(n.idx);
+    },
+    onDragEnd: n => {
+      if (n.kind !== 'skill' || skExpanded === n.key) return; // expanded layout is temporary
+      state.skills[n.key].pos = [n.px, n.py];
+      queuePosSave();
     },
     onBgClick: () => { if (skExpanded) skCollapse(); },
     getLines: f => {
@@ -1533,6 +1558,11 @@
         else plWeek === n.key ? plCollapse() : plExpand(n.key);
       } else if (n.kind === 'day') plSelect(n.idx);
     },
+    onDragEnd: n => {
+      if (n.kind !== 'week' || plWeek === n.key) return; // expanded layout is temporary
+      const p = state.plans.find(x => x.id === n.key);
+      if (p) { p.pos = [n.px, n.py]; queuePosSave(); }
+    },
     onBgClick: () => { if (plWeek) plCollapse(); },
     getLines: f => {
       const out = [];
@@ -1602,6 +1632,8 @@
     plWeek = id; plSel = 'week';
     const p = state.plans.find(x => x.id === id);
     const parent = PL.nodes.find(n => n.kind === 'week' && n.key === id);
+    const cy = 44; // expanded chain always sits mid-screen, wherever the week node lives
+    parent.px = 13; parent.py = cy;
     PL.nodes.forEach(n => {
       if (n.kind !== 'week') return;
       n.el.classList.toggle('open', n.key === id);
@@ -1615,7 +1647,7 @@
       PL.makeNode({
         kind: 'day', key: id, idx: i, small: true,
         px: 31 + i * step,
-        py: Math.max(12, Math.min(84, p.pos[1] + (i % 2 ? 7 : -5))),
+        py: cy + (i % 2 ? 7 : -5),
         fromX: parent.bx, fromY: parent.by,
         pct: l.done ? 100 : 0,
         text: l.done ? '✓' : l.n,
@@ -1639,6 +1671,8 @@
     PL.removeDead();
     PL.nodes.filter(n => n.kind === 'week' || n.kind === 'none').forEach(n => {
       n.ts = 1;
+      const home = state.plans.find(x => x.id === n.key);
+      if (home && home.pos) { n.px = home.pos[0]; n.py = home.pos[1]; }
       n.el.classList.remove('hid', 'open', 'sel', 'dim');
     });
     plWeek = null; plSel = null; plDetail = null;
@@ -2107,7 +2141,9 @@
   function paintThemeIcon() { $('themeIcon').innerHTML = isDark() ? SUN : MOON; }
   paintThemeIcon();
   $('themeToggle').addEventListener('click', () => {
-    document.documentElement.dataset.theme = isDark() ? 'light' : 'dark';
+    const next = isDark() ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('olt-theme', next); } catch (e) {}
     paintThemeIcon();
   });
 
