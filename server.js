@@ -164,7 +164,11 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    vocabulary map. Reuse existing topic names (see get_vocab) instead of inventing near-duplicates.
 11. After writing, READ BACK and verify: get_current_plan after create_plan/update_plan, get_vocab after
    add_words. Confirm to the learner only what the read-back shows.
-12. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
+12. COMPLETION DISCIPLINE: every lesson has a server-tracked checklist (all steps + all target words).
+   Tick covered items with save_lesson_progress during/after the session; complete_lesson is REJECTED
+   while items are open (force: true only when the learner explicitly skips). A session log never
+   implies completion — partial sessions stay incomplete and resume on the next get_next_lesson.
+13. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
    level ≤ 48, plan title ≤ 40, plan focus ≤ 90 (one line), lesson titles ≤ 40. Long assessments go in
    update_profile's levelNote; long teaching prose goes in lesson objectives and parts.`;
 
@@ -254,12 +258,27 @@ function normLesson(l, i, prev) {
     done: prev ? !!prev.done : false,
     ...(prev && prev.log ? { log: prev.log } : {}),
     ...(prev && prev.note ? { note: prev.note } : {}),
+    ...(prev && prev.ck ? { ck: prev.ck } : {}),
     obj: l.obj || l.objective || '',
     steps: (l.steps || []).map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '' })),
     mats: (l.mats || []).map(normMat),
     words: l.words || [], grammar: l.grammar || [],
     parts: l.parts && l.parts.length ? l.parts.map(normPart) : undefined
   };
+}
+/* server-owned execution checklist: every step and target word of a lesson must be
+   ticked (save_lesson_progress) before complete_lesson accepts without force */
+function checklistOf(l) {
+  const ck = l.ck || { steps: {}, words: {} };
+  return {
+    steps: (l.steps || []).map((st, i) => ({ n: i + 1, name: st.name, done: !!ck.steps[i] })),
+    words: (l.words || []).map(w => ({ word: w, done: !!ck.words[w] }))
+  };
+}
+function missingOf(l) {
+  const c = checklistOf(l);
+  return c.steps.filter(s => !s.done).map(s => 'step ' + s.n + ': ' + s.name)
+    .concat(c.words.filter(w => !w.done).map(w => 'word: ' + w.word));
 }
 const planSummary = p => ({
   id: p.id, title: p.title, focus: p.focus, range: p.range, status: p.status,
@@ -508,7 +527,8 @@ function buildMcp(user) {
       steps: z.array(StepZ).optional(), mats: z.array(MatZ).optional(),
       words: z.array(z.string()).optional(), grammar: z.array(z.string()).optional(),
       parts: z.array(PartZ).optional(),
-      done: z.boolean().optional().describe('Usually set via complete_lesson instead')
+      log: z.array(z.string()).optional().describe('Replace the stored session log; pass [] to delete a bad log'),
+      done: z.boolean().optional().describe('Usually set via complete_lesson instead; done: false also resets the lesson\'s checklist')
     }
   }, async (a) => {
     let out = null;
@@ -528,7 +548,8 @@ function buildMcp(user) {
       if (a.words) l.words = a.words;
       if (a.grammar) l.grammar = a.grammar;
       if (a.parts) l.parts = a.parts.map(normPart);
-      if (a.done != null) l.done = a.done;
+      if (a.log) { if (a.log.length) l.log = a.log; else delete l.log; }
+      if (a.done != null) { l.done = a.done; if (!a.done) { delete l.ck; delete l.progNote; } }
       out = { ok: true, plan: p.title, lesson: { n: l.n, title: l.title, mode: l.mode, mats: l.mats.length + ' materials', parts: (l.parts || []).length + ' parts' } };
     });
     return text(out);
@@ -555,18 +576,66 @@ function buildMcp(user) {
     const s = S();
     const p = curPlan(s), l = nextLesson(s);
     if (!l) return text({ ok: false, message: p ? 'Week complete — review results and call create_plan for the next week.' : 'No plan yet — run onboarding (update_profile, add_words) and call create_plan.' });
+    const ck = checklistOf(l);
+    const started = ck.steps.some(s => s.done) || ck.words.some(w => w.done);
     const protocol = (l.mode || 'voice') === 'voice'
-      ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it, record results with update_word_strength and complete_lesson {lesson: ' + l.n + ', note, log, skills}.'
-      : 'Run this ' + l.mode + ' lesson right here in text chat. Afterwards call update_word_strength and complete_lesson {lesson: ' + l.n + ', note, log, skills}.';
-    return text({ ok: true, plan: p.title, focus: p.focus, lesson: l, protocol });
+      ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it, tick everything actually covered with save_lesson_progress, record strengths, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
+      : 'Run this ' + l.mode + ' lesson right here in text chat. Tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
+    const discipline = 'LESSON DISCIPLINE: teach exactly THIS lesson — do not invent a different one or swap target words for related words. Side explanations are fine (max ~1 extra concept) but always return to the checklist. Never say "last one" or end because the learner says "ok/好" — before closing, list which checklist items are done and which are missing, and keep going (or save partial progress with save_lesson_progress and leave the lesson incomplete) until every step and target word is truly covered, the story/drill ran, and the recall check happened.';
+    return text({
+      ok: true, plan: p.title, focus: p.focus, lesson: l,
+      checklist: ck,
+      ...(started ? { resuming: true, note: 'This lesson was started earlier — pick up at the unticked items below.' + (l.progNote ? ' Last progress note: ' + l.progNote : '') } : {}),
+      protocol, discipline
+    });
+  });
+
+  server.registerTool('save_lesson_progress', {
+    title: 'Save lesson progress', description: 'Tick off completed checklist items of a lesson WITHOUT marking it done. Call this during/after a session for everything actually covered — steps by number or name, target words practiced, plus recall strengths and a progress note. Safe to call repeatedly; complete_lesson only succeeds once the checklist is fully ticked.',
+    inputSchema: {
+      lesson: z.number().optional().describe('Lesson/day number n; defaults to the next undone lesson'),
+      steps: z.array(z.union([z.number(), z.string()])).optional().describe('Completed steps — by number (1-based) or name'),
+      words: z.array(z.string()).optional().describe('Target words actually practiced'),
+      strengths: z.record(z.string(), z.number().min(0).max(3)).optional().describe('Recall strength per piece, like update_word_strength'),
+      note: z.string().optional().describe('Short progress note (what is left, learner difficulties)')
+    }
+  }, async (a) => {
+    let out = null;
+    mutate(uid, s => {
+      const p = s.plans.find(x => x.status === 'current');
+      if (!p) { out = { ok: false, error: 'No current plan.' }; return; }
+      const l = a.lesson != null ? p.lessons.find(x => x.n === a.lesson) : p.lessons.find(x => !x.done);
+      if (!l) { out = { ok: false, error: 'Lesson not found.' }; return; }
+      l.ck = l.ck || { steps: {}, words: {} };
+      for (const st of a.steps || []) {
+        if (typeof st === 'number') { if (l.steps && l.steps[st - 1]) l.ck.steps[st - 1] = true; }
+        else { const i = (l.steps || []).findIndex(x => x.name.toLowerCase() === String(st).toLowerCase()); if (i >= 0) l.ck.steps[i] = true; }
+      }
+      for (const w of a.words || []) if ((l.words || []).includes(w)) l.ck.words[w] = true;
+      for (const [word, pr] of Object.entries(a.strengths || {})) {
+        const w = s.learning.find(x => x.es === word);
+        if (!w) continue;
+        w.p = Math.round(pr);
+        if (w.p >= 3) { s.learning = s.learning.filter(x => x.es !== word); s.known.unshift(w); }
+      }
+      if (a.note) l.progNote = a.note;
+      const missing = missingOf(l);
+      out = {
+        ok: true, lesson: l.n, saved: true,
+        remaining: missing,
+        next: missing.length ? 'Still open: ' + missing.length + ' item(s). Continue the lesson or leave it incomplete — do NOT force-complete.' : 'Checklist complete — call complete_lesson {lesson: ' + l.n + ', note, log, skills}.'
+      };
+    });
+    return text(out);
   });
 
   server.registerTool('complete_lesson', {
-    title: 'Complete lesson', description: 'Mark a lesson done with a session log, a note for tomorrow, and skill deltas e.g. {speaking: 4, listening: 3}.',
+    title: 'Complete lesson', description: 'Mark a lesson done with a session log, a note for tomorrow, and skill deltas e.g. {speaking: 4, listening: 3}. REJECTED while checklist items (steps/target words) are still open — tick them first with save_lesson_progress, or pass force: true only when the learner explicitly wants to skip the rest.',
     inputSchema: {
       lesson: z.number().optional(), note: z.string().optional(),
       log: z.array(z.string()).optional(),
-      skills: z.record(z.string(), z.number()).optional()
+      skills: z.record(z.string(), z.number()).optional(),
+      force: z.boolean().optional().describe('Override the checklist gate. Use ONLY when the learner explicitly says to skip the remaining items — never to paper over an unfinished session.')
     }
   }, async (a) => {
     let out = null;
@@ -575,7 +644,20 @@ function buildMcp(user) {
       if (!p) { out = { ok: false, error: 'No current plan.' }; return; }
       const l = a.lesson != null ? p.lessons.find(x => x.n === a.lesson) : p.lessons.find(x => !x.done);
       if (!l) { out = { ok: false, error: 'Lesson not found.' }; return; }
+      const missing = missingOf(l);
+      if (missing.length && !a.force) {
+        out = {
+          ok: false, reason: 'lesson_incomplete', lesson: l.n, missing,
+          hint: 'This lesson\'s checklist is not fully ticked. Cover the missing items and record them with save_lesson_progress, or save partial progress and leave the lesson incomplete. Pass force: true only if the learner explicitly wants to skip the rest.'
+        };
+        return;
+      }
       l.done = true;
+      l.ck = {
+        steps: Object.fromEntries((l.steps || []).map((_, i) => [i, true])),
+        words: Object.fromEntries((l.words || []).map(w => [w, true]))
+      };
+      delete l.progNote;
       if (a.log) l.log = a.log;
       if (a.note) { const nx = p.lessons.find(x => !x.done); if (nx) nx.note = 'From lesson ' + l.n + ': “' + a.note + '”'; }
       s.streak = (s.streak || 0) + 1;
