@@ -191,7 +191,8 @@ const StepZ = z.object({
   k: z.string().optional().describe('Step kind: warm | vocab | story | talk | cards | exam | plan'),
   name: z.string().describe('Short step name shown in the agenda'),
   min: z.number().optional().describe('Minutes for this step'),
-  d: z.string().optional().describe('One-line description')
+  d: z.string().optional().describe('One-line description'),
+  mat: z.number().optional().describe('Index into the lesson\'s parts array of the material this step uses — the app shows that material when the learner opens the step')
 });
 const MatZ = z.object({
   name: z.string().describe('Material name shown to the learner — REQUIRED, never a bare string'),
@@ -260,7 +261,7 @@ function normLesson(l, i, prev) {
     ...(prev && prev.note ? { note: prev.note } : {}),
     ...(prev && prev.ck ? { ck: prev.ck } : {}),
     obj: l.obj || l.objective || '',
-    steps: (l.steps || []).map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '' })),
+    steps: (l.steps || []).map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '', ...(st.mat != null ? { mat: st.mat } : {}) })),
     mats: (l.mats || []).map(normMat),
     words: l.words || [], grammar: l.grammar || [],
     parts: l.parts && l.parts.length ? l.parts.map(normPart) : undefined
@@ -543,7 +544,7 @@ function buildMcp(user) {
       if (a.icon && ICON_SET.includes(a.icon)) l.icon = a.icon;
       if (a.color && COLOR_SET.includes(a.color)) l.color = a.color;
       if (a.obj != null) l.obj = a.obj;
-      if (a.steps) l.steps = a.steps.map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '' }));
+      if (a.steps) l.steps = a.steps.map(st => ({ k: st.k || 'talk', name: st.name || '', min: st.min || 5, d: st.d || '', ...(st.mat != null ? { mat: st.mat } : {}) }));
       if (a.mats) l.mats = a.mats.map(normMat);
       if (a.words) l.words = a.words;
       if (a.grammar) l.grammar = a.grammar;

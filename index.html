@@ -186,9 +186,34 @@
     width: min(324px, calc(100vw - 28px));
     opacity: 0; transform: translateX(18px); pointer-events: none;
     box-shadow: 0 2px 4px rgba(23,32,58,.06), 0 24px 60px rgba(23,32,58,.16);
-    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.2,.4,1), background-color .35s ease;
+    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.2,.4,1), background-color .35s ease, width .4s cubic-bezier(.3,1,.4,1);
   }
   .sk-body.withside .sk-side { opacity: 1; transform: none; pointer-events: auto; }
+  .sk-side.wide { width: min(700px, calc(100vw - 28px)); }
+  body.panelwide .topbar { margin-right: 730px; }
+  .cols { display: flex; align-items: flex-start; flex-wrap: wrap; }
+  .lcol { width: 268px; flex: none; }
+  .rcol {
+    flex: 1; min-width: 240px; border-left: 1.5px solid var(--line);
+    padding-left: 20px; margin-left: 20px; animation: rcolin .32s ease;
+  }
+  @keyframes rcolin { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+  .steplink {
+    display: flex; gap: 12px; align-items: flex-start; width: 100%; border: 0; background: none; padding: 0;
+    font-family: var(--sans); color: var(--ink); text-align: left; cursor: pointer;
+  }
+  .steps li.click { border-radius: 12px; transition: background-color .2s; padding-left: 4px; padding-right: 6px; }
+  .steps li.click:hover, .steps li.on { background: var(--chip); }
+  .steps li.on .num { background: var(--navy); color: var(--navy-ink); }
+  .matlink { display: block; color: var(--blue); font-weight: 700; font-size: 12px; margin-top: 5px; }
+  .siderows li.onrow .siderow { background: var(--chip); }
+  .say {
+    flex: none; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--line);
+    background: none; color: var(--muted); cursor: pointer; display: inline-grid; place-items: center;
+    transition: border-color .2s, color .2s; align-self: center;
+  }
+  .say:hover, .say.playing { border-color: var(--blue); color: var(--blue); }
+  .say svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
   .mapcanvas {
     position: absolute; inset: 0; overflow: hidden;
@@ -420,8 +445,9 @@
   .gloss { color: var(--muted); font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .wtag { font-family: var(--mono); font-size: 7.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); flex: none; }
   .ex { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s cubic-bezier(.2,.7,.3,1); }
-  .ex > div { overflow: hidden; }
-  .ex p { margin: 0; padding: 0 10px 10px 20px; font-size: 12.5px; color: var(--muted); }
+  .ex > div { overflow: hidden; display: flex; align-items: center; gap: 8px; }
+  .ex > div .say { margin: 0 10px 10px 0; }
+  .ex p { margin: 0; padding: 0 10px 10px 20px; font-size: 12.5px; color: var(--muted); flex: 1; min-width: 0; }
   .ex .es { font-weight: 800; color: var(--ink); }
   li.open { background: var(--chip); }
   li.open .ex { grid-template-rows: 1fr; }
@@ -585,6 +611,8 @@
     .nring .f, .sidebar-bar i { transition: none; }
     .flash { animation: none; background: var(--green-soft); }
     .ai { transition: opacity .2s; transform: none; }
+    .rcol { animation: none; }
+    .sk-side { transition: opacity .3s ease; }
   }
 
   @media (max-width: 640px) {
@@ -1299,8 +1327,30 @@
 
   function visibleCenterX(field) {
     const w = field.canvas.clientWidth || window.innerWidth;
-    return Math.max(28, Math.min(50, ((w - 352) / 2) / w * 100));
+    const wide = field === PL && typeof plSel === 'number' && plDetail != null;
+    const sw = (wide ? Math.min(700, w - 28) : 324) + 28;
+    return Math.max(16, Math.min(50, ((w - sw) / 2) / w * 100));
   }
+
+  /* simple voice mode: the browser speaks in the learner's target language */
+  const canSpeak = 'speechSynthesis' in window;
+  function sayBtn(txt) {
+    if (!canSpeak || !txt) return '';
+    return '<span class="say" role="button" tabindex="0" aria-label="Listen" data-say="' + String(txt).replace(/"/g, '&quot;') + '">' +
+      '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span>';
+  }
+  document.addEventListener('click', e => {
+    const s = e.target.closest('.say');
+    if (!s) return;
+    e.stopPropagation();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(s.dataset.say);
+    u.lang = (state.profile && state.profile.language) || 'en';
+    u.rate = 0.85;
+    s.classList.add('playing');
+    u.onend = u.onerror = () => s.classList.remove('playing');
+    speechSynthesis.speak(u);
+  }, true);
 
   function bloom(field, parent, kids, mkOpts, cx, cy) {
     cx = cx != null ? cx : 50; cy = cy != null ? cy : 46;
@@ -1445,7 +1495,7 @@
   }
 
   /* ================= PLAN field ================= */
-  let plWeek = null, plSel = null, plTab = 'agenda', plPart = null;
+  let plWeek = null, plSel = null, plTab = 'agenda', plDetail = null; /* plDetail: null | {step:i} | {part:i} */
 
   const PL = nodeField($('planMap'), $('planLines'), {
     onClick: n => {
@@ -1454,7 +1504,6 @@
         if (p.status === 'future') { plWeek === n.key ? plCollapse() : plSelectFuture(n); }
         else plWeek === n.key ? plCollapse() : plExpand(n.key);
       } else if (n.kind === 'day') plSelect(n.idx);
-      else if (n.kind === 'part') plPartSelect(n.part);
     },
     onBgClick: () => { if (plWeek) plCollapse(); },
     getLines: f => {
@@ -1485,14 +1534,6 @@
               r1: pts[i].ar, r2: pts[i + 1].ar,
               cls, wave: i % 2 ? -1 : 1
             });
-          }
-          if (typeof plSel === 'number') {
-            const day = days.find(n => n.idx === plSel);
-            if (day) f.nodes.filter(n => n.kind === 'part' && !n.dead).forEach(n => out.push({
-              x1: day.rx || day.bx, y1: day.ry || day.by,
-              x2: n.rx || n.bx, y2: n.ry || n.by,
-              cls: n.part === plPart ? 'act' : '', wave: n.part % 2 ? -0.5 : 0.5
-            }));
           }
         }
       }
@@ -1572,7 +1613,7 @@
       n.ts = 1;
       n.el.classList.remove('hid', 'open', 'sel', 'dim');
     });
-    plWeek = null; plSel = null; plPart = null;
+    plWeek = null; plSel = null; plDetail = null;
     PL.home();
     if (rerender !== false) renderPlanSide();
   }
@@ -1582,10 +1623,7 @@
       let dim = false;
       if (plWeek && !n.dead) {
         if (n.kind === 'week' || n.kind === 'none') dim = n.key !== plWeek;
-        else if (typeof plSel === 'number') {
-          if (n.kind === 'day') dim = n.idx !== plSel;
-          else if (n.kind === 'part') dim = plPart != null && n.part !== plPart;
-        }
+        else if (typeof plSel === 'number' && n.kind === 'day') dim = n.idx !== plSel;
       }
       n.el.classList.toggle('dim', dim);
     });
@@ -1600,45 +1638,16 @@
   }
 
   function plSelect(i) {
-    plSel = i; plTab = 'agenda'; plPart = null;
-    spawnParts(i);
+    plSel = i; plTab = 'agenda'; plDetail = null;
     PL.nodes.forEach(n => n.el.classList.toggle('sel', n.kind === 'day' && n.idx === i));
-    const day = PL.nodes.find(n => n.kind === 'day' && !n.dead && n.idx === i);
-    if (day) PL.centerOn(day, visibleCenterX(PL), 38); // slightly high so the exploded parts stay in view
+    plCenterSel();
     plDim();
     renderPlanSide();
   }
 
-  function spawnParts(i) {
-    PL.nodes.filter(n => n.kind === 'part').forEach(n => { n.dead = true; n.ts = 0; n.el.classList.add('hid'); });
-    PL.removeDead();
-    const p = state.plans.find(x => x.id === plWeek);
-    const l = p && p.lessons ? p.lessons[i] : null;
-    const day = PL.nodes.find(n => n.kind === 'day' && n.idx === i);
-    if (!l || !day) return;
-    const parts = partsOf(l);
-    const k = parts.length;
-    const cxp = Math.min(78, Math.max(34, day.px));
-    parts.forEach((pt, j) => {
-      PL.makeNode({
-        kind: 'part', key: plWeek, idx: i, part: j, small: true, cls: 'part',
-        px: Math.max(21, Math.min(92, cxp + (j - (k - 1) / 2) * 11)),
-        py: Math.min(88, day.py + 30),
-        fromX: day.bx, fromY: day.by,
-        pct: 100, text: '', icon: pt.icon, color: pt.color,
-        label: pt.name, sub: pt.kind
-      });
-    });
-  }
-
-  function plPartSelect(j) {
-    plPart = j;
-    PL.nodes.forEach(n => n.el.classList.toggle('sel',
-      n.kind === 'part' ? n.part === j : (n.kind === 'day' && n.idx === plSel)));
-    const pt = PL.nodes.find(n => n.kind === 'part' && !n.dead && n.part === j);
-    if (pt) PL.centerOn(pt, visibleCenterX(PL), 55);
-    plDim();
-    renderPlanSide();
+  function plCenterSel() {
+    const day = PL.nodes.find(n => n.kind === 'day' && !n.dead && n.idx === plSel);
+    if (day) PL.centerOn(day, visibleCenterX(PL), 44);
   }
 
   /* ================= sidebars ================= */
@@ -1652,8 +1661,8 @@
       '<span class="headword">' + w.es + '</span>' +
       '<span class="gloss">' + w.en + '</span>' +
       (tag ? '<span class="wtag">' + tag + '</span>' : '') +
-      dotsHtml(w.p, known) + '</button>' +
-      '<div class="ex"><div><p><span class="es">' + w.ex + '</span></p></div></div></li>';
+      dotsHtml(w.p, known) + sayBtn(w.es) + '</button>' +
+      '<div class="ex"><div><p><span class="es">' + w.ex + '</span></p>' + sayBtn(w.ex) + '</div></div></li>';
   }
   function bar(pct) { return '<div class="sidebar-bar"><i data-w="' + pct + '"></i></div>'; }
   function animBars(root) {
@@ -1684,10 +1693,7 @@
         const p = state.plans.find(x => x.id === plWeek);
         if (p && typeof plSel === 'number' && p.lessons && p.lessons[plSel]) {
           const l = p.lessons[plSel];
-          const pt = plPart != null ? partsOf(l)[plPart] : null;
-          info = pt
-            ? '<b>' + pt.name + '</b><span class="p">' + l.title + '</span>'
-            : '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min · ' + modeOf(l) + '</span>';
+          info = '<b>' + l.title + '</b><span class="p">Day ' + l.n + ' · ~' + l.mins + ' min · ' + modeOf(l) + '</span>';
         } else if (p) {
           info = p.status === 'future'
             ? '<b>Next week</b><span class="p">' + p.title + ' · not written yet</span>'
@@ -1804,16 +1810,71 @@
   });
 
   /* ---- plan sidebar ---- */
-  function stepRows(l) {
-    return '<ul class="steps">' + (l.steps || []).map((s, i) =>
-      '<li><span class="num">' + (i + 1) + '</span>' +
-      '<span class="st">' + s.name + '<small>' + (KINDS[s.k] || s.k) + (s.d ? ' — ' + s.d : '') + '</small></span>' +
-      '<span class="min">' + s.min + ' min</span></li>').join('') + '</ul>';
+  /* which prepared component belongs to a step: explicit s.mat wins, else match by kind */
+  function stepMatIdx(parts, s) {
+    if (s.mat != null && parts[s.mat]) return s.mat;
+    let i = parts.findIndex(pt => pt.kind === s.k);
+    if (i >= 0) return i;
+    const map = { vocab: 'deck', cards: 'deck', exam: 'rubric' };
+    if (map[s.k]) { i = parts.findIndex(pt => pt.kind === map[s.k]); if (i >= 0) return i; }
+    if (s.k === 'story') { i = parts.findIndex(pt => pt.kind === 'news'); if (i >= 0) return i; }
+    return null;
+  }
+
+  function partBodyHtml(pt) {
+    if (pt.kind === 'script') {
+      return '<ul class="scriptrows">' + pt.lines.map(x =>
+        '<li><span class="spk ' + x.s + '">' + x.s + '</span><span>' + x.t + '</span></li>').join('') + '</ul>' +
+        '<div class="aitip">This exact script is what <b>get_next_lesson</b> hands your AI — it improvises around it, never against it.</div>';
+    }
+    if (pt.kind === 'story') {
+      return (pt.stats ? '<span class="mono">' + pt.stats + '</span>' : '') +
+        '<p class="storyzh">' + pt.html + '</p><div class="glossline"></div>' +
+        (pt.en ? '<span class="mono">English</span><p class="desc">' + pt.en + '</p>' : '') +
+        (pt.qs ? '<span class="mono">Comprehension</span><ul class="loglines">' + pt.qs.map(q => '<li>' + q + '</li>').join('') + '</ul>' : '');
+    }
+    if (pt.kind === 'news') {
+      return pt.items.map(it =>
+        '<div class="newsit"><b>' + it.zh + '</b><small>' + (it.py || '') + '</small>' +
+        '<div class="newsmeta">' + (it.url ? '<a href="' + it.url + '" target="_blank" rel="noopener">' + (it.src || 'source') + ' ↗</a>' : '') + '<span>' + (it.diff || '') + '</span></div>' +
+        (it.task ? '<small class="task">' + it.task + '</small>' : '') + '</div>').join('');
+    }
+    if (pt.kind === 'deck') {
+      return pt.cards.map(c => '<div class="deckrow"><span class="zh">' + c.zh + '</span><span class="g">' + c.en + '</span>' + dotsHtml(c.p || 0, false) + sayBtn(c.zh) + '</div>').join('') +
+        '<div class="aitip">Three solid recalls each and they graduate — results land via <b>update_word_strength</b>.</div>';
+    }
+    if (pt.kind === 'drill') {
+      return '<ul class="scriptrows">' + pt.prompts.map((x, i) =>
+        '<li><span class="spk CUE">' + (i + 1) + '</span><span><b>' + x.q + '</b> → ' + x.a + '</span></li>').join('') + '</ul>';
+    }
+    if (pt.kind === 'rubric') {
+      return pt.rows.map(r => '<div class="newsit"><b>' + r.a + '</b><small>' + r.d + '</small></div>').join('') +
+        '<div class="aitip">The exam is a conversation — your AI grades against this silently, never breaking the flow.</div>';
+    }
+    return '<p class="desc" style="margin-top:10px">' + (pt.d || '') + '</p>' +
+      '<div class="aitip">Material without stored content — the full text regenerates on demand via <b>get_next_lesson</b>.</div>';
+  }
+
+  function plDetailHtml(l, parts, stepMats) {
+    if (plDetail.step != null) {
+      const s = l.steps[plDetail.step];
+      const mi = stepMats[plDetail.step];
+      return mi != null
+        ? '<span class="mono" style="display:block; margin-bottom:10px">Step ' + (plDetail.step + 1) + ' · ' + parts[mi].kind + ' · ' + parts[mi].name + '</span>' + partBodyHtml(parts[mi])
+        : '<span class="mono" style="display:block; margin-bottom:10px">Step ' + (plDetail.step + 1) + ' · ' + s.name + '</span>' +
+          '<p class="desc" style="margin-top:4px">No prepared material — this step is live conversation with your AI' + (s.d ? ': ' + s.d : '') + '.</p>';
+    }
+    const pt = parts[plDetail.part];
+    if (!pt) return '';
+    return '<span class="mono" style="display:block; margin-bottom:10px">' + pt.kind + ' · ' + pt.name + '</span>' + partBodyHtml(pt);
   }
 
   function renderPlanSide() {
     const box = $('planSideContent');
     $('planBody').classList.toggle('withside', plSel != null);
+    const wide = typeof plSel === 'number' && plTab === 'agenda' && plDetail != null;
+    $('planSide').classList.toggle('wide', wide);
+    document.body.classList.toggle('panelwide', wide);
     updateChrome();
     if (plSel == null || !plWeek) { box.innerHTML = ''; return; }
 
@@ -1831,77 +1892,50 @@
       const l = p.lessons[plSel];
       const md = modeOf(l);
       const parts = partsOf(l);
-
-      if (plPart != null && parts[plPart]) {
-        const pt = parts[plPart];
-        let pb = '';
-        if (pt.kind === 'script') {
-          pb = '<ul class="scriptrows">' + pt.lines.map(x =>
-            '<li><span class="spk ' + x.s + '">' + x.s + '</span><span>' + x.t + '</span></li>').join('') + '</ul>' +
-            '<div class="aitip">This exact script is what <b>get_next_lesson</b> hands your AI — it improvises around it, never against it.</div>';
-        } else if (pt.kind === 'story') {
-          pb = (pt.stats ? '<span class="mono">' + pt.stats + '</span>' : '') +
-            '<p class="storyzh">' + pt.html + '</p><div class="glossline"></div>' +
-            (pt.en ? '<span class="mono">English</span><p class="desc">' + pt.en + '</p>' : '') +
-            (pt.qs ? '<span class="mono">Comprehension</span><ul class="loglines">' + pt.qs.map(q => '<li>' + q + '</li>').join('') + '</ul>' : '') +
-            '<div class="aitip">Generated from <b>your own vocabulary</b> — tap the dotted words for pinyin, exactly as the in-chat MCP app renders them.</div>';
-        } else if (pt.kind === 'news') {
-          pb = pt.items.map(it =>
-            '<div class="newsit"><b>' + it.zh + '</b><small>' + it.py + '</small>' +
-            '<div class="newsmeta"><a href="' + it.url + '" target="_blank" rel="noopener">' + it.src + ' ↗</a><span>' + it.diff + '</span></div>' +
-            '<small class="task">' + it.task + '</small></div>').join('') +
-            '<div class="aitip">Picked from real sources this morning by your AI — filtered to your vocabulary level.</div>';
-        } else if (pt.kind === 'deck') {
-          pb = pt.cards.map(c => '<div class="deckrow"><span class="zh">' + c.zh + '</span><span class="g">' + c.en + '</span>' + dotsHtml(c.p || 0, false) + '</div>').join('') +
-            '<div class="aitip">Three solid recalls each and they graduate — results land via <b>update_word_strength</b>.</div>';
-        } else if (pt.kind === 'drill') {
-          pb = '<ul class="scriptrows">' + pt.prompts.map((x, i) =>
-            '<li><span class="spk CUE">' + (i + 1) + '</span><span><b>' + x.q + '</b> → ' + x.a + '</span></li>').join('') + '</ul>';
-        } else if (pt.kind === 'rubric') {
-          pb = pt.rows.map(r => '<div class="newsit"><b>' + r.a + '</b><small>' + r.d + '</small></div>').join('') +
-            '<div class="aitip">The exam is a conversation — your AI grades against this silently, never breaking the flow.</div>';
-        } else {
-          pb = '<p class="desc" style="margin-top:10px">' + (pt.d || '') + '</p>' +
-            '<div class="aitip">Archived material — the full text regenerates on demand via <b>get_next_lesson</b>.</div>';
-        }
-        box.innerHTML =
-          '<button class="backlink" data-back="lesson">← ' + l.title + '</button>' +
-          '<div class="modepill">' + iconSvg(pt.icon) + pt.kind + '</div>' + pb;
-        return;
-      }
+      const stepMats = (l.steps || []).map(s => stepMatIdx(parts, s));
+      const orphan = parts.map((pt, i) => i).filter(i => !stepMats.includes(i));
 
       let body = '';
       if (plTab === 'agenda') {
-        body = stepRows(l) +
-          (l.log ? '<span class="mono">Session log</span><ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>' : '') +
-          (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '') +
-          (!l.done && !l.log ? '<div class="aitip">' + (md === 'voice'
+        const list = '<ul class="steps">' + (l.steps || []).map((s, i) =>
+          '<li class="click' + (plDetail && plDetail.step === i ? ' on' : '') + '"><button class="steplink" data-step="' + i + '">' +
+          '<span class="num">' + (i + 1) + '</span>' +
+          '<span class="st">' + s.name + '<small>' + (KINDS[s.k] || s.k) + (s.d ? ' — ' + s.d : '') + '</small>' +
+          (stepMats[i] != null ? '<span class="matlink">▸ ' + parts[stepMats[i]].name + '</span>' : '') +
+          '</span><span class="min">' + s.min + ' min</span></button></li>').join('') + '</ul>' +
+          (orphan.length ? '<span class="mono">Also prepared</span><ul class="siderows">' + orphan.map(i =>
+            '<li data-part="' + i + '"' + (plDetail && plDetail.part === i ? ' class="onrow"' : '') + '><button class="siderow"><span class="dotc" style="background:var(--c-' + (parts[i].color || 'blue') + ')"></span><span class="t">' + parts[i].name + '<small>' + parts[i].kind + '</small></span></button></li>').join('') + '</ul>' : '') +
+          (!l.done && !l.log && !plDetail ? '<div class="aitip">' + (md === 'voice'
             ? 'Type <b>&ldquo;start my lesson&rdquo;</b> in the text chat — your AI preps the script, then you switch to <b>voice mode</b> for the lesson. Finish by typing <b>&ldquo;sync lesson&rdquo;</b> so your results are saved.'
             : 'Type <b>&ldquo;start my lesson&rdquo;</b> — this one runs in <b>' + md + ' mode</b>, with the materials rendered as MCP apps right in the chat. Your AI pulls the exact script via <b>get_next_lesson</b>.') + '</div>' : '');
-      } else if (plTab === 'materials') {
-        body = (l.mats && l.mats.length
-          ? '<ul class="siderows">' + l.mats.map(normMat).map(m =>
-              '<li><div class="siderow" style="cursor:default"><span class="dotc" style="background:var(--blue)"></span><span class="t">' + m.name + (m.d ? '<small>' + m.d + '</small>' : '') + '</span></div></li>').join('') + '</ul>'
-          : '<div class="empty">No materials — this one is pure conversation.</div>') +
-          '<div class="aitip">Every material is <b>generated by your AI</b> — stories built from your own pieces, audio at your pace, real headlines when you&rsquo;re ready.</div>';
-      } else {
+        body = plDetail != null
+          ? '<div class="cols"><div class="lcol">' + list + '</div><div class="rcol">' + plDetailHtml(l, parts, stepMats) + '</div></div>'
+          : list;
+      } else if (plTab === 'skills') {
         const hasW = l.words && l.words.length, hasG = l.grammar && l.grammar.length;
         body =
-          (hasW ? '<span class="mono">Pieces</span><div>' + l.words.map(w => '<button class="wchip c" data-goword="' + w + '">' + w + '</button>').join('') + '</div>' : '') +
+          (hasW ? '<ul class="wordlist">' + l.words.map(wz => {
+              const hit = allWords().find(x => x.w.es === wz);
+              const w = hit ? hit.w : { es: wz, en: '', p: 0, ex: '' };
+              return wordLi(w, !!(hit && hit.k), hit && hit.k ? 'mastered' : null);
+            }).join('') + '</ul>' : '') +
           (hasG ? '<span class="mono">Grammar</span><div>' + l.grammar.map(g => '<button class="wchip" data-gogram="' + g + '">' + g + '</button>').join('') + '</div>' : '') +
-          (!hasW && !hasG ? '<div class="empty">This lesson reviews everything — no new nodes.</div>' : '') +
-          '<div class="aitip">These are the nodes this lesson feeds on your <b>skill map</b> — tap one to jump there.</div>';
+          (!hasW && !hasG ? '<div class="empty">This lesson reviews everything — no new pieces.</div>' : '') +
+          '<div class="aitip">These feed your <b>skill map</b> — dots show recall strength, tap a row for the example, ' + (canSpeak ? 'the speaker reads it aloud, ' : '') + 'grammar chips jump to the map.</div>';
+      } else {
+        body = (l.log && l.log.length
+            ? '<ul class="loglines">' + l.log.map(x => '<li>' + x + '</li>').join('') + '</ul>'
+            : '<div class="empty">No session yet — start the lesson.</div>') +
+          (l.progNote ? '<div class="aitip"><b>Progress:</b> ' + l.progNote + '</div>' : '') +
+          (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '');
       }
       box.innerHTML =
         '<div class="modepill" style="margin-top:8px">' + iconSvg(MODES[md].icon) + md + ' lesson</div>' +
         '<p class="desc" style="padding-right:24px">' + l.obj + '</p>' +
         '<div class="ptabs">' +
-          ['agenda', 'materials', 'nodes'].map(t =>
+          ['agenda', 'skills', 'log'].map(t =>
             '<button data-ptab="' + t + '" class="' + (t === plTab ? 'on' : '') + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>').join('') +
-        '</div>' + body +
-        '<span class="mono">Prepared components · exploded on the map</span>' +
-        '<ul class="siderows">' + parts.map((pt, j) =>
-          '<li data-part="' + j + '"><button class="siderow"><span class="dotc" style="background:var(--c-' + (pt.color || 'blue') + ')"></span><span class="t">' + pt.name + '<small>' + pt.kind + '</small></span></button></li>').join('') + '</ul>';
+        '</div>' + body;
       return;
     }
 
@@ -1933,18 +1967,22 @@
   }
 
   $('planSide').addEventListener('click', e => {
-    const back = e.target.closest('[data-back="lesson"]');
-    if (back) {
-      plPart = null;
-      PL.nodes.forEach(n => n.el.classList.toggle('sel', n.kind === 'day' && n.idx === plSel));
-      const day = PL.nodes.find(n => n.kind === 'day' && !n.dead && n.idx === plSel);
-      if (day) PL.centerOn(day, visibleCenterX(PL), 38);
-      plDim();
-      renderPlanSide();
+    const st = e.target.closest('[data-step]');
+    if (st) {
+      const i = +st.dataset.step;
+      plDetail = plDetail && plDetail.step === i ? null : { step: i };
+      renderPlanSide(); plCenterSel();
       return;
     }
     const pp = e.target.closest('li[data-part]');
-    if (pp) { plPartSelect(+pp.dataset.part); return; }
+    if (pp) {
+      const i = +pp.dataset.part;
+      plDetail = plDetail && plDetail.part === i ? null : { part: i };
+      renderPlanSide(); plCenterSel();
+      return;
+    }
+    const row = e.target.closest('.wordrow');
+    if (row) { row.parentElement.classList.toggle('open'); return; }
     const z = e.target.closest('.zi');
     if (z) {
       const root = $('planSideContent');
@@ -1956,9 +1994,7 @@
       return;
     }
     const tb = e.target.closest('[data-ptab]');
-    if (tb) { plTab = tb.dataset.ptab; renderPlanSide(); return; }
-    const gw = e.target.closest('[data-goword]');
-    if (gw) { gotoWordNode(gw.dataset.goword); return; }
+    if (tb) { plTab = tb.dataset.ptab; plDetail = null; renderPlanSide(); plCenterSel(); return; }
     const gg = e.target.closest('[data-gogram]');
     if (gg) { gotoGrammarNode(gg.dataset.gogram); return; }
     const le = e.target.closest('li[data-lesson]');
@@ -1968,8 +2004,9 @@
   $('planClose').addEventListener('click', () => {
     const p = plWeek ? state.plans.find(x => x.id === plWeek) : null;
     if (p && p.status === 'future') { plWeek = null; }
-    plSel = null;
+    plSel = null; plDetail = null;
     PL.nodes.forEach(n => n.el.classList.remove('sel'));
+    plDim();
     renderPlanSide();
   });
 
@@ -2098,11 +2135,11 @@
       if (typeof s.v === 'number' && s.v !== lastV) {
         lastV = s.v;
         state = s;
-        const keepWeek = plWeek, keepSel = plSel, keepPart = plPart;
+        const keepWeek = plWeek, keepSel = plSel, keepTab = plTab, keepDetail = plDetail;
         renderAll();
         if (keepWeek && state.plans.some(p => p.id === keepWeek && p.status !== 'future')) {
           plExpand(keepWeek);
-          if (typeof keepSel === 'number') { plSelect(keepSel); if (keepPart != null) plPartSelect(keepPart); }
+          if (typeof keepSel === 'number') { plSelect(keepSel); plTab = keepTab; plDetail = keepDetail; renderPlanSide(); }
         }
       }
     } catch (e) { /* static mode — keep local seed */ }
