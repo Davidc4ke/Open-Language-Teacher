@@ -202,8 +202,9 @@
     display: flex; gap: 12px; align-items: flex-start; width: 100%; border: 0; background: none; padding: 0;
     font-family: var(--sans); color: var(--ink); text-align: left; cursor: pointer;
   }
-  .steps li.click { border-radius: 12px; transition: background-color .2s; padding-left: 4px; padding-right: 6px; }
+  .steps li.click { border-radius: 12px; transition: background-color .2s; padding-left: 4px; padding-right: 6px; margin: 3px 0; }
   .steps li.click:hover, .steps li.on { background: var(--chip); }
+  .steps li.click:not(:last-child)::before { bottom: -10px; left: 17px; }
   .steps li.on .num { background: var(--navy); color: var(--navy-ink); }
   .matlink { display: block; color: var(--blue); font-weight: 700; font-size: 12px; margin-top: 5px; }
   .siderows li.onrow .siderow { background: var(--chip); }
@@ -736,7 +737,7 @@
       <div class="ptext">Start my next lesson from Open Language Teacher. I&rsquo;m typing this in text mode on purpose — tool calls don&rsquo;t work in voice mode. Call get_next_lesson and show me the agenda and its checklist. If it&rsquo;s a voice lesson, tell me to switch to voice mode and hold the lesson there — teach exactly this lesson, keep the checklist of every step and target word, don&rsquo;t end early, and remind me at the start AND at the end that I must exit voice mode and type &ldquo;sync lesson&rdquo; when we finish. Chat and reading lessons run right here.</div>
       <button class="copy">Copy prompt</button></div>
     <div class="pcard"><b>Sync lesson</b><p>Type this after a voice lesson — saves everything to the app.</p>
-      <div class="ptext">Sync lesson: we just finished my voice lesson. Tick everything we actually covered with save_lesson_progress (steps, target words, strengths), then call complete_lesson with a session log and a note for tomorrow — but ONLY mark it complete if every checklist item was truly done; otherwise save partial progress and leave it incomplete so it resumes next time.</div>
+      <div class="ptext">Sync lesson: we just finished my voice lesson. First add every word or phrase I asked about or learned incidentally with add_words (I don&rsquo;t fully know those — I want to practice them). Then tick everything we actually covered with save_lesson_progress (steps, target words, strengths) and call complete_lesson with a session log and a note for tomorrow — but ONLY mark it complete if every checklist item was truly done; otherwise save partial progress and leave it incomplete so it resumes next time.</div>
       <button class="copy">Copy prompt</button></div>
     <div class="pcard"><b>Plan next week</b><p>Reviews what stuck and writes the next short plan.</p>
       <div class="ptext">My week in Open Language Teacher is done. Review my results with get_profile and get_vocab, then write next week&rsquo;s plan with create_plan — short, about five lessons, following get_plan_instructions.</div>
@@ -1334,6 +1335,26 @@
 
   /* simple voice mode: the browser speaks in the learner's target language */
   const canSpeak = 'speechSynthesis' in window;
+  let voiceList = [];
+  if (canSpeak) {
+    const loadVoices = () => { voiceList = speechSynthesis.getVoices(); };
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  /* the AI may store "Chinese" instead of "zh-CN" — normalize to a real BCP-47 tag */
+  function speechLang() {
+    const raw = ((state.profile && state.profile.language) || '').trim();
+    if (/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(raw)) return raw;
+    const t = (raw + ' ' + ((state.profile && state.profile.languageLabel) || '')).toLowerCase();
+    const MAP = [
+      [/chin|mandarin|中文|普通话|zh/, 'zh-CN'], [/cantonese|粤/, 'zh-HK'], [/spanish|españ/, 'es-ES'],
+      [/french|franç/, 'fr-FR'], [/german|deutsch/, 'de-DE'], [/japan|日本/, 'ja-JP'],
+      [/korean|한국/, 'ko-KR'], [/italian/, 'it-IT'], [/portugu/, 'pt-BR'], [/dutch|nederl/, 'nl-NL'],
+      [/russian|рус/, 'ru-RU'], [/arabic|عرب/, 'ar-SA'], [/hindi/, 'hi-IN'], [/english/, 'en-US']
+    ];
+    for (const [re, code] of MAP) if (re.test(t)) return code;
+    return 'en-US';
+  }
   function sayBtn(txt) {
     if (!canSpeak || !txt) return '';
     return '<span class="say" role="button" tabindex="0" aria-label="Listen" data-say="' + String(txt).replace(/"/g, '&quot;') + '">' +
@@ -1343,13 +1364,18 @@
     const s = e.target.closest('.say');
     if (!s) return;
     e.stopPropagation();
+    if (!voiceList.length) voiceList = speechSynthesis.getVoices();
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(s.dataset.say);
-    u.lang = (state.profile && state.profile.language) || 'en';
+    const lang = speechLang(), base = lang.split('-')[0].toLowerCase();
+    u.lang = lang;
+    const norm = v => v.lang.replace('_', '-').toLowerCase();
+    const v = voiceList.find(x => norm(x) === lang.toLowerCase()) || voiceList.find(x => norm(x).startsWith(base));
+    if (v) u.voice = v;
     u.rate = 0.85;
     s.classList.add('playing');
     u.onend = u.onerror = () => s.classList.remove('playing');
-    speechSynthesis.speak(u);
+    setTimeout(() => { speechSynthesis.resume(); speechSynthesis.speak(u); }, 60); // Chrome mutes speak() fired in the same tick as cancel()
   }, true);
 
   function bloom(field, parent, kids, mkOpts, cx, cy) {

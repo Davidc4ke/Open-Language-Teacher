@@ -168,7 +168,12 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    Tick covered items with save_lesson_progress during/after the session; complete_lesson is REJECTED
    while items are open (force: true only when the learner explicitly skips). A session log never
    implies completion — partial sessions stay incomplete and resume on the next get_next_lesson.
-13. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
+13. INCIDENTAL WORDS: whenever the learner asks what a word/phrase means, or you teach a support word
+   beyond the plan (e.g. they ask "本身不难 什么意思?"), that word is BY DEFINITION one they don't fully
+   know — proactively queue it with add_words (word, gloss, example, a fitting topic) so it enters their
+   practice rotation. In voice mode collect them and add them all during the "sync lesson" step. Tell the
+   learner you saved them.
+14. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
    level ≤ 48, plan title ≤ 40, plan focus ≤ 90 (one line), lesson titles ≤ 40. Long assessments go in
    update_profile's levelNote; long teaching prose goes in lesson objectives and parts.`;
 
@@ -365,7 +370,7 @@ function buildMcp(user) {
   });
 
   server.registerTool('add_words', {
-    title: 'Add words', description: 'Queue new pieces to learn. Each: {word (target language), gloss (romanization · translation), topic, ex (example sentence)}. Each distinct topic automatically becomes a node on the learner\'s vocabulary map — reuse existing topic names (see get_vocab) instead of inventing near-duplicates.',
+    title: 'Add words', description: 'Queue new pieces to learn. Each: {word (target language), gloss (romanization · translation), topic, ex (example sentence)}. Each distinct topic automatically becomes a node on the learner\'s vocabulary map — reuse existing topic names (see get_vocab) instead of inventing near-duplicates. Use PROACTIVELY for incidental vocabulary too: any word the learner asked about or you explained mid-lesson is one they don\'t fully know — queue it so it enters their practice rotation.',
     inputSchema: {
       words: z.array(z.object({
         word: z.string(), gloss: z.string(),
@@ -580,8 +585,8 @@ function buildMcp(user) {
     const ck = checklistOf(l);
     const started = ck.steps.some(s => s.done) || ck.words.some(w => w.done);
     const protocol = (l.mode || 'voice') === 'voice'
-      ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it, tick everything actually covered with save_lesson_progress, record strengths, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
-      : 'Run this ' + l.mode + ' lesson right here in text chat. Tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
+      ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it: first add_words for every word/phrase the learner asked about or picked up incidentally during the session (they don\'t fully know those — queue them for practice and say so), then tick everything actually covered with save_lesson_progress, record strengths, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
+      : 'Run this ' + l.mode + ' lesson right here in text chat. Queue incidental words the learner asks about with add_words as they come up, tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
     const discipline = 'LESSON DISCIPLINE: teach exactly THIS lesson — do not invent a different one or swap target words for related words. Side explanations are fine (max ~1 extra concept) but always return to the checklist. Never say "last one" or end because the learner says "ok/好" — before closing, list which checklist items are done and which are missing, and keep going (or save partial progress with save_lesson_progress and leave the lesson incomplete) until every step and target word is truly covered, the story/drill ran, and the recall check happened.';
     return text({
       ok: true, plan: p.title, focus: p.focus, lesson: l,
