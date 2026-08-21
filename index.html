@@ -85,6 +85,10 @@
     transition: background-color .35s ease, margin .45s cubic-bezier(.3,.8,.3,1);
   }
   body.panelopen .topbar { margin: 14px 368px 0 16px; }
+  /* focused mode: a selection turns the topbar into a pure selection header */
+  body.panelopen .brand, body.panelopen .topnav, body.panelopen .langchip,
+  body.panelopen .aibtn, body.panelopen .iconbtn { display: none; }
+  body.panelopen .topinfo { margin-left: 0; padding-left: 6px; border-left: 0; }
   .topinfo {
     display: none; align-items: center; gap: 10px; min-width: 0;
     margin-left: 6px; padding-left: 16px; border-left: 1.5px solid var(--line);
@@ -588,6 +592,7 @@
     .brand span { display: none; }
     .sk-head { flex-wrap: wrap; margin: 12px; }
     .topinfo, .langchip { display: none !important; }
+    body.panelopen .brand, body.panelopen .topnav { display: flex; } /* mobile bar must not go empty */
     .sk-side { top: 10px; right: 10px; bottom: 10px; }
     .ai { top: 76px; right: 10px; bottom: 10px; }
   }
@@ -1474,13 +1479,13 @@
   function trunc(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; }
 
   function weekNodeOpts(p) {
-    if (p.status === 'future') return { kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], ghost: true, cls: 'wk', label: 'Next week', sub: p.title + ' · ' + p.range };
+    if (p.status === 'future') return { kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], ghost: true, cls: 'wk', label: 'Next week', sub: p.title };
     const pct = planPct(p);
     return {
       kind: 'week', key: p.id, px: p.pos[0], py: p.pos[1], pct,
       text: p.status === 'past' ? '✓' : p.lessons.filter(l => l.done).length + '/' + p.lessons.length,
       label: trunc(p.topic, 90),
-      sub: p.title + (p.status === 'current' ? ' · now' : '') + ' · ' + p.range,
+      sub: p.title,
       cls: 'wk' + (p.status === 'past' ? ' done-n' : '')
     };
   }
@@ -1511,17 +1516,17 @@
     const next = p.status === 'current' ? p.lessons.find(l => !l.done) : null;
     const w = PL.canvas.clientWidth || window.innerWidth;
     const rightEdge = Math.max(60, Math.min(90, ((w - 380) / w) * 100));
-    const step = (rightEdge - 24) / Math.max(1, p.lessons.length - 1);
+    const step = (rightEdge - 31) / Math.max(1, p.lessons.length - 1);
     p.lessons.forEach((l, i) => {
       PL.makeNode({
         kind: 'day', key: id, idx: i, small: true,
-        px: 24 + i * step, py: p.pos[1],
+        px: 31 + i * step, py: p.pos[1],
         fromX: parent.bx, fromY: parent.by,
         pct: l.done ? 100 : 0,
         text: l.done ? '✓' : l.n,
         icon: l.icon, color: l.color,
         label: l.title,
-        sub: 'day ' + l.n + ' · ' + l.mins + ' min · ' + modeOf(l),
+        sub: l.mins + ' min',
         cls: next && l.n === next.n ? 'sel' : ''
       });
     });
