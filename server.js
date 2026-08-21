@@ -219,7 +219,12 @@ const PartZ = z.object({
     zh: z.string().describe('Headline in the target language'), py: z.string().optional().describe('Romanization'),
     url: z.string().optional(), src: z.string().optional(), diff: z.string().optional(), task: z.string().optional()
   })).optional().describe('kind "news": real headline items with links'),
-  cards: z.array(z.object({ zh: z.string(), en: z.string(), p: z.number().optional() })).optional().describe('kind "deck": flashcards'),
+  cards: z.array(z.object({
+    zh: z.string().describe('The piece in the target language'),
+    py: z.string().optional().describe('Romanization/pinyin — include it, the app shows it on the card'),
+    en: z.string().describe('Translation'),
+    p: z.number().optional()
+  })).optional().describe('kind "deck": flashcards'),
   prompts: z.array(z.object({ q: z.string(), a: z.string() })).optional().describe('kind "drill": prompt → expected answer'),
   rows: z.array(z.object({ a: z.string().describe('Aspect'), d: z.string().describe('Descriptor') })).optional().describe('kind "rubric"')
 });

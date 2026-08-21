@@ -85,10 +85,11 @@
     transition: background-color .35s ease, margin .45s cubic-bezier(.3,.8,.3,1);
   }
   body.panelopen .topbar { margin: 14px 368px 0 16px; }
-  /* focused mode: a selection turns the topbar into a pure selection header */
-  body.panelopen .brand, body.panelopen .topnav, body.panelopen .langchip,
-  body.panelopen .aibtn, body.panelopen .iconbtn { display: none; }
-  body.panelopen .topinfo { margin-left: 0; padding-left: 6px; border-left: 0; }
+  /* focused mode: a deep selection turns the topbar into a pure selection header
+     (an auto-expanded week keeps the full topbar) */
+  body.panelfocus .brand, body.panelfocus .topnav, body.panelfocus .langchip,
+  body.panelfocus .aibtn, body.panelfocus .iconbtn { display: none; }
+  body.panelfocus .topinfo { margin-left: 0; padding-left: 6px; border-left: 0; }
   .topinfo {
     display: none; align-items: center; gap: 10px; min-width: 0;
     margin-left: 6px; padding-left: 16px; border-left: 1.5px solid var(--line);
@@ -117,6 +118,7 @@
   .topnav button.active { background: var(--navy); color: var(--navy-ink); }
   .spacer { flex: 1; }
   .iconbtn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); font-size: 15px; transition: background-color .2s, transform .15s; flex: none; }
+  .iconbtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .iconbtn:hover { background: var(--chip); color: var(--ink); transform: translateY(-1px); }
   .aibtn {
     display: inline-flex; align-items: center; gap: 8px; flex: none;
@@ -458,23 +460,23 @@
   .flash { animation: flashbg 1.5s ease both; }
   @keyframes flashbg { 0% { background-color: var(--green-soft); } 100% { background-color: transparent; } }
 
-  /* ---------- AI panel (always dark, floats over the app) ---------- */
+  /* ---------- AI panel — same card language as the map sidebars ---------- */
   .ai {
-    position: fixed; top: 84px; right: 20px; bottom: 20px; width: min(392px, calc(100vw - 40px));
-    background: #0E1118; color: #EDEFF6;
-    border-radius: 28px; z-index: 40;
-    box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px #262B38;
+    position: fixed; top: 14px; right: 14px; bottom: 14px; width: min(324px, calc(100vw - 28px));
+    background: var(--card); color: var(--ink);
+    border-radius: 22px; z-index: 40;
+    box-shadow: 0 2px 4px rgba(23,32,58,.06), 0 24px 60px rgba(23,32,58,.16);
     display: flex; flex-direction: column; overflow: hidden;
-    opacity: 0; transform: translateX(28px) scale(.97); pointer-events: none;
-    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.25,.4,1);
+    opacity: 0; transform: translateX(18px); pointer-events: none;
+    transition: opacity .3s ease, transform .45s cubic-bezier(.3,1.2,.4,1), background-color .35s ease;
   }
   .ai.open { opacity: 1; transform: none; pointer-events: auto; }
   .ai-head { display: flex; align-items: center; gap: 11px; padding: 18px 20px 12px; }
   .ai-dot { width: 30px; height: 30px; border-radius: 50%; flex: none; background: radial-gradient(circle at 32% 30%, #9DB9FF, #2E63E7 62%, #1B3FA3); }
   .ai-head b { font-size: 14.5px; font-weight: 800; display: block; line-height: 1.2; }
-  .ai-head small { font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: #8B93A8; }
-  .ai-head .x { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #8B93A8; font-size: 14px; transition: background-color .2s, color .2s; }
-  .ai-head .x:hover { background: #1C2130; color: #EDEFF6; }
+  .ai-head small { font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); }
+  .ai-head .x { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); font-size: 14px; transition: background-color .2s, color .2s; }
+  .ai-head .x:hover { background: var(--chip); color: var(--ink); }
   .orbwrap { display: grid; place-items: center; padding: 14px 0 6px; gap: 10px; }
   .orb {
     width: 88px; height: 88px; border-radius: 50%; position: relative;
@@ -552,23 +554,23 @@
   .glossline { margin-top: 8px; min-height: 15px; font-family: var(--mono); font-size: 11px; color: #7FA3F2; }
 
   @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
-  .ai-foot { padding: 12px 20px 16px; font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: #5A6378; border-top: 1px solid #1C2130; display: flex; align-items: center; gap: 8px; }
-  .ai-foot i { width: 6px; height: 6px; border-radius: 50%; background: #6FC28F; flex: none; }
+  .ai-foot { padding: 12px 20px 16px; font-family: var(--mono); font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .ai-foot i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
   .ai-foot span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* prompt library */
   .ai-scroll { flex: 1; overflow-y: auto; padding: 8px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
-  .connectbox { background: #141824; border: 1px solid #2B3242; border-radius: 14px; padding: 14px; font-size: 12.5px; color: #B9C0D0; }
-  .connectbox b { color: #EDEFF6; font-size: 13.5px; }
-  .connectbox p { margin: 4px 0 10px; color: #8B93A8; font-size: 11.5px; line-height: 1.5; }
-  .kvrow { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px; color: #8B93A8; text-transform: uppercase; letter-spacing: .08em; }
-  .kvrow code { font-family: var(--mono); font-size: 10px; background: #0E1118; padding: 4px 8px; border-radius: 8px; color: #7FA3F2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-transform: none; letter-spacing: 0; }
-  .pcard { background: #12151F; border: 1px solid #262B38; border-radius: 14px; padding: 14px; }
-  .pcard b { font-size: 13.5px; color: #EDEFF6; }
-  .pcard p { margin: 3px 0 10px; font-size: 12px; color: #8B93A8; }
-  .ptext { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; color: #B9C0D0; background: #0E1118; border-radius: 10px; padding: 10px 12px; user-select: all; }
-  .copy { margin-top: 10px; border: 1px solid #2B3242; background: #141824; color: #7FA3F2; font-weight: 800; font-size: 11.5px; border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: var(--sans); transition: background-color .2s; }
-  .copy:hover { background: #1B2130; }
+  .connectbox { background: var(--chip); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; font-size: 12.5px; color: var(--muted); }
+  .connectbox b { color: var(--ink); font-size: 13.5px; }
+  .connectbox p { margin: 4px 0 10px; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+  .kvrow { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; }
+  .kvrow code { font-family: var(--mono); font-size: 10px; background: var(--card); padding: 4px 8px; border-radius: 8px; color: var(--blue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-transform: none; letter-spacing: 0; }
+  .pcard { background: var(--chip); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; }
+  .pcard b { font-size: 13.5px; color: var(--ink); }
+  .pcard p { margin: 3px 0 10px; font-size: 12px; color: var(--muted); }
+  .ptext { font-family: var(--mono); font-size: 10.5px; line-height: 1.6; color: var(--muted); background: var(--card); border-radius: 10px; padding: 10px 12px; user-select: all; }
+  .copy { margin-top: 10px; border: 1.5px solid var(--line); background: var(--card); color: var(--blue); font-weight: 800; font-size: 11.5px; border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: var(--sans); transition: background-color .2s, border-color .2s; }
+  .copy:hover { border-color: var(--blue); }
 
   /* sync gate */
   .gate {
@@ -622,9 +624,9 @@
     .brand span { display: none; }
     .sk-head { flex-wrap: wrap; margin: 12px; }
     .topinfo, .langchip { display: none !important; }
-    body.panelopen .brand, body.panelopen .topnav { display: flex; } /* mobile bar must not go empty */
+    body.panelfocus .brand, body.panelfocus .topnav { display: flex; } /* mobile bar must not go empty */
     .sk-side { top: 10px; right: 10px; bottom: 10px; }
-    .ai { top: 76px; right: 10px; bottom: 10px; }
+    .ai { top: 10px; right: 10px; bottom: 10px; }
   }
 </style>
 
@@ -637,8 +639,8 @@
   <div class="topinfo" id="topInfo"></div>
   <div class="spacer"></div>
   <span class="langchip" title="The language you are learning"><b>中文</b> Mandarin · <span class="lvl">HSK 4</span></span>
-  <button class="iconbtn" id="logoutBtn" hidden title="Sign out">⎋</button>
-  <button class="iconbtn" id="themeToggle" title="Toggle theme">☾</button>
+  <button class="iconbtn" id="logoutBtn" hidden title="Sign out"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+  <button class="iconbtn" id="themeToggle" title="Toggle theme"><svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   <button class="aibtn" id="aiOpen"><span class="live" id="liveDot"></span>Your AI</button>
 </header>
 
@@ -724,9 +726,9 @@
     <button class="x" id="aiClose">✕</button>
   </div>
   <div class="ai-scroll" id="aiScroll">
-    <div class="connectbox" id="connectBox" hidden>
-      <b>Connect first</b>
-      <p>Add this MCP connector to your AI (ChatGPT → Settings → Apps &amp; Connectors → Advanced → Developer mode → Create connector, auth: none).</p>
+    <div class="connectbox" id="connectBox">
+      <b id="connectTitle">Connect first</b>
+      <p id="connectDesc">Add this MCP connector to your AI (ChatGPT → Settings → Apps &amp; Connectors → Advanced → Developer mode → Create connector, auth: none).</p>
       <div class="kvrow"><span>URL</span><code id="aiMcpUrl">—</code><button class="copy" data-copy-target="aiMcpUrl">Copy</button></div>
       <div class="kvrow"><span>Code</span><code id="aiPairCode">—</code></div>
     </div>
@@ -1728,6 +1730,7 @@
       }
     }
     document.body.classList.toggle('panelopen', open);
+    document.body.classList.toggle('panelfocus', open && (view === 'skills' || typeof plSel === 'number'));
     const ti = $('topInfo');
     ti.innerHTML = info;
     ti.classList.toggle('has', !!info && open);
@@ -1866,7 +1869,13 @@
         (it.task ? '<small class="task">' + it.task + '</small>' : '') + '</div>').join('');
     }
     if (pt.kind === 'deck') {
-      return pt.cards.map(c => '<div class="deckrow"><span class="zh">' + c.zh + '</span><span class="g">' + c.en + '</span>' + dotsHtml(c.p || 0, false) + sayBtn(c.zh) + '</div>').join('') +
+      return pt.cards.map(c => {
+        const hit = allWords().find(x => x.w.es === c.zh);
+        const gloss = c.py ? c.py + (c.en ? ' · ' + c.en : '')
+          : ((!c.en || !c.en.includes('·')) && hit && hit.w.en ? hit.w.en : (c.en || ''));
+        const p = hit ? hit.w.p : (c.p || 0);
+        return '<div class="deckrow"><span class="zh">' + c.zh + '</span><span class="g">' + gloss + '</span>' + dotsHtml(p, !!(hit && hit.k)) + sayBtn(c.zh) + '</div>';
+      }).join('') +
         '<div class="aitip">Three solid recalls each and they graduate — results land via <b>update_word_strength</b>.</div>';
     }
     if (pt.kind === 'drill') {
@@ -2079,18 +2088,27 @@
         if (on) reveal(s);
       });
       if (btn.dataset.target === 'skills') { PL.stop(); SK.start(); }
-      else { SK.stop(); PL.start(); }
+      else {
+        SK.stop(); PL.start();
+        if (!plWeek) { const cur = curPlan(); if (cur) plExpand(cur.id); } // open straight onto this week
+      }
       updateChrome();
       window.scrollTo({ top: 0 });
     });
   });
 
-  $('themeToggle').addEventListener('click', () => {
+  const MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  const SUN = '<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"/>';
+  function isDark() {
     const root = document.documentElement;
-    const dark = root.dataset.theme === 'dark' ||
+    return root.dataset.theme === 'dark' ||
       (root.dataset.theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.dataset.theme = dark ? 'light' : 'dark';
-    $('themeToggle').textContent = dark ? '☾' : '☀';
+  }
+  function paintThemeIcon() { $('themeIcon').innerHTML = isDark() ? SUN : MOON; }
+  paintThemeIcon();
+  $('themeToggle').addEventListener('click', () => {
+    document.documentElement.dataset.theme = isDark() ? 'light' : 'dark';
+    paintThemeIcon();
   });
 
   /* ================= AI panel — prompt library ================= */
@@ -2139,7 +2157,10 @@
     $('gateUrl').textContent = s.mcpUrl || '—';
     $('aiMcpUrl').textContent = s.mcpUrl || '—';
     $('aiPairCode').textContent = s.pairCode || '—';
-    $('connectBox').hidden = !!s.synced;
+    $('connectTitle').textContent = s.synced ? 'Connection' : 'Connect first';
+    $('connectDesc').textContent = s.synced
+      ? 'Your AI is linked. If the connector ever breaks, re-create it in your AI with this same URL (auth: none).'
+      : 'Add this MCP connector to your AI (ChatGPT → Settings → Apps & Connectors → Advanced → Developer mode → Create connector, auth: none).';
     $('gate').hidden = !!s.synced || gateDismissed;
     $('aiFootUrl').textContent = 'MCP · ' + (s.mcpUrl || 'personal endpoint').replace(/^https?:\/\//, '');
   }
