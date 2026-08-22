@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About you · Open Language Teacher</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+    --bg:#EDF0F5; --card:#FFFFFF; --ink:#17203A; --muted:#66708A; --faint:#9AA3B8;
+    --line:#E3E7EF; --blue:#2E63E7; --green:#35935B; --coral:#DA6A4C; --amber:#B47816;
+    --violet:#6D4FC2; --teal:#1F8A8C; --chip:#F1F4F9;
+    --navy:#1E2B4D; --navy-ink:#FFFFFF;
+    --shadow:0 1px 2px rgba(23,32,58,.04), 0 18px 50px rgba(23,32,58,.10);
+    --sans:'Nunito Sans','Segoe UI','PingFang SC','Microsoft YaHei',Arial,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --gridc:color-mix(in srgb, var(--faint) 11%, transparent);
+  }
+  * { box-sizing:border-box; margin:0; }
+  body {
+    background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:14px; min-height:100vh; overflow-x:hidden;
+    background-image:radial-gradient(var(--gridc) 1.5px, transparent 1.5px); background-size:26px 26px;
+  }
+  .mono { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); }
+
+  /* ============ scene stage ============ */
+  .stage { position:fixed; inset:0; overflow-y:auto; display:none; padding:34px 16px 122px; }
+  .stage.on { display:grid; place-items:center; }
+  body[data-onb="1"] .stage.on { align-items:end; }
+  .scenewrap { width:100%; display:grid; place-items:center; gap:18px; }
+  .kicker { text-align:center; }
+  .kicker .mono { display:block; margin-bottom:6px; }
+  .kicker h2 { font-size:22px; font-weight:900; letter-spacing:-.01em; }
+  .kicker p { color:var(--muted); font-size:13.5px; margin-top:4px; max-width:52ch; }
+
+  /* login + gate cards */
+  .authcard { width:min(380px, calc(100vw - 32px)); background:var(--card); border-radius:24px; box-shadow:var(--shadow); padding:32px 30px 28px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:900; font-size:16px; margin-bottom:20px; }
+  .mark { width:20px; height:20px; border-radius:50%; border:2.5px solid var(--blue); display:grid; place-items:center; flex:none; }
+  .mark::after { content:""; width:7px; height:7px; border-radius:50%; background:var(--blue); }
+  .authcard h3 { font-size:22px; font-weight:900; margin-bottom:2px; }
+  .authcard .sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+  .authcard label { display:block; font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin:12px 0 6px; }
+  .authcard input {
+    width:100%; border:1.5px solid var(--line); border-radius:12px; background:var(--chip);
+    padding:11px 14px; font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ink); outline:none;
+  }
+  .bigbtn { width:100%; margin-top:20px; border:0; border-radius:999px; cursor:pointer; background:var(--navy); color:var(--navy-ink); font-family:var(--sans); font-size:15px; font-weight:800; padding:13px; }
+  .authfoot { margin-top:14px; font-size:12px; color:var(--faint); text-align:center; }
+  .codebox { font-family:var(--mono); font-size:26px; font-weight:700; letter-spacing:.14em; color:var(--blue); background:var(--chip); border-radius:14px; padding:14px; text-align:center; margin:14px 0 6px; }
+  .urlrow { display:flex; align-items:center; gap:8px; margin:10px 0 16px; }
+  .urlrow code { flex:1; min-width:0; font-family:var(--mono); font-size:10.5px; background:var(--chip); border-radius:8px; padding:8px 10px; color:var(--blue); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .copybtn { border:1.5px solid var(--line); background:var(--card); color:var(--blue); font-weight:800; font-size:11.5px; border-radius:999px; padding:6px 14px; cursor:pointer; font-family:var(--sans); }
+  .steps3 { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  .steps3 div { display:flex; gap:11px; font-size:13px; color:var(--muted); line-height:1.5; }
+  .steps3 b { color:var(--ink); }
+  .steps3 .n { flex:none; width:22px; height:22px; border-radius:50%; background:var(--chip); color:var(--muted); display:grid; place-items:center; font-family:var(--mono); font-size:10.5px; font-weight:700; margin-top:1px; }
+  .pulse { display:flex; align-items:center; gap:8px; margin-top:16px; font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); }
+  .pulse i { width:7px; height:7px; border-radius:50%; background:var(--green); animation:ping 2s ease-out infinite; }
+  @keyframes ping { 0% { box-shadow:0 0 0 0 color-mix(in srgb, var(--green) 45%, transparent); } 100% { box-shadow:0 0 0 12px transparent; } }
+
+  /* onboarding — one question per node on a little map */
+  .omap { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .ocards { position:relative; z-index:1; }
+  .ocards { display:flex; flex-direction:column; gap:12px; width:min(900px, calc(100vw - 32px)); }
+  .onb { background:var(--card); border-radius:20px; box-shadow:var(--shadow); }
+  .oq.sm { font-size:15.5px; font-weight:800; margin-bottom:11px; }
+  .orow.bare { margin-top:4px; padding:0 4px; }
+  .oworld { position:absolute; inset:0; transform-origin:0 0; transition:transform .7s cubic-bezier(.2,.8,.2,1); }
+  .olines { position:absolute; inset:0; width:100%; height:100%; }
+  .olines path { fill:none; stroke:var(--line); stroke-width:2.5; stroke-dasharray:5 8; stroke-linecap:round; transition:stroke .5s; }
+  .olines path.on { stroke:var(--green); stroke-dasharray:none; }
+  .olines path.sat { stroke:var(--green); stroke-width:1.5; stroke-dasharray:none; opacity:.45; }
+  .osat { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:3px; width:76px; animation:satpop .32s ease both; transition:left .38s cubic-bezier(.2,.8,.2,1), top .38s cubic-bezier(.2,.8,.2,1); }
+  @keyframes satpop { from { opacity:0; transform:translate(-50%,-50%) scale(.6); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
+  .osdot { width:13px; height:13px; border-radius:50%; background:var(--card); border:2px solid var(--green); }
+  .oslab { font-size:8.5px; font-weight:800; line-height:1.3; text-align:center; color:var(--green); text-shadow:0 0 4px var(--bg), 0 0 4px var(--bg), 0 0 8px var(--bg); }
+  .onode { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:5px; width:124px; }
+  .oring {
+    width:42px; height:42px; border-radius:50%; background:var(--card);
+    border:2.5px solid var(--line); color:var(--faint);
+    display:grid; place-items:center; font-size:14px; font-weight:900;
+    transition:border-color .4s, color .4s, box-shadow .4s;
+  }
+  .onode.now .oring { border-color:var(--nc); color:var(--nc); box-shadow:0 0 0 7px color-mix(in srgb, var(--nc) 13%, transparent); }
+  .onode.done .oring { border-color:var(--green); color:var(--green); }
+  .onode.beam .oring { animation:obeam .7s ease both; animation-delay:var(--d); }
+  @keyframes obeam {
+    0% { box-shadow:0 0 0 0 color-mix(in srgb, var(--nc) 40%, transparent); }
+    60% { box-shadow:0 0 0 13px transparent; }
+    100% { box-shadow:0 0 0 0 transparent; }
+  }
+  .olabel { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:.01em; text-shadow:0 0 4px var(--bg), 0 0 4px var(--bg), 0 0 8px var(--bg), 0 0 8px var(--bg); }
+  .onode.now .olabel { color:var(--ink); }
+  .oans { font-size:10px; line-height:1.35; text-align:center; color:var(--faint); max-width:122px; text-shadow:0 0 4px var(--bg), 0 0 4px var(--bg), 0 0 8px var(--bg), 0 0 8px var(--bg); }
+  .onode.done .oans { color:var(--green); font-weight:700; }
+
+  .oask { padding:22px 26px 24px; }
+  .osearch, .ofree {
+    width:100%; border:1.5px solid var(--line); border-radius:13px; background:var(--chip);
+    padding:12px 16px; font-family:var(--sans); font-size:14.5px; font-weight:600; color:var(--ink);
+    outline:none; margin-bottom:13px; transition:border-color .18s;
+  }
+  .osearch:focus, .ofree:focus, .ofld input:focus { border-color:var(--nc); }
+  .osearch::placeholder, .ofree::placeholder, .ofld input::placeholder { color:var(--faint); font-weight:600; }
+  .ofields { display:flex; gap:13px; flex-wrap:wrap; margin-top:15px; }
+  .ofld { flex:1; min-width:230px; }
+  .ofld label { display:block; font-size:10.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .ofld input {
+    width:100%; border:1.5px solid var(--line); border-radius:11px; background:var(--chip);
+    padding:10px 14px; font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--ink); outline:none; transition:border-color .18s;
+  }
+  .wslide { padding:2px 2px 0; }
+  .wval { display:flex; align-items:baseline; gap:9px; margin-bottom:16px; }
+  .wval b { font-size:40px; font-weight:900; line-height:1; letter-spacing:-.02em; color:var(--nc); }
+  .wval span { font-size:15px; font-weight:800; color:var(--muted); }
+  .wval em { margin-left:auto; font-style:normal; font-size:12px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--nc); background:color-mix(in srgb, var(--nc) 12%, transparent); border-radius:999px; padding:5px 13px; }
+  .wrange {
+    -webkit-appearance:none; appearance:none; width:100%; height:9px; border-radius:99px; outline:none; cursor:pointer; margin:0;
+    background:linear-gradient(90deg, var(--nc) 0 calc(var(--p) * 100%), var(--line) calc(var(--p) * 100%) 100%);
+  }
+  .wrange::-webkit-slider-thumb {
+    -webkit-appearance:none; width:26px; height:26px; border-radius:50%; background:var(--card);
+    border:3.5px solid var(--nc); box-shadow:0 3px 10px rgba(23,32,58,.2); cursor:grab; transition:transform .12s;
+  }
+  .wrange::-webkit-slider-thumb:active { transform:scale(1.14); cursor:grabbing; }
+  .wrange::-moz-range-thumb {
+    width:19px; height:19px; border-radius:50%; background:var(--card);
+    border:3.5px solid var(--nc); box-shadow:0 3px 10px rgba(23,32,58,.2); cursor:grab;
+  }
+  .wticks { display:flex; justify-content:space-between; margin-top:11px; font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); }
+  .osub { font-size:11.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:16px 0 9px; }
+  .onone { font-size:13px; color:var(--faint); padding:4px 0; }
+  .ostep { font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); }
+  .oq { font-size:19px; font-weight:900; letter-spacing:-.01em; margin:6px 0 15px; }
+  .ochips { display:flex; flex-wrap:wrap; gap:8px; }
+  .ochip {
+    border:1.5px solid var(--line); background:var(--chip); color:var(--muted); cursor:pointer;
+    font-family:var(--sans); font-size:13.5px; font-weight:700; border-radius:999px; padding:9px 17px;
+    transition:border-color .18s, color .18s, background-color .18s;
+  }
+  .ochip:hover { border-color:var(--faint); color:var(--ink); }
+  .ochip.on { border-color:var(--nc); color:var(--nc); background:color-mix(in srgb, var(--nc) 8%, var(--card)); }
+  .oadd { display:inline-flex; align-items:center; gap:7px; border:1.5px dashed color-mix(in srgb, var(--faint) 60%, transparent); border-radius:999px; padding:0 9px 0 15px; transition:border-color .18s; }
+  .oadd:focus-within { border-color:var(--nc); border-style:solid; }
+  .oadd .pl { color:var(--faint); font-weight:900; font-size:15px; line-height:1; }
+  .oadd input { border:0; background:none; outline:none; width:132px; padding:9px 0; font-family:var(--sans); font-size:13.5px; font-weight:700; color:var(--ink); }
+  .oadd input::placeholder { color:var(--faint); font-weight:600; }
+  .orow { display:flex; align-items:center; gap:14px; margin-top:18px; }
+  .ohint { flex:1; font-size:12.5px; color:var(--faint); }
+  .obtn { border:0; border-radius:999px; cursor:pointer; background:var(--navy); color:var(--navy-ink); font-family:var(--sans); font-size:14px; font-weight:800; padding:12px 26px; }
+  .obtn:disabled { opacity:.35; cursor:default; }
+  .oback { border:0; background:none; color:var(--muted); font-family:var(--sans); font-size:13px; font-weight:800; border-radius:999px; padding:10px 14px; cursor:pointer; }
+  .oback:hover { background:var(--chip); color:var(--ink); }
+
+  .opsheet { background:var(--chip); border-radius:16px; padding:16px 18px; margin-top:4px; }
+  .opline { display:flex; gap:11px; align-items:flex-start; font-size:14px; line-height:1.55; padding:3px 0; color:var(--ink); opacity:0; animation:ofade .45s ease forwards; animation-delay:var(--d); }
+  .opline i { flex:none; width:8px; height:8px; border-radius:50%; background:var(--nc); margin-top:7px; }
+  @keyframes ofade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .ocopy { border:1.5px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--sans); font-size:13px; font-weight:800; border-radius:999px; padding:10px 18px; cursor:pointer; }
+  .ocopy:hover { border-color:var(--blue); color:var(--blue); }
+  @media (prefers-reduced-motion: reduce) {
+    .oworld { transition:none; }
+    .onode.beam .oring, .opline { animation:none; opacity:1; }
+  }
+
+
+  .obrand { position:fixed; top:20px; left:24px; z-index:2; display:flex; align-items:center; gap:9px; font-weight:900; font-size:15px; color:var(--ink); }
+  .osaving { opacity:.5; pointer-events:none; }
+  .oerr { color:var(--coral); font-size:13px; font-weight:700; }
+</style>
+</head>
+<body>
+  <div class="obrand"><span class="mark"></span>Open Language Teacher</div>
+  <div class="stage on" id="stage"></div>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+
+  const LANGS = ['Mandarin Chinese', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Italian', 'Portuguese',
+    'Russian', 'Arabic', 'Hindi', 'Dutch', 'Swedish', 'Norwegian', 'Danish', 'Polish', 'Turkish', 'Greek',
+    'Vietnamese', 'Thai', 'Indonesian', 'Cantonese', 'Hebrew', 'Czech', 'Ukrainian', 'Finnish', 'Tagalog', 'Swahili'];
+
+  const OQ = [
+    { key:'lang', label:'Language', nc:'var(--blue)', single:1, mode:'search',
+      q:'Which language are you learning?',
+      ph:'Type a language\u2026', opts:LANGS, pick:[], text:'', f:{} },
+
+    { key:'can', label:'What you can do', nc:'var(--violet)', mode:'cando',
+      q:'What of the below things are you able to do in {lang}?',
+      opts:['Order at a restaurant', 'Ask for directions', 'Have a simple chat', 'Hold a real conversation',
+        'Follow a show made for kids', 'Follow a TV show for adults', 'Read a news article', 'Take a phone call',
+        'Work in the language', 'Understand fast native speech', 'Write an email', 'Argue a point'],
+      pick:[], text:'', f:{} },
+
+    { key:'words', label:'Words', nc:'var(--amber)', mode:'slider',
+      q:'Roughly how many words do you know in {lang}?',
+      pick:[], text:'1,000', f:{ i:7 } },
+
+    { key:'goal', label:'Goal', nc:'var(--teal)', mode:'free',
+      q:'What do you want to be able to do?',
+      free:'In your own words\u2026',
+      opts:['Speak faster', 'Understand films and TV', 'Talk at work', 'Read books', 'Travel comfortably',
+        'Make friends', 'Sound more natural', 'Pass an exam', 'Write well', 'Understand song lyrics'],
+      pick:[], text:'', f:{} },
+
+    { key:'topics', label:'Topics', nc:'var(--coral)', mode:'free',
+      q:'What kind of topics do you want your lessons built around?',
+      free:'In your own words \u2014 anything you are into\u2026',
+      opts:['Food and cooking', 'Travel', 'Sport', 'Music', 'Films and TV', 'News', 'Business and work',
+        'Technology', 'Science', 'History', 'Health and fitness', 'Family and friends', 'Games', 'Books',
+        'Art and design', 'Cars', 'Nature and animals', 'Money', 'Fashion', 'City life'],
+      pick:[], text:'', f:{} }
+  ];
+  const OPOS = [[11,30],[31,64],[52,30],[72,64],[90,30]];
+  let ostep = 0, osearch = '';
+
+  const WSTEPS = [0, 50, 100, 200, 300, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000, 7500, 10000, 15000, 20000];
+  const wWord = i => i >= WSTEPS.length - 1 ? '20,000+' : WSTEPS[i].toLocaleString('en-US');
+  const wVibe = i => { const n = WSTEPS[i];
+    return n < 150 ? 'Just starting out' : n < 800 ? 'Finding your feet' : n < 2500 ? 'Everyday basics'
+      : n < 5000 ? 'Comfortable' : n < 10000 ? 'Strong' : 'Very strong'; };
+  const oEsc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const oDone = i => {
+    const q = OQ[i];
+    return q.pick.length > 0 || !!(q.text || '').trim() || Object.keys(q.f).some(k => (q.f[k] || '').trim());
+  };
+  const oBits = q => {
+    const bits = q.pick.slice();
+    if ((q.text || '').trim()) bits.push(q.text.trim());
+    (q.fields || []).forEach(f => { if ((q.f[f[0]] || '').trim()) bits.push(q.f[f[0]].trim()); });
+    return bits;
+  };
+  const oSummary = q => oBits(q).join(', ');
+  const oShort = q => {
+    const b = oBits(q);
+    return b.length > 2 ? b.slice(0, 2).join(', ') + ' +' + (b.length - 2) + ' more' : b.join(', ');
+  };
+
+  function oPromptLines() {
+    const [lang, can, words, goal, top] = OQ;
+    const lc = x => x.charAt(0).toLowerCase() + x.slice(1);
+    return [
+      [0, 'I am learning ' + (oSummary(lang) || 'a new language') + '.'],
+      [1, can.pick.length ? 'I can already ' + can.pick.map(lc).join(', ') + '.' : 'I am just starting out.'],
+      [2, 'I know roughly ' + ((words.text || '').trim() || 'a few hundred') + ' words.'],
+      [3, 'I want to be able to: ' + (oSummary(goal) || 'get comfortable') + '.'],
+      [4, 'Build my lessons around: ' + (oSummary(top) || 'my everyday life') + '.'],
+      [-1, 'Create my first week.']
+    ];
+  }
+
+  function oShell() {
+    return '<div class="omap" id="omap"><div class="oworld" id="oworld">' +
+      '<svg class="olines" id="olines"></svg><div id="osats"></div><div id="onodes"></div></div></div>' +
+      '<div class="ocards" id="oask"></div>';
+  }
+
+  /* ax/ay: where in the map box the node should land, 0-1 */
+  function oCam(px, py, sc, ax, ay) {
+    const m = $('omap'); if (!m) return;
+    const W = m.clientWidth, H = m.clientHeight;
+    if (!W || !H) return;
+    const tx = ax * W - sc * px / 100 * W, ty = ay * H - sc * py / 100 * H;
+    $('oworld').style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
+  }
+
+  function oPaintMap() {
+    const m = $('omap'); if (!m) return;
+    const fin = ostep >= OQ.length, W = m.clientWidth, H = m.clientHeight;
+    let d = '';
+    for (let i = 0; i < OPOS.length - 1; i++) {
+      const x1 = OPOS[i][0] / 100 * W, y1 = OPOS[i][1] / 100 * H;
+      const x2 = OPOS[i + 1][0] / 100 * W, y2 = OPOS[i + 1][1] / 100 * H;
+      d += '<path' + (oDone(i) && oDone(i + 1) ? ' class="on"' : '') +
+        ' d="M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y2 + '"></path>';
+    }
+    /* every ticked can-do sprouts its own little node off question 2 */
+    const sq = OQ[1], sx = OPOS[1][0] / 100 * W, sy = OPOS[1][1] / 100 * H;
+    const sats = sq.pick.slice(0, 6), extra = sq.pick.length - sats.length, R = 115;
+    const sPos = sats.map((t, i) => {
+      const a = -Math.PI / 2 + (sats.length === 1 ? 0 : (i / (sats.length - 1) - 0.5) * Math.PI * 1.1);
+      return [sx + Math.cos(a) * R, sy + Math.sin(a) * R, t];
+    });
+    sPos.forEach(pt => { d += '<path class="sat" d="M ' + sx + ' ' + sy + ' L ' + pt[0] + ' ' + pt[1] + '"></path>'; });
+    $('olines').innerHTML = d;
+    paintSats(sPos, sx, sy - R * 1.34, extra);
+    $('onodes').innerHTML = OQ.map((q, i) => {
+      const done = oDone(i), now = !fin && i === ostep;
+      return '<div class="onode' + (done ? ' done' : '') + (now ? ' now' : '') + (fin && done ? ' beam' : '') +
+        '" style="--nc:' + q.nc + '; --d:' + (i * 0.45 + 0.35).toFixed(2) + 's; left:' + OPOS[i][0] + '%; top:' + OPOS[i][1] + '%">' +
+        '<span class="oring">' + (done ? '\u2713' : i + 1) + '</span>' +
+        '<span class="olabel">' + q.label + '</span>' +
+        '<span class="oans">' + (done && !(i === 1 && sats.length) ? oEsc(oShort(q)) : '') + '</span></div>';
+    }).join('');
+    const card = $('oask'), top = card ? card.getBoundingClientRect().top : H * 0.62;
+    const ay = Math.max(0.16, Math.min(0.5, top * 0.5 / H));
+    if (fin) oCam(50, 47, 0.95, 0.5, ay);
+    else oCam(OPOS[ostep][0], 47, 1.1, 0.5, ay);
+  }
+
+  /* add and move satellites in place — never re-create the ones already on screen */
+  function paintSats(sPos, sx, sy, extra) {
+    const host = $('osats');
+    if (!host) return;
+    const keys = sPos.map(pt => pt[2]);
+    if (extra > 0) keys.push('+more');
+    [...host.children].forEach(el => { if (keys.indexOf(el.dataset.k) < 0) el.remove(); });
+    const find = k => { for (const c of host.children) if (c.dataset.k === k) return c; return null; };
+    sPos.forEach(pt => {
+      let el = find(pt[2]);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'osat';
+        el.dataset.k = pt[2];
+        el.innerHTML = '<span class="osdot"></span><span class="oslab">' + oEsc(pt[2]) + '</span>';
+        host.appendChild(el);
+      }
+      el.style.left = pt[0] + 'px';
+      el.style.top = pt[1] + 'px';
+    });
+    if (extra > 0) {
+      let el = find('+more');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'osat';
+        el.dataset.k = '+more';
+        el.innerHTML = '<span class="oslab"></span>';
+        host.appendChild(el);
+      }
+      el.querySelector('.oslab').textContent = '+' + extra + ' more';
+      el.style.left = sx + 'px';
+      el.style.top = sy + 'px';
+    }
+  }
+
+  function oPaint() {
+    if (!$('omap')) return;
+    $('oask').innerHTML = ostep >= OQ.length ? oFinish() : oQuestion();
+    requestAnimationFrame(oPaintMap);
+  }
+
+  function oChipRow() {
+    const q = OQ[ostep];
+    let list = q.opts.slice();
+    if (q.mode === 'search' && osearch.trim()) {
+      const t = osearch.trim().toLowerCase();
+      list = list.filter(o => o.toLowerCase().indexOf(t) >= 0);
+      if (!list.length) list = [osearch.trim()];
+    }
+    q.pick.forEach(o => { if (list.indexOf(o) < 0) list.unshift(o); });
+    if (!list.length) return '<p class="onone">Nothing to show \u2014 type your own above.</p>';
+    return list.map(o => '<button class="ochip' + (q.pick.indexOf(o) >= 0 ? ' on' : '') +
+      '" data-opt="' + oEsc(o) + '">' + oEsc(o) + '</button>').join('');
+  }
+
+  function oQuestion() {
+    const q = OQ[ostep];
+    const lang = OQ[0].pick[0] || OQ[0].text.trim() || 'your language';
+    let h = '<div class="onb"><div class="oask" style="--nc:' + q.nc + '">' +
+      '<h3 class="oq">' + oEsc(q.q.replace('{lang}', lang)) + '</h3>';
+    if (q.mode === 'search') h += '<input class="osearch" data-osearch value="' + oEsc(osearch) + '" placeholder="' + q.ph + '">';
+    if (q.mode === 'slider') {
+      const i = q.f.i;
+      h += '<div class="wslide" style="--p:' + (i / (WSTEPS.length - 1)) + '">' +
+        '<div class="wval"><b id="wnum">' + wWord(i) + '</b><span>words</span>' +
+        '<em id="wvibe">' + wVibe(i) + '</em></div>' +
+        '<input type="range" class="wrange" id="wrange" min="0" max="' + (WSTEPS.length - 1) + '" step="1" value="' + i + '">' +
+        '<div class="wticks"><span>none</span><span>500</span><span>2,000</span><span>10,000</span><span>20,000+</span></div>' +
+        '</div>';
+    }
+    if (q.mode === 'free') h += '<input class="ofree" data-ofree value="' + oEsc(q.text) + '" placeholder="' + q.free + '">' +
+      '<p class="osub">Or pick from these</p>';
+    if (q.mode !== 'slider') h += '<div class="ochips" id="ochips">' + oChipRow() + '</div>';
+    h += '</div></div>';
+
+    return h + '<div class="orow bare">' +
+      (ostep ? '<button class="oback" data-oback>← Back</button>' : '') +
+      '<span class="ohint"></span>' +
+      '<button class="obtn" data-onext' + (oDone(ostep) ? '' : ' disabled') + '>' +
+      (ostep === OQ.length - 1 ? 'See my map →' : 'Next →') + '</button></div>';
+  }
+
+  function oFinish() {
+    return '<div class="onb"><div class="oask">' +
+      '<span class="ostep">Your map is done</span>' +
+      '<h3 class="oq">Everything above becomes one prompt.</h3>' +
+      '<div class="opsheet">' + oPromptLines().map((l, i) =>
+        '<div class="opline" style="--nc:' + (l[0] < 0 ? 'var(--faint)' : OQ[l[0]].nc) + '; --d:' + (i * 0.45 + 0.5).toFixed(2) + 's">' +
+        '<i></i><span>' + oEsc(l[1]) + '</span></div>').join('') + '</div>' +
+      '<div class="orow"><button class="oback" data-oback>\u2190 Back</button>' +
+      '<span class="ohint">Your AI reads this by itself the moment it connects. You can also just copy it.</span>' +
+      '<button class="ocopy" data-ocopy>Copy prompt</button>' +
+      '<button class="obtn" data-adv>Connect my AI \u2192</button></div></div></div>';
+  }
+
+  function oSyncNext() {
+    const b = document.querySelector('[data-onext]');
+    if (b) b.disabled = !oDone(ostep);
+  }
+
+
+  /* ---------------- page ---------------- */
+  function paint() { $('stage').innerHTML = '<div class="scenewrap">' + oShell() + '</div>'; requestAnimationFrame(oPaint); }
+
+  async function save(btn) {
+    const [lang, can, words, goal, top] = OQ;
+    btn.classList.add('osaving');
+    btn.textContent = 'Saving…';
+    const body = {
+      languageLabel: (lang.pick[0] || lang.text || '').slice(0, 24),
+      can: can.pick.slice(),
+      knownWords: WSTEPS[words.f.i] || 0,
+      goals: oBits(goal),
+      topics: oBits(top),
+      prompt: oPromptLines().map(l => l[1]).join(' ')
+    };
+    try {
+      const r = await fetch('/api/onboarding', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      if (!r.ok) throw new Error((await r.json()).error || 'Save failed');
+      location.href = '/';
+    } catch (e) {
+      btn.classList.remove('osaving');
+      btn.textContent = 'Save and connect my AI →';
+      const row = btn.closest('.orow');
+      let er = row.querySelector('.oerr');
+      if (!er) { er = document.createElement('span'); er.className = 'oerr'; row.insertBefore(er, btn); }
+      er.textContent = e.message;
+    }
+  }
+
+  document.addEventListener('click', e => {
+    const op = e.target.closest('[data-opt]');
+    if (op) {
+      e.preventDefault();
+      const q = OQ[ostep], v = op.dataset.opt, at = q.pick.indexOf(v);
+      if (q.single) {
+        q.pick = at >= 0 ? [] : [v];
+        document.querySelectorAll('#ochips .ochip').forEach(c => c.classList.toggle('on', c === op && at < 0));
+      } else {
+        if (at >= 0) q.pick.splice(at, 1); else q.pick.push(v);
+        op.classList.toggle('on', at < 0);
+      }
+      oPaintMap(); oSyncNext();
+      if (q.single && q.pick.length) setTimeout(() => { if (ostep < OQ.length) { ostep++; osearch = ''; oPaint(); } }, 420);
+      return;
+    }
+    if (e.target.closest('[data-onext]')) { e.preventDefault(); if (oDone(ostep)) { ostep++; osearch = ''; oPaint(); } return; }
+    if (e.target.closest('[data-oback]')) { e.preventDefault(); ostep = Math.max(0, ostep - 1); osearch = ''; oPaint(); return; }
+    const oc = e.target.closest('[data-ocopy]');
+    if (oc) {
+      e.preventDefault();
+      try { navigator.clipboard.writeText(oPromptLines().map(l => l[1]).join(' ')); } catch (err) {}
+      oc.textContent = 'Copied ✓';
+      setTimeout(() => { oc.textContent = 'Copy prompt'; }, 1600);
+      return;
+    }
+    const sv = e.target.closest('[data-save]');
+    if (sv) { e.preventDefault(); save(sv); }
+  });
+
+  document.addEventListener('input', e => {
+    const q = OQ[ostep];
+    if (!q) return;
+    const se = e.target.closest('[data-osearch]');
+    if (se) { osearch = se.value; if ($('ochips')) $('ochips').innerHTML = oChipRow(); return; }
+    const wr = e.target.closest('#wrange');
+    if (wr) {
+      const i = +wr.value;
+      q.f.i = i; q.text = wWord(i);
+      wr.parentNode.style.setProperty('--p', i / (WSTEPS.length - 1));
+      $('wnum').textContent = wWord(i);
+      $('wvibe').textContent = wVibe(i);
+      oPaintMap(); oSyncNext(); return;
+    }
+    const fr = e.target.closest('[data-ofree]');
+    if (fr) { q.text = fr.value; oPaintMap(); oSyncNext(); }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const se = e.target.closest('[data-osearch]');
+    if (!se) return;
+    e.preventDefault();
+    const v = se.value.trim();
+    if (!v) return;
+    OQ[ostep].pick = [v];
+    osearch = ''; ostep++;
+    oPaint();
+  });
+
+  addEventListener('resize', oPaintMap);
+  document.body.dataset.onb = '1';
+  paint();
+})();
+</script>
+</body>
+</html>

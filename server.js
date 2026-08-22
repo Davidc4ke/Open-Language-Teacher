@@ -135,6 +135,17 @@ function requireApi(role) {
 }
 const mcpUrlFor = u => PUBLIC_URL + '/mcp/' + u.pair_code;
 
+/* onboarding gives a human label; speech synthesis needs a BCP-47 tag */
+const LANG_TAG = {
+  'Mandarin Chinese': 'zh-CN', 'Cantonese': 'zh-HK', 'Spanish': 'es-ES', 'French': 'fr-FR',
+  'German': 'de-DE', 'Japanese': 'ja-JP', 'Korean': 'ko-KR', 'Italian': 'it-IT',
+  'Portuguese': 'pt-PT', 'Russian': 'ru-RU', 'Arabic': 'ar-SA', 'Hindi': 'hi-IN',
+  'Dutch': 'nl-NL', 'Swedish': 'sv-SE', 'Norwegian': 'nb-NO', 'Danish': 'da-DK',
+  'Polish': 'pl-PL', 'Turkish': 'tr-TR', 'Greek': 'el-GR', 'Vietnamese': 'vi-VN',
+  'Thai': 'th-TH', 'Indonesian': 'id-ID', 'Hebrew': 'he-IL', 'Czech': 'cs-CZ',
+  'Ukrainian': 'uk-UA', 'Finnish': 'fi-FI', 'Tagalog': 'fil-PH', 'Swahili': 'sw-KE'
+};
+
 /* ---------------- guides ---------------- */
 const ICON_SET = ['book', 'branch', 'mic', 'ear', 'read', 'pen', 'news', 'chat', 'tag', 'globe', 'star', 'coffee'];
 const COLOR_SET = ['blue', 'teal', 'violet', 'coral', 'amber', 'green', 'rose'];
@@ -183,12 +194,40 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    learner tells you.
 15. Text shown in the app chrome must be SHORT — these are labels, not prose: languageLabel ≤ 24 chars,
    level ≤ 48, plan title ≤ 40, plan focus ≤ 90 (one line), lesson titles ≤ 40. Long assessments go in
-   update_profile's levelNote; long teaching prose goes in lesson objectives and parts.`;
+   update_profile's levelNote; long teaching prose goes in lesson objectives and parts.
+16. A LESSON DAY IS THREE SHORT PARTS, IN ORDER — text teaches, voice practises, reading seals:
+   part 1 "walk" (~6 min, TEXT) teaches the new pieces; part 2 "speak" (~2 min, VOICE) uses only pieces
+   from part 1; part 3 "story" (~2 min, TEXT) shows them again as connected prose. Give the lesson three
+   steps matching those three parts and point each step at its part with the step's "mat" index.
+   Never introduce a new piece in part 2 or 3 — voice models are weak and reading is for consolidation.
+17. WALK (part kind "walk") — step-by-step vocabulary, the app plays it as an interactive map:
+   • 4–6 stops, ONE new piece each. Every stop is a REAL place from the learner's week (get_life_notes).
+   • Order the stops as their evening/day actually runs, so the route is a memory the learner already has.
+   • Each stop: scene (2 sentences at that place) → ask (a guess BEFORE the reveal) → the piece →
+     bridge (a sound-alike or image hook) → line. The line MUST physically contain that place.
+   • Provide "seg" for the line: one entry per word with its romanization, so the app prints it under each word.
+   • Finish with "chant": one short line per piece, and the lines MUST RHYME with each other.
+18. SPEAK (part kind "speak") — the 2-minute voice part is a CONVERSATION, never an interrogation.
+   • Write "cues": natural questions about the learner's own day, each with the piece it should draw out.
+   • Running it: ask, listen, react like a person. If an answer uses none of the remaining pieces, PUSH,
+     escalating: (a) slip the missing piece into your own next question so they can hand it back;
+     (b) name it — "say that again using X"; (c) when one is left, say so and give it a topic.
+   • Track which pieces they actually said. The part is done when every piece has come out of their mouth.
+   • Say the piece count out loud as you go ("that's four of six") so they can feel the finish line.
+19. STORY (part kind "story") — build it from "paras", not html, and repeat hard:
+   • 3 paragraphs, and EVERY target piece appears at least 3 times across them, in different sentences.
+   • Word-by-word "seg" with romanization; mark target pieces with hit: true. The app can then hide the
+     romanization and the translation once the learner no longer needs them.`;
 
 const TAXONOMY = {
   note: 'Suggested standard scaffold. Your AI creates every node and may go beyond this set (add_subtopics).',
   icons: ICON_SET, colors: COLOR_SET, modes: MODE_SET,
-  partKinds: ['script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat'],
+  partKinds: ['walk', 'speak', 'script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat'],
+  partKindNotes: {
+    walk: 'Step-by-step vocabulary. Each new piece lives at one REAL place from the learner\'s week. Guess first, reveal, then walk it back from memory. Ends in a rhyming chant.',
+    speak: 'A 2-minute spoken conversation that pulls every target piece out of the learner. Not a drill.',
+    story: 'The same pieces as connected prose. Use "paras" (word-by-word) so the app can hide the romanization.'
+  },
   skills: {
     vocab: { label: 'Vocabulary', icon: 'book', color: 'blue', subtopics: 'thematic word packs (News, Slang, Travel, …)' },
     grammar: { label: 'Grammar', icon: 'branch', color: 'violet', subtopics: 'concepts graded recall-by-recall' },
@@ -213,8 +252,44 @@ const MatZ = z.object({
   t: z.string().optional().describe('Type: story | audio | news | pack | rubric')
 });
 const LineZ = z.object({ s: z.string().describe('Speaker: AI | YOU | IF | CUE'), t: z.string().describe('The line') });
+
+/* word-by-word text: the app prints the romanization under each word and can hide it on demand */
+const WordZ = z.object({
+  t: z.string().describe('One word or punctuation mark in the target language'),
+  p: z.string().optional().describe('Romanization of THIS word only (leave empty for punctuation)'),
+  hit: z.boolean().optional().describe('true when this word is one of the lesson target pieces')
+});
+/* one stop on a memory walk — a real place from the learner's life carrying one new piece */
+const StopZ = z.object({
+  place: z.string().describe('A REAL place and time from the learner\'s week, e.g. "The gym mat · 19:00" (use get_life_notes)'),
+  zh: z.string().describe('The piece taught at this stop'),
+  py: z.string().optional().describe('Romanization of the piece'),
+  en: z.string().describe('Meaning in the learner\'s language'),
+  scene: z.string().describe('Two short sentences putting the learner back in that place'),
+  ask: z.string().describe('A guess-first question, asked BEFORE the piece is revealed'),
+  bridge: z.string().optional().describe('A memory hook: sound-alike, image or story link'),
+  line: z.string().describe('One example sentence that PHYSICALLY CONTAINS this place'),
+  lineEn: z.string().optional().describe('Translation of the example sentence'),
+  seg: z.array(WordZ).optional().describe('The example sentence word-by-word with romanization'),
+  icon: z.string().optional(), color: z.string().optional()
+});
+const ChantZ = z.object({
+  s: z.string().describe('One chant line — all lines must RHYME with each other'),
+  en: z.string().optional(), seg: z.array(WordZ).optional()
+});
+/* one turn of a spoken conversation — a real question, not a drill prompt */
+const CueZ = z.object({
+  ask: z.string().describe('What the AI says out loud: a natural question about the learner\'s day'),
+  want: z.string().optional().describe('The target piece this turn should draw out of the learner'),
+  model: z.string().optional().describe('A model answer using that piece, for the AI to steer toward'),
+  en: z.string().optional().describe('Translation of the question')
+});
+const ParaZ = z.object({
+  seg: z.array(WordZ).describe('The paragraph word-by-word with romanization'),
+  en: z.string().optional().describe('Translation of this paragraph')
+});
 const PartZ = z.object({
-  kind: z.enum(['script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat']),
+  kind: z.enum(['walk', 'speak', 'script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat']),
   name: z.string().describe('Component name shown on the map — REQUIRED'),
   icon: z.string().optional(), color: z.string().optional(),
   d: z.string().optional().describe('Description (kind "mat")'),
@@ -234,7 +309,11 @@ const PartZ = z.object({
     p: z.number().optional()
   })).optional().describe('kind "deck": flashcards'),
   prompts: z.array(z.object({ q: z.string(), a: z.string() })).optional().describe('kind "drill": prompt → expected answer'),
-  rows: z.array(z.object({ a: z.string().describe('Aspect'), d: z.string().describe('Descriptor') })).optional().describe('kind "rubric"')
+  rows: z.array(z.object({ a: z.string().describe('Aspect'), d: z.string().describe('Descriptor') })).optional().describe('kind "rubric"'),
+  stops: z.array(StopZ).min(2).max(8).optional().describe('kind "walk": the stops of a memory walk, one new piece per real place'),
+  chant: z.array(ChantZ).optional().describe('kind "walk": a short rhyming chant that strings all the pieces together'),
+  cues: z.array(CueZ).min(2).optional().describe('kind "speak": the turns of a 2-minute spoken conversation'),
+  paras: z.array(ParaZ).optional().describe('kind "story": the story as paragraphs, word-by-word. PREFERRED over html — only then can the app show and hide the romanization and the translation.')
 });
 const LessonZ = z.object({
   title: z.string().max(40).describe('Short lesson title shown on the map node — max 40 chars'),
@@ -250,7 +329,7 @@ const LessonZ = z.object({
   parts: z.array(PartZ).optional().describe('Fully-prepared components the learner can open on the map')
 });
 
-const PART_NEED = { script: 'lines', news: 'items', deck: 'cards', drill: 'prompts', rubric: 'rows' };
+const PART_NEED = { script: 'lines', news: 'items', deck: 'cards', drill: 'prompts', rubric: 'rows', walk: 'stops', speak: 'cues' };
 function normMat(m) {
   if (typeof m === 'string') return { name: m, d: '' };
   return { name: m.name || m.title || m.d || 'Material', d: m.name ? (m.d || '') : '', ...(m.t ? { t: m.t } : {}) };
@@ -260,7 +339,7 @@ function normPart(p) {
   const out = { ...p };
   if (!PART_NEED[out.kind] && out.kind !== 'story' && out.kind !== 'mat') out.kind = 'mat';
   if (PART_NEED[out.kind] && !Array.isArray(out[PART_NEED[out.kind]])) out.kind = 'mat';
-  if (out.kind === 'story' && typeof out.html !== 'string') {
+  if (out.kind === 'story' && typeof out.html !== 'string' && !Array.isArray(out.paras)) {
     if (typeof out.text === 'string') out.html = out.text; else out.kind = 'mat';
   }
   if (!out.name) out.name = out.title || (out.kind === 'mat' ? 'Material' : out.kind.charAt(0).toUpperCase() + out.kind.slice(1));
@@ -322,7 +401,8 @@ function buildMcp(user) {
       skills: Object.fromEntries(Object.entries(s.skills).map(([k, x]) => [k, x.pct + '%'])),
       currentPlan: curPlan(s) ? { title: curPlan(s).title, focus: curPlan(s).focus, done: curPlan(s).lessons.filter(l => l.done).length + '/' + curPlan(s).lessons.length } : null,
       nextLesson: nextLesson(s) ? { n: nextLesson(s).n, title: nextLesson(s).title, mode: nextLesson(s).mode || 'voice' } : null,
-      onboarded: !!s.profile.language
+      onboarded: !!s.profile.language,
+      ...(s.profile.onboardingPrompt ? { fromOnboarding: s.profile.onboardingPrompt } : {})
     };
   };
 
@@ -332,11 +412,17 @@ function buildMcp(user) {
     title: 'Link profile',
     description: 'Confirm the link to this learner\'s Open Language Teacher profile. Call this first.',
     inputSchema: { code: z.string().optional().describe('Pairing code (already part of this server URL)') }
-  }, async () => text({
-    ok: true,
-    message: 'Linked to ' + user.name + '\'s profile. If onboarded=false, interview the learner (language, level, goals), then read get_plan_instructions and get_skill_taxonomy, call update_profile, add_words and create_plan.',
-    ...summary()
-  }));
+  }, async () => {
+    const s = S();
+    const done = !!s.profile.language;
+    return text({
+      ok: true,
+      message: done
+        ? 'Linked to ' + user.name + '\'s profile. They already filled the app\'s onboarding, so DO NOT interview them — everything below is their own answer. Read get_plan_instructions and get_skill_taxonomy, then add_words and create_plan straight away.'
+        : 'Linked to ' + user.name + '\'s profile. They have not done the app onboarding yet — ask them to open the app and finish it, or interview them yourself, then call update_profile before create_plan.',
+      ...summary()
+    });
+  });
 
   server.registerTool('get_profile', {
     title: 'Get profile', description: 'Read the learner\'s profile, goals, streak, skill percentages and plan status.', inputSchema: {}
@@ -350,12 +436,15 @@ function buildMcp(user) {
       known_words: z.number().optional(),
       goals: z.array(z.string()).optional(), language: z.string().optional(),
       languageLabel: z.string().max(24).optional().describe('Very short language tag for the topbar, e.g. "中文 Mandarin", "Español". Max 24 chars.'),
-      from: z.string().optional(), name: z.string().optional()
+      from: z.string().optional(), name: z.string().optional(),
+      can: z.array(z.string()).optional().describe('Things the learner says they can already do, from onboarding'),
+      topics: z.array(z.string()).optional().describe('Topics to build lessons around, from onboarding')
     }
   }, async (a) => {
     const s = mutate(uid, s => {
       Object.assign(s.profile, Object.fromEntries(Object.entries({
-        level: a.level, levelNote: a.levelNote, goals: a.goals, language: a.language, languageLabel: a.languageLabel, from: a.from, name: a.name
+        level: a.level, levelNote: a.levelNote, goals: a.goals, language: a.language, languageLabel: a.languageLabel,
+        from: a.from, name: a.name, can: a.can, topics: a.topics
       }).filter(([, v]) => v !== undefined)));
       if (a.known_words != null) { s.profile.knownWords = a.known_words; s.knownExtra = Math.max(0, a.known_words - s.known.length); }
     });
@@ -808,7 +897,14 @@ app.get('/', (req, res) => {
   const u = currentUser(req);
   if (!u) return res.redirect('/login');
   if (u.role === 'admin') return res.redirect('/admin');
+  if (!getState(u.id).profile.language) return res.redirect('/onboarding');
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+app.get('/onboarding', (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.redirect('/login');
+  if (u.role !== 'learner') return res.redirect('/');
+  res.sendFile(path.join(__dirname, 'onboarding.html'));
 });
 app.get('/login', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/admin', (req, res) => {
@@ -862,6 +958,29 @@ app.post('/api/positions', requireApi('learner'), (req, res) => {
   });
   res.json({ ok: true, v: s.v });
 });
+/* the onboarding map writes straight into the profile the AI reads on connect */
+app.post('/api/onboarding', requireApi('learner'), (req, res) => {
+  const b = req.body || {};
+  const label = String(b.languageLabel || '').trim().slice(0, 24);
+  if (!label) return res.status(400).json({ error: 'Pick a language first.' });
+  const arr = (x, n) => (Array.isArray(x) ? x : []).map(v => String(v).trim()).filter(Boolean).slice(0, n);
+  const s = mutate(req.user.id, s => {
+    const p = s.profile;
+    p.language = LANG_TAG[label] || label;
+    p.languageLabel = label;
+    p.from = p.from || 'en';
+    p.can = arr(b.can, 20);
+    p.goals = arr(b.goals, 20);
+    p.topics = arr(b.topics, 20);
+    p.onboardingPrompt = String(b.prompt || '').slice(0, 1200);
+    const kw = Math.max(0, Math.min(200000, Math.round(Number(b.knownWords) || 0)));
+    p.knownWords = kw;
+    s.knownExtra = Math.max(0, kw - s.known.length);
+    if (!p.level) p.level = p.can.length ? p.can.slice(0, 2).join(' · ') : 'Getting started';
+  });
+  res.json({ ok: true, profile: s.profile });
+});
+
 app.post('/api/reset', requireApi('learner'), (req, res) => {
   const s = req.user.username === 'demo' ? fullSeedState(req.user.name) : blankState(req.user.name);
   s.v = (getState(req.user.id).v || 1) + 1;
