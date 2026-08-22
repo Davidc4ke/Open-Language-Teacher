@@ -1,0 +1,25 @@
+<style>
+  .stats { display:flex; gap:20px; flex-wrap:wrap; margin:6px 0 4px; }
+  .stats div { text-align:center; }
+  .stats b { display:block; font-size:22px; font-weight:900; }
+  .stats span { font-family:var(--mono); font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--faint); }
+</style>
+<div id="root"></div>
+<script>
+const L = D.lessons || [];
+document.getElementById('root').innerHTML =
+  '<h1>' + esc(D.title || 'Day done') + '</h1>' +
+  '<span class="meta">' + esc(D.sub || ((D.done || 0) + ' of ' + (D.total || L.length) + ' this week')) + '</span>' +
+  '<div class="chain">' + L.map((x, k) =>
+    '<span class="dot' + (x.done ? ' d' : k === (D.done || 0) ? ' t' : '') + '">' + (x.done ? '✓' : k + 1) + '</span>' +
+    (k < L.length - 1 ? '<span class="dash"></span>' : '')).join('') + '</div>' +
+  '<div class="stats">' +
+    '<div><b>' + (D.streak || 0) + '</b><span>streak</span></div>' +
+    '<div><b>' + (D.inPractice || 0) + '</b><span>in practice</span></div>' +
+    '<div><b>' + (D.mastered || 0) + '</b><span>mastered</span></div>' +
+    (D.recalled ? '<div><b>' + esc(D.recalled) + '</b><span>recalled</span></div>' : '') +
+  '</div>' +
+  (D.note ? '<p class="note">' + esc(D.note) + '</p>' : '') +
+  (D.nextTitle ? '<div class="row end"><button class="btn ghost" id="nx">Tomorrow: ' + esc(D.nextTitle) + '</button></div>' : '');
+document.addEventListener('click', e => { if (e.target.closest('#nx')) followUp('What is tomorrow\'s lesson about?'); });
+</script>

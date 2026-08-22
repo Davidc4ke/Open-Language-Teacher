@@ -1,0 +1,30 @@
+<div id="root"></div>
+<script>
+function render() {
+  const st = S(), sel = st.sel != null ? st.sel : (D.lessons || []).findIndex(l => !l.done);
+  const L = D.lessons || [];
+  const i = sel < 0 ? 0 : sel;
+  const l = L[i] || {};
+  document.getElementById('root').innerHTML =
+    '<h1>' + esc(D.title || 'Your week') + '</h1>' +
+    '<span class="meta">' + L.length + ' lessons · ' + (D.done || 0) + ' done' + (D.focus ? ' · ' + esc(D.focus) : '') + '</span>' +
+    '<div class="chain">' + L.map((x, k) =>
+      '<button class="dot' + (x.done ? ' d' : k === i ? ' t' : '') + '" data-n="' + k + '">' + (x.done ? '✓' : k + 1) + '</button>' +
+      (k < L.length - 1 ? '<span class="dash"></span>' : '')).join('') + '</div>' +
+    '<div class="tile on"><div><b>' + (i + 1) + ' · ' + esc(l.title || '') + '</b>' +
+      esc(l.obj || l.mode || '') + '</div><span class="mn">' + (l.mins || 10) + ' MIN</span></div>' +
+    '<div class="row end">' +
+      (l.done ? '<span class="note">Finished. Pick another day above.</span>'
+              : '<button class="btn" id="start">Start lesson ' + (i + 1) + ' →</button>') +
+    '</div>';
+}
+document.addEventListener('click', e => {
+  const d = e.target.closest('[data-n]');
+  if (d) { setState({ sel: +d.dataset.n }); render(); return; }
+  if (e.target.closest('#start')) {
+    const i = (S().sel != null ? S().sel : (D.lessons || []).findIndex(l => !l.done));
+    followUp('Start lesson ' + ((i < 0 ? 0 : i) + 1) + '.');
+  }
+});
+render();
+</script>

@@ -1,0 +1,146 @@
+<style>
+  body { padding:0; }
+  .wrap { display:flex; min-height:340px; }
+  .map { flex:1; min-width:0; position:relative; background:radial-gradient(circle at 32% 34%, color-mix(in srgb, var(--blue) 9%, transparent), transparent 62%); }
+  .map svg { position:absolute; inset:0; width:100%; height:100%; }
+  .map svg path { fill:none; stroke:var(--faint); stroke-width:2; opacity:.5; stroke-dasharray:5 8; stroke-linecap:round; }
+  .map svg path.on { stroke:var(--green); stroke-dasharray:none; opacity:.85; }
+  .nodes { position:absolute; inset:0; }
+  .nd { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:0; cursor:pointer; font-family:var(--sans); color:var(--ink); padding:0; width:110px; transition:opacity .3s; }
+  .nd.dim { opacity:.42; }
+  .ring { width:46px; height:46px; border-radius:50%; background:var(--bg); border:3px solid var(--line); display:grid; place-items:center; font-weight:900; font-size:14px; color:var(--muted); transition:border-color .3s, transform .3s; }
+  .nd.sel .ring { border-color:var(--nc); color:var(--nc); transform:scale(1.1); }
+  .nd.done .ring { border-color:var(--green); color:var(--green); }
+  .nl { font-size:10.5px; font-weight:800; line-height:1.25; text-align:center; text-shadow:0 0 5px var(--bg),0 0 5px var(--bg); }
+  .ns { font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--faint); min-height:10px; text-shadow:0 0 5px var(--bg); }
+  .nd.sel .ns, .nd.done .ns { color:var(--nc); }
+  .side { width:min(370px, 47%); flex:none; border-left:1px solid var(--line); padding:16px 18px 18px; display:flex; flex-direction:column; }
+  .head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
+  .tabs { display:flex; gap:5px; }
+  .tabs button { border:0; border-radius:999px; background:var(--chip); color:var(--muted); cursor:pointer; font-family:var(--sans); font-size:11.5px; font-weight:800; padding:6px 13px; }
+  .tabs button.on { background:var(--navy); color:var(--navy-ink); }
+  .place { font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--nc,var(--faint)); margin-bottom:10px; }
+  .scene { font-size:14.5px; line-height:1.6; }
+  .ask { font-size:14.5px; font-weight:800; margin-top:13px; }
+  .word { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .word .hz { font-size:32px; font-weight:800; line-height:1.1; }
+  .word .py { font-family:var(--mono); font-size:12px; color:var(--blue); }
+  .word .gl { color:var(--muted); font-weight:700; font-size:13px; width:100%; }
+  .bridge { color:var(--violet); font-size:12.5px; font-weight:600; line-height:1.5; margin-top:12px; }
+  .line { margin-top:15px; font-size:15px; line-height:1.7; }
+  .lineen { display:block; font-size:12px; color:var(--muted); font-weight:600; margin-top:4px; }
+  .nav { display:flex; gap:7px; margin-top:auto; padding-top:16px; align-items:center; flex-wrap:wrap; }
+  .score { font-family:var(--mono); font-size:10px; color:var(--muted); }
+  .chant .cl { margin-bottom:12px; font-size:15px; }
+  @media (max-width:640px) { .map { display:none; } .side { width:100%; border-left:0; } }
+</style>
+<div class="wrap"><div class="map"><svg id="lines"></svg><div class="nodes" id="nodes"></div></div>
+<aside class="side"><div class="head"><span class="mono" id="prog"></span>
+<div class="tabs" id="tabs"><button data-m="learn">Learn</button><button data-m="recall">Practice</button></div></div>
+<div id="player" style="display:flex;flex-direction:column;flex:1"></div></aside></div>
+<script>
+const STOPS = D.stops || [];
+const CHANT = D.chant || [];
+const COL = ['var(--teal)','var(--blue)','var(--coral)','var(--violet)','var(--amber)','var(--green)'];
+const POS = [[16,22],[38,34],[62,22],[80,40],[60,64],[28,74]];
+let s = Object.assign({ mode:'learn', stop:0, screen:0, shown:false, chant:false, marks:[] }, S());
+
+function save() { setState(s); }
+function pos(i) { return POS[i % POS.length]; }
+
+function drawMap() {
+  const box = document.querySelector('.map');
+  const W = box.clientWidth, H = box.clientHeight;
+  if (!W || !H) return;
+  let d = '';
+  for (let i = 0; i < STOPS.length - 1; i++) {
+    const a = pos(i), b = pos(i + 1);
+    d += '<path' + (s.mode === 'recall' && s.marks[i + 1] != null ? ' class="on"' : '') +
+      ' d="M ' + a[0] / 100 * W + ' ' + a[1] / 100 * H + ' L ' + b[0] / 100 * W + ' ' + b[1] / 100 * H + '"></path>';
+  }
+  document.getElementById('lines').innerHTML = d;
+  document.getElementById('nodes').innerHTML = STOPS.map((st, i) =>
+    '<button class="nd' + (i === s.stop && !s.chant ? ' sel' : ' dim') + (s.mode === 'recall' && s.marks[i] != null ? ' done' : '') +
+    '" data-stop="' + i + '" style="--nc:' + (st.color || COL[i % COL.length]) + '; left:' + pos(i)[0] + '%; top:' + pos(i)[1] + '%">' +
+    '<span class="ring">' + (s.mode === 'recall' && s.marks[i] != null ? (s.marks[i] ? '✓' : '·') : (i + 1)) + '</span>' +
+    '<span class="nl">' + esc((st.place || '').split(' ·')[0]) + '</span>' +
+    '<span class="ns">' + esc(s.mode === 'learn' || s.marks[i] != null ? st.zh : '') + '</span></button>').join('');
+}
+
+function draw() {
+  const p = document.getElementById('player');
+  const st = STOPS[s.stop] || {};
+  const nc = st.color || COL[s.stop % COL.length];
+  document.getElementById('prog').textContent = s.chant ? 'THE CHANT' : 'STOP ' + (s.stop + 1) + ' / ' + STOPS.length;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.m === s.mode));
+  if (s.chant) {
+    p.innerHTML = '<p class="place">All of it, one breath</p><div class="chant">' + CHANT.map(c =>
+      '<div class="cl">' + (c.seg ? ruby(c.seg) : esc(c.s)) + ' ' + sayBtn(c.s || plain(c.seg)) +
+      (c.en ? '<span class="lineen">' + esc(c.en) + '</span>' : '') + '</div>').join('') +
+      '</div><div class="nav"><button class="btn" data-switch="recall">Walk it back from memory →</button></div>';
+  } else if (s.mode === 'learn') {
+    if (!s.shown) {
+      p.innerHTML = '<p class="place" style="--nc:' + nc + '">' + esc(st.place) + '</p>' +
+        '<p class="scene">' + esc(st.scene) + '</p><p class="ask">' + esc(st.ask) + '</p>' +
+        '<div class="nav"><button class="btn" data-next>Reveal →</button></div>';
+    } else {
+      p.innerHTML = '<p class="place" style="--nc:' + nc + '">' + esc(st.place) + '</p>' +
+        '<div class="word"><span class="hz">' + esc(st.zh) + '</span><span class="py">' + esc(st.py || '') + '</span>' +
+        sayBtn(st.zh) + '<span class="gl">' + esc(st.en) + '</span></div>' +
+        (st.bridge ? '<p class="bridge">' + esc(st.bridge) + '</p>' : '') +
+        '<div class="line" style="--nc:' + nc + '">' + (st.seg ? ruby(st.seg) : esc(st.line)) + ' ' + sayBtn(st.line || plain(st.seg)) +
+        (st.lineEn ? '<span class="lineen">' + esc(st.lineEn) + '</span>' : '') + '</div>' +
+        '<div class="nav"><button class="btn" data-next>' + (s.stop < STOPS.length - 1 ? 'Next stop →' : (CHANT.length ? 'Finish — the chant →' : 'Walk it back →')) + '</button></div>';
+    }
+  } else {
+    const done = s.marks[s.stop] != null, seen = s.marks.filter(m => m != null).length;
+    p.innerHTML = '<p class="place" style="--nc:' + nc + '">' + esc(st.place) + '</p>' +
+      '<p class="scene">' + esc(st.scene) + '</p>' +
+      '<div class="line"><span class="hz" style="font-size:30px;font-weight:800;' + (s.shown || done ? '' : 'filter:blur(9px);cursor:pointer') + '"' + (s.shown || done ? '' : ' data-unveil') + '>' + esc(st.zh) + '</span>' +
+      (s.shown || done ? ' <span class="py" style="font-family:var(--mono);color:var(--blue);font-size:12px">' + esc(st.py || '') + '</span> ' + sayBtn(st.zh)
+                       : '<span class="lineen">say it out loud, then reveal</span>') + '</div>' +
+      (!s.shown && !done ? '<div class="nav"><button class="btn" data-unveil>Reveal</button></div>'
+        : (!done ? '<div class="nav"><button class="btn good" data-mark="1">Got it ✓</button><button class="btn bad" data-mark="0">Missed</button></div>'
+                 : '<div class="nav">' + (s.stop < STOPS.length - 1 ? '<button class="btn" data-next>Next stop →</button>' : '<button class="btn" data-finish>Finish part 1 →</button>') +
+                   '<span class="score">' + s.marks.filter(Boolean).length + '/' + seen + '</span></div>'));
+  }
+  drawMap();
+}
+
+document.addEventListener('click', e => {
+  const tb = e.target.closest('#tabs button');
+  if (tb) { s.mode = tb.dataset.m; s.stop = 0; s.shown = false; s.chant = false; if (s.mode === 'recall') s.marks = []; save(); draw(); return; }
+  const sw = e.target.closest('[data-switch]');
+  if (sw) { s.mode = sw.dataset.switch; s.stop = 0; s.shown = false; s.chant = false; s.marks = []; save(); draw(); return; }
+  const nd = e.target.closest('[data-stop]');
+  if (nd) { s.stop = +nd.dataset.stop; s.shown = false; s.chant = false; save(); draw(); return; }
+  if (e.target.closest('[data-unveil]')) { s.shown = true; save(); draw(); return; }
+  if (e.target.closest('[data-next]')) {
+    if (s.mode === 'learn') {
+      if (!s.shown) s.shown = true;
+      else if (s.stop < STOPS.length - 1) { s.stop++; s.shown = false; }
+      else if (CHANT.length) s.chant = true;
+      else { s.mode = 'recall'; s.stop = 0; s.shown = false; s.marks = []; }
+    } else { s.stop = Math.min(STOPS.length - 1, s.stop + 1); s.shown = false; }
+    save(); draw(); return;
+  }
+  const mk = e.target.closest('[data-mark]');
+  if (mk) {
+    const ok = +mk.dataset.mark === 1, st = STOPS[s.stop];
+    s.marks[s.stop] = ok; s.shown = false; save();
+    callTool('update_word_strength', { updates: { [st.zh]: ok ? 3 : 1 } });
+    draw(); return;
+  }
+  if (e.target.closest('[data-finish]')) {
+    const got = s.marks.filter(Boolean).length;
+    callTool('save_lesson_progress', {
+      lesson: D.lesson, steps: D.step != null ? [D.step] : undefined,
+      words: STOPS.map(x => x.zh),
+      note: 'Walk finished — ' + got + '/' + STOPS.length + ' recalled from memory.'
+    });
+    followUp('Part 1 done — ' + got + ' of ' + STOPS.length + ' from memory. Start the speaking part.');
+  }
+});
+draw();
+addEventListener('resize', drawMap);
+</script>

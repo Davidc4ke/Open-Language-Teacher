@@ -1,0 +1,50 @@
+<style>
+  .cue { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--line); }
+  .cue:last-child { border-bottom:0; }
+  .cue .n { flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--line); display:grid; place-items:center; font-size:10px; font-weight:800; color:var(--muted); }
+  .cue.got .n { border-color:var(--green); color:var(--green); }
+  .cue .q { font-size:14px; }
+  .cue .w { display:block; font-size:11.5px; color:var(--coral); font-weight:800; margin-top:3px; }
+  .bar { height:6px; border-radius:99px; background:var(--line); margin:10px 0 4px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--green); border-radius:99px; transition:width .35s ease; }
+</style>
+<div id="root"></div>
+<script>
+const C = D.cues || [];
+let st = Object.assign({ got: [] }, S());
+function render() {
+  const n = st.got.length;
+  document.getElementById('root').innerHTML =
+    '<h1>' + esc(D.title || 'Say it out loud') + '</h1>' +
+    '<span class="meta">' + C.length + ' turns · about 2 minutes · voice mode</span>' +
+    '<div class="bar"><i style="width:' + Math.round(n / Math.max(1, C.length) * 100) + '%"></i></div>' +
+    '<span class="mono">' + n + ' of ' + C.length + ' pieces used</span>' +
+    '<div style="margin-top:10px">' + C.map((c, i) =>
+      '<div class="cue' + (st.got.indexOf(i) >= 0 ? ' got' : '') + '"><span class="n">' + (st.got.indexOf(i) >= 0 ? '✓' : i + 1) + '</span>' +
+      '<div><span class="q">' + esc(c.ask) + '</span>' + (c.want ? '<span class="w">wants: ' + esc(c.want) + '</span>' : '') +
+      (c.en ? '<span class="en" style="margin:2px 0 0">' + esc(c.en) + '</span>' : '') + '</div>' +
+      '<button class="btn ghost" style="margin-left:auto;padding:6px 12px;font-size:11.5px" data-got="' + i + '">' +
+      (st.got.indexOf(i) >= 0 ? 'said' : 'mark said') + '</button></div>').join('') + '</div>' +
+    '<p class="note">Voice mode shows no cards — this is the plan your AI follows while you talk. It keeps nudging until every piece has come out of your mouth.</p>' +
+    (n >= C.length ? '<div class="row end"><button class="btn" id="fin">Part 2 done →</button></div>' : '');
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-got]');
+  if (g) {
+    const i = +g.dataset.got, at = st.got.indexOf(i);
+    if (at >= 0) st.got.splice(at, 1); else st.got.push(i);
+    setState(st); render();
+    const c = C[i];
+    if (at < 0 && c && c.want) callTool('update_word_strength', { updates: { [c.want]: 3 } });
+    return;
+  }
+  if (e.target.closest('#fin')) {
+    callTool('save_lesson_progress', {
+      lesson: D.lesson, steps: D.step != null ? [D.step] : undefined,
+      words: C.map(c => c.want).filter(Boolean), note: 'Speaking part done — every piece said out loud.'
+    });
+    followUp('Part 2 done — I used all of them. On to the reading.');
+  }
+});
+render();
+</script>

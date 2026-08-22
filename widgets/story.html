@@ -1,0 +1,41 @@
+<style>
+  .para { font-size:16px; line-height:2; margin:2px 0 4px; }
+  .para.flat .seg { flex-direction:row; }
+  .toggles { display:flex; gap:7px; margin:4px 0 14px; }
+</style>
+<div id="root"></div>
+<script>
+let st = Object.assign({ py: true, en: true, read: false }, S());
+function paraHtml(p) {
+  return '<p class="para' + (st.py ? '' : ' flat') + '">' + (st.py
+    ? ruby(p.seg)
+    : (p.seg || []).map(g => '<span class="seg' + (g.hit ? ' t' : '') + '" data-say="' + esc(g.t) + '"><span class="zh">' + esc(g.t) + '</span></span>').join('')) +
+    '</p>' + (st.en && p.en ? '<p class="en">' + esc(p.en) + '</p>' : '<div style="height:14px"></div>');
+}
+function render() {
+  const paras = D.paras || [];
+  document.getElementById('root').innerHTML =
+    '<h1>' + esc(D.title || 'Read') + '</h1>' +
+    '<span class="meta">' + (D.stats ? esc(D.stats) : paras.length + ' paragraph' + (paras.length === 1 ? '' : 's')) +
+      ' · tap anything to hear it</span>' +
+    '<div class="toggles">' +
+      '<button class="tgl' + (st.py ? ' on' : '') + '" data-t="py"><i></i>Pinyin</button>' +
+      '<button class="tgl' + (st.en ? ' on' : '') + '" data-t="en"><i></i>Translation</button></div>' +
+    paras.map(paraHtml).join('') +
+    '<div class="row end"><button class="btn' + (st.read ? ' ghost' : '') + '" id="read">' +
+      (st.read ? 'Read ✓ — saved' : 'I\'ve read it →') + '</button></div>';
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-t]');
+  if (t) { st[t.dataset.t] = !st[t.dataset.t]; setState(st); render(); return; }
+  if (e.target.closest('#read') && !st.read) {
+    st.read = true; setState(st); render();
+    callTool('save_lesson_progress', {
+      lesson: D.lesson, steps: D.step != null ? [D.step] : undefined,
+      words: D.words || [], note: 'Reading part done.'
+    });
+    followUp('Part 3 done — I have read the story.');
+  }
+});
+render();
+</script>

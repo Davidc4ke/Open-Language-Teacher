@@ -383,8 +383,42 @@ const planSummary = p => ({
   lessons: (p.lessons || []).map(l => l.n + '. ' + l.title + ' (' + l.mode + (l.done ? ', done' : '') + ')')
 });
 
+/* ---------------- MCP apps: ui:// widgets rendered inside the chat ---------------- */
+const WIDGET_DIR = path.join(__dirname, 'widgets');
+const WIDGETS = {
+  plan:   { uri: 'ui://olt/plan',   title: 'Your week' },
+  lesson: { uri: 'ui://olt/lesson', title: 'Today\'s lesson' },
+  walk:   { uri: 'ui://olt/walk',   title: 'The walk' },
+  speak:  { uri: 'ui://olt/speak',  title: 'Say it out loud' },
+  story:  { uri: 'ui://olt/story',  title: 'The reading' },
+  day:    { uri: 'ui://olt/day',    title: 'Day done' }
+};
+const WIDGET_MIME = 'text/html+skybridge';
+const wCache = {};
+function widgetHtml(name) {
+  if (wCache[name] && process.env.NODE_ENV === 'production') return wCache[name];
+  const css = fs.readFileSync(path.join(WIDGET_DIR, 'base.css'), 'utf8');
+  const js = fs.readFileSync(path.join(WIDGET_DIR, 'base.js'), 'utf8');
+  const body = fs.readFileSync(path.join(WIDGET_DIR, name + '.html'), 'utf8');
+  const html = '<!doctype html><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<style>' + css + '</style><script>' + js + '<\/script>' + body;
+  wCache[name] = html;
+  return html;
+}
+/* attach a widget to a tool the way the Apps SDK expects */
+const widget = (name, invoking, invoked) => ({
+  'openai/outputTemplate': WIDGETS[name].uri,
+  'openai/toolInvocation/invoking': invoking,
+  'openai/toolInvocation/invoked': invoked,
+  'openai/widgetAccessible': true
+});
+const fromWidget = { 'openai/widgetAccessible': true };
+
 /* ---------------- mcp (bound to one learner) ---------------- */
 const text = o => ({ content: [{ type: 'text', text: typeof o === 'string' ? o : JSON.stringify(o, null, 2) }] });
+/* same, plus the data the attached ui:// widget renders from (window.openai.toolOutput) */
+const view = (o, data) => ({ ...text(o), structuredContent: data });
 
 function buildMcp(user) {
   const uid = user.id;
@@ -406,7 +440,40 @@ function buildMcp(user) {
     };
   };
 
-  const server = new McpServer({ name: 'open-language-teacher', version: '2.1.0' });
+
+  /* the three parts of a lesson day, in order, with the widget each one opens */
+  const PART_MIN = { walk: 6, speak: 2, story: 2 };
+  const PART_DESC = {
+    walk: 'The new pieces, one per real place in your week. Text, right here.',
+    speak: 'Voice mode. A short chat that uses every piece you just learned.',
+    story: 'The same evening written out, with every piece coming back.'
+  };
+  const dayParts = l => (l.parts || [])
+    .map((pt, i) => ({ i, kind: pt.kind, name: pt.name, d: pt.d || PART_DESC[pt.kind] || '', min: PART_MIN[pt.kind] }))
+    .filter(x => PART_MIN[x.kind]);
+  /* which agenda step points at a given part, so widgets can tick the right box */
+  const stepForPart = (l, idx) => {
+    const i = (l.steps || []).findIndex(st => st.mat === idx);
+    return i >= 0 ? i + 1 : undefined;
+  };
+  const findPart = (kind, lessonN) => {
+    const s = S(), p = curPlan(s);
+    if (!p) return { err: 'No current plan.' };
+    const l = lessonN != null ? p.lessons.find(x => x.n === lessonN) : p.lessons.find(x => !x.done);
+    if (!l) return { err: 'Lesson not found.' };
+    const idx = (l.parts || []).findIndex(pt => pt.kind === kind);
+    if (idx < 0) return { err: 'Lesson ' + l.n + ' has no "' + kind + '" part. Add one with update_lesson.' , lesson: l };
+    return { s, p, l, idx, pt: l.parts[idx] };
+  };
+
+  const server = new McpServer({ name: 'open-language-teacher', version: '3.0.0' });
+
+  for (const [name, w] of Object.entries(WIDGETS)) {
+    server.registerResource('olt-' + name, w.uri, {
+      title: w.title, description: 'Open Language Teacher — ' + w.title + ', rendered in the chat.',
+      mimeType: WIDGET_MIME
+    }, async (uri) => ({ contents: [{ uri: uri.href, mimeType: WIDGET_MIME, text: widgetHtml(name) }] }));
+  }
 
   server.registerTool('link_profile', {
     title: 'Link profile',
@@ -536,7 +603,8 @@ function buildMcp(user) {
         topic: z.string().optional().describe('Vocabulary map node this word belongs to — reuse existing topics where possible'),
         ex: z.string().optional()
       }))
-    }
+    },
+    _meta: fromWidget
   }, async ({ words }) => {
     const added = [], skipped = [];
     const s = mutate(uid, s => {
@@ -552,7 +620,8 @@ function buildMcp(user) {
 
   server.registerTool('update_word_strength', {
     title: 'Update word strength', description: 'Record recall results after drills. Map of piece → strength 0–3. At 3 the piece graduates to mastered.',
-    inputSchema: { updates: z.record(z.string(), z.number().min(0).max(3)) }
+    inputSchema: { updates: z.record(z.string(), z.number().min(0).max(3)) },
+    _meta: fromWidget
   }, async ({ updates }) => {
     const graduated = [], changed = [];
     const s = mutate(uid, s => {
@@ -650,14 +719,21 @@ function buildMcp(user) {
   });
 
   server.registerTool('get_current_plan', {
-    title: 'Get current plan', description: 'Read the full current plan exactly as stored (every lesson with steps, mats, words, grammar, parts), plus a list of past/future plans. Use it to verify writes and to decide between update_plan and create_plan.', inputSchema: {}
+    title: 'Get current plan', description: 'Read the full current plan exactly as stored (every lesson with steps, mats, words, grammar, parts), plus a list of past/future plans. Use it to verify writes and to decide between update_plan and create_plan. Renders the week as a card in the chat — point the learner at it instead of retyping the plan.',
+    inputSchema: {},
+    _meta: widget('plan', 'Opening your week…', 'Your week')
   }, async () => {
     const s = S();
     const p = curPlan(s);
-    return text({
+    return view({
       currentPlan: p || null,
       otherPlans: s.plans.filter(x => x.status !== 'current').map(x => ({ id: x.id, title: x.title, status: x.status, topic: x.topic }))
-    });
+    }, p ? {
+      title: p.title, focus: p.focus || '', range: p.range || '',
+      done: p.lessons.filter(l => l.done).length, total: p.lessons.length,
+      lang: s.profile.language || 'zh-CN',
+      lessons: p.lessons.map(l => ({ n: l.n, title: l.title, mode: l.mode, mins: l.mins, obj: l.obj, done: !!l.done }))
+    } : { title: 'No plan yet', lessons: [], done: 0, total: 0 });
   });
 
   server.registerTool('update_plan', {
@@ -736,7 +812,9 @@ function buildMcp(user) {
   });
 
   server.registerTool('get_next_lesson', {
-    title: 'Get next lesson', description: 'Pull the next undone lesson with its full script and components. Call this from TEXT chat — voice models cannot make tool calls reliably. The result tells you how to run the lesson in its declared mode and how results get saved.', inputSchema: {}
+    title: 'Get next lesson', description: 'Pull the next undone lesson with its full script and components, and show the learner its parts as a card in the chat. Call this from TEXT chat — voice models cannot make tool calls reliably. The result tells you how to run the lesson and how results get saved.',
+    inputSchema: {},
+    _meta: widget('lesson', 'Opening today\'s lesson…', 'Today\'s lesson')
   }, async () => {
     const s = S();
     const p = curPlan(s), l = nextLesson(s);
@@ -747,13 +825,58 @@ function buildMcp(user) {
       ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it: first add_words for every word/phrase the learner asked about or picked up incidentally during the session (they don\'t fully know those — queue them for practice and say so), then tick everything actually covered with save_lesson_progress, record strengths, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
       : 'Run this ' + l.mode + ' lesson right here in text chat. Queue incidental words the learner asks about with add_words as they come up, tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
     const discipline = 'LESSON DISCIPLINE: teach exactly THIS lesson — do not invent a different one or swap target words for related words. Side explanations are fine (max ~1 extra concept) but always return to the checklist. Never say "last one" or end because the learner says "ok/好" — before closing, list which checklist items are done and which are missing, and keep going (or save partial progress with save_lesson_progress and leave the lesson incomplete) until every step and target word is truly covered, the story/drill ran, and the recall check happened.';
-    return text({
+    const dp = dayParts(l);
+    const doneParts = dp.map((x, k) => {
+      const stepN = stepForPart(l, x.i);
+      return stepN && l.ck && l.ck.steps[stepN - 1] ? k : -1;
+    }).filter(k => k >= 0);
+    return view({
       ok: true, plan: p.title, focus: p.focus, lesson: l,
       checklist: ck,
+      ...(dp.length ? { threeParts: dp.map((x, k) => (k + 1) + '. ' + x.kind + ' — ' + x.name), openWith: 'open_walk / open_speak / open_story render each part as a card the learner can actually use. Call them instead of retyping the content.' } : {}),
       ...(started ? { resuming: true, note: 'This lesson was started earlier — pick up at the unticked items below.' + (l.progNote ? ' Last progress note: ' + l.progNote : '') } : {}),
       protocol, discipline
+    }, {
+      n: l.n, of: p.lessons.length, title: l.title, mins: l.mins, obj: l.obj,
+      lang: s.profile.language || 'zh-CN',
+      parts: dp.length ? dp : [{ kind: 'story', name: l.title, d: l.obj || '', min: l.mins }],
+      doneParts
     });
   });
+
+  /* ---- the three parts of a lesson day, each as its own card in the chat ---- */
+  const partTool = (kind, toolName, title, desc, invoking, invoked, build) =>
+    server.registerTool(toolName, {
+      title, description: desc,
+      inputSchema: { lesson: z.number().optional().describe('Lesson/day number; defaults to the next undone lesson') },
+      _meta: widget(kind, invoking, invoked)
+    }, async (a) => {
+      const f = findPart(kind, a.lesson);
+      if (f.err) return text({ ok: false, error: f.err });
+      const base = { lesson: f.l.n, step: stepForPart(f.l, f.idx), lang: f.s.profile.language || 'zh-CN', name: f.pt.name };
+      return view({ ok: true, lesson: f.l.n, part: f.pt, shownToLearner: true, note: 'The learner now has this open as a card. Talk them through it — do not paste the content back at them.' },
+        Object.assign(base, build(f)));
+    });
+
+  partTool('walk', 'open_walk', 'Open the walk',
+    'Show part 1 — the step-by-step vocabulary walk — as an interactive card in the chat. The learner reveals each piece at its place, then walks the route back from memory; the card writes recall strengths back by itself.',
+    'Opening the walk…', 'The walk',
+    f => ({ title: f.pt.name, stops: f.pt.stops || [], chant: f.pt.chant || [] }));
+
+  partTool('speak', 'open_speak', 'Open the speaking part',
+    'Show part 2 — the two-minute spoken conversation — as a card. It lists the turns and which piece each one should draw out, and tracks how many pieces the learner has actually said.',
+    'Opening the speaking part…', 'Say it out loud',
+    f => ({ title: f.pt.name, cues: f.pt.cues || [] }));
+
+  partTool('story', 'open_story', 'Open the reading',
+    'Show part 3 — the reading — as a card, word by word with the romanization under each word and switches to hide it. Use it instead of pasting the story into the chat.',
+    'Opening the reading…', 'The reading',
+    f => ({
+      title: f.pt.name, stats: f.pt.stats || '',
+      paras: f.pt.paras && f.pt.paras.length ? f.pt.paras
+        : (f.pt.html ? [{ seg: [{ t: f.pt.html }], en: f.pt.en || '' }] : []),
+      words: f.l.words || []
+    }));
 
   server.registerTool('save_lesson_progress', {
     title: 'Save lesson progress', description: 'Tick off completed checklist items of a lesson WITHOUT marking it done. Call this during/after a session for everything actually covered — steps by number or name, target words practiced, plus recall strengths and a progress note. Safe to call repeatedly; complete_lesson only succeeds once the checklist is fully ticked.',
@@ -763,7 +886,8 @@ function buildMcp(user) {
       words: z.array(z.string()).optional().describe('Target words actually practiced'),
       strengths: z.record(z.string(), z.number().min(0).max(3)).optional().describe('Recall strength per piece, like update_word_strength'),
       note: z.string().optional().describe('Short progress note (what is left, learner difficulties)')
-    }
+    },
+    _meta: fromWidget
   }, async (a) => {
     let out = null;
     mutate(uid, s => {
@@ -801,9 +925,10 @@ function buildMcp(user) {
       log: z.array(z.string()).optional(),
       skills: z.record(z.string(), z.number()).optional(),
       force: z.boolean().optional().describe('Override the checklist gate. Use ONLY when the learner explicitly says to skip the remaining items — never to paper over an unfinished session.')
-    }
+    },
+    _meta: widget('day', 'Saving your day…', 'Day done')
   }, async (a) => {
-    let out = null;
+    let out = null, card = null;
     mutate(uid, s => {
       const p = curPlan(s);
       if (!p) { out = { ok: false, error: 'No current plan.' }; return; }
@@ -830,9 +955,19 @@ function buildMcp(user) {
         if (s.skills[k]) s.skills[k].pct = Math.max(0, Math.min(100, Math.round(s.skills[k].pct + d)));
       }
       const done = p.lessons.filter(x => x.done).length;
+      const nx = p.lessons.find(x => !x.done);
       out = { ok: true, lesson: l.n, weekProgress: done + '/' + p.lessons.length, streak: s.streak, weekComplete: done === p.lessons.length ? 'Week complete — call create_plan for next week.' : undefined };
+      card = {
+        title: done === p.lessons.length ? 'Week done' : 'Day ' + l.n + ' done',
+        sub: done + ' of ' + p.lessons.length + ' this week',
+        streak: s.streak, inPractice: s.learning.length, mastered: s.known.length + s.knownExtra,
+        done, total: p.lessons.length,
+        lessons: p.lessons.map(x => ({ n: x.n, title: x.title, done: !!x.done })),
+        note: a.note || '', nextTitle: nx ? nx.title : '',
+        lang: s.profile.language || 'zh-CN'
+      };
     });
-    return text(out);
+    return card ? view(out, card) : text(out);
   });
 
   server.registerTool('log_session', {
