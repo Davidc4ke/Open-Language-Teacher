@@ -431,6 +431,56 @@
   .deckrow .zh { font-weight: 800; font-size: 15px; flex: none; }
   .deckrow .g { flex: 1; min-width: 0; color: var(--muted); font-size: 12.5px; }
 
+  /* walk — step-by-step vocabulary */
+  .wkrow { display: flex; gap: 6px; margin: 8px 0 14px; flex-wrap: wrap; }
+  .wkrow button { border: 1.5px solid var(--line); background: var(--chip); color: var(--muted); border-radius: 999px;
+    width: 30px; height: 30px; font-family: var(--sans); font-size: 12px; font-weight: 800; cursor: pointer; padding: 0; }
+  .wkrow button.on { border-color: var(--blue); color: var(--blue); }
+  .wkrow button.got { border-color: var(--green); color: var(--green); }
+  .wkplace { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--nc, var(--faint)); }
+  .wkscene { font-size: 14px; line-height: 1.6; margin-top: 8px; }
+  .wkask { font-size: 14px; font-weight: 800; margin-top: 10px; }
+  .wkword { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .wkword .hz { font-size: 30px; font-weight: 800; line-height: 1.15; }
+  .wkword .py { font-family: var(--mono); font-size: 12px; color: var(--blue); }
+  .wkword .gl { width: 100%; color: var(--muted); font-weight: 700; font-size: 13px; }
+  .wkbridge { color: var(--violet); font-size: 12.5px; font-weight: 600; line-height: 1.5; margin-top: 10px; }
+  .wkline { margin-top: 13px; font-size: 15px; line-height: 1.7; }
+  .wkline .en, .wkchant .en { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+  .wknav { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 15px; }
+  .wkbtn { border: 0; border-radius: 999px; background: var(--navy); color: var(--navy-ink); font-family: var(--sans);
+    font-size: 12.5px; font-weight: 800; padding: 9px 17px; cursor: pointer; }
+  .wkbtn.good { background: var(--green); color: #fff; }
+  .wkbtn.bad { background: var(--coral); color: #fff; }
+  .wkbtn.ghost { background: var(--chip); color: var(--ink); }
+  .wkchant div { margin-bottom: 11px; font-size: 15px; }
+  .wkblur { filter: blur(9px); cursor: pointer; }
+  /* word-by-word text with the romanization under each word */
+  .rline { display: inline-flex; flex-wrap: wrap; align-items: flex-end; row-gap: 12px; }
+  .rseg { display: inline-flex; flex-direction: column; align-items: center; padding: 0 1.5px; border-radius: 4px; }
+  .rseg .rz { font-size: 16px; line-height: 1.35; }
+  .rseg.t .rz { color: var(--coral); font-weight: 800; white-space: nowrap; }
+  .rseg .rp { font-family: var(--mono); font-size: 8.5px; color: var(--blue); min-height: 11px; white-space: nowrap; }
+  /* speak — the spoken turns */
+  .cuerow { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .cuerow:last-of-type { border-bottom: 0; }
+  .cuerow .n { flex: none; width: 21px; height: 21px; border-radius: 50%; border: 2px solid var(--line);
+    display: grid; place-items: center; font-size: 10px; font-weight: 800; color: var(--muted); }
+  .cuerow .q { font-size: 14px; }
+  .cuerow .want { display: block; font-size: 11.5px; color: var(--coral); font-weight: 800; margin-top: 3px; }
+  .cuerow .cen { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  /* reading switches */
+  .rdtog { display: flex; gap: 7px; margin: 8px 0 12px; }
+  .rdtog button { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--line); background: var(--chip);
+    color: var(--muted); border-radius: 999px; padding: 5px 12px 5px 7px; font-family: var(--sans); font-size: 11.5px; font-weight: 800; cursor: pointer; }
+  .rdtog button i { flex: none; width: 24px; height: 14px; border-radius: 99px; background: var(--line); position: relative; transition: background .2s; }
+  .rdtog button i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--card); transition: transform .2s; }
+  .rdtog button.on { border-color: var(--blue); color: var(--blue); }
+  .rdtog button.on i { background: var(--blue); }
+  .rdtog button.on i::after { transform: translateX(10px); }
+  .rdpara { margin: 2px 0 4px; font-size: 16px; line-height: 2; }
+  .rden { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 6px 0 15px; }
+
   .dots { display: flex; gap: 4px; flex: none; }
   .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .4s; }
   .dots i.f { background: var(--coral); }
@@ -1059,7 +1109,8 @@
     allWords().forEach(x => { const t = x.w.topic || 'General'; if (!seen.includes(t)) seen.push(t); });
     return seen;
   }
-  const KINDS = { warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
+  const KINDS = {
+    walk: 'The walk', speak: 'Say it out loud', warm: 'Warm-up', vocab: 'New vocab', story: 'Story', talk: 'Conversation', cards: 'Flashcards', exam: 'Exam', plan: 'Planning' };
   const MODES = { voice: { icon: 'mic' }, chat: { icon: 'chat' }, reading: { icon: 'read' } };
   function modeOf(l) { return MODES[l.mode] ? l.mode : 'voice'; }
 
@@ -1069,13 +1120,13 @@
     if (typeof m === 'string') return { name: m, d: '', t: 'mat' };
     return { name: m.name || m.title || m.d || 'Material', d: m.name ? (m.d || '') : '', t: m.t || m.kind || 'mat' };
   }
-  const PART_NEED = { script: 'lines', news: 'items', deck: 'cards', drill: 'prompts', rubric: 'rows' };
+  const PART_NEED = { script: 'lines', news: 'items', deck: 'cards', drill: 'prompts', rubric: 'rows', walk: 'stops', speak: 'cues' };
   function normPart(p) {
     if (typeof p === 'string') return { kind: 'mat', name: p, d: '' };
     const out = Object.assign({}, p);
     if (!PART_NEED[out.kind] && out.kind !== 'story' && out.kind !== 'mat') out.kind = 'mat';
     if (PART_NEED[out.kind] && !Array.isArray(out[PART_NEED[out.kind]])) out.kind = 'mat';
-    if (out.kind === 'story' && typeof out.html !== 'string') {
+    if (out.kind === 'story' && typeof out.html !== 'string' && !Array.isArray(out.paras)) {
       if (typeof out.text === 'string') out.html = out.text; else out.kind = 'mat';
     }
     if (!out.name) out.name = out.title || (out.kind === 'mat' ? 'Material' : out.kind.charAt(0).toUpperCase() + out.kind.slice(1));
@@ -1153,6 +1204,7 @@
 
   function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
   const $ = (id) => document.getElementById(id);
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 
   function setRing(el, pct) {
     const f = el.querySelector('.f');
@@ -1881,13 +1933,94 @@
     if (s.mat != null && parts[s.mat]) return s.mat;
     let i = parts.findIndex(pt => pt.kind === s.k);
     if (i >= 0) return i;
-    const map = { vocab: 'deck', cards: 'deck', exam: 'rubric' };
+    const map = { vocab: 'walk', cards: 'deck', exam: 'rubric', talk: 'speak', warm: 'walk' };
     if (map[s.k]) { i = parts.findIndex(pt => pt.kind === map[s.k]); if (i >= 0) return i; }
+    if (s.k === 'vocab') { i = parts.findIndex(pt => pt.kind === 'deck'); if (i >= 0) return i; }
     if (s.k === 'story') { i = parts.findIndex(pt => pt.kind === 'news'); if (i >= 0) return i; }
     return null;
   }
 
+  /* walk / reading state lives per part, keyed by name */
+  const wkState = {};
+  const rdState = {};
+  const WK = pt => (wkState[pt.name] = wkState[pt.name] || { i: 0, shown: false, mode: 'learn', chant: false, marks: [] });
+  const RD = pt => (rdState[pt.name] = rdState[pt.name] || { py: true, en: true });
+  const segLine = (seg, showPy) => '<span class="rline">' + (seg || []).map(g =>
+    '<span class="rseg' + (g.hit ? ' t' : '') + '"><span class="rz">' + esc(g.t) + '</span>' +
+    (showPy === false ? '' : '<span class="rp">' + esc(g.p || '') + '</span>') + '</span>').join('') + '</span>';
+  const segText = seg => (seg || []).map(g => g.t).join('');
+
+  function walkHtml(pt) {
+    const st = WK(pt), stops = pt.stops || [], chant = pt.chant || [];
+    const s0 = stops[st.i] || {};
+    const nc = 'var(--' + (s0.color || ['teal', 'blue', 'coral', 'violet', 'amber', 'green'][st.i % 6]) + ')';
+    const tabs = '<div class="wkrow" style="margin-bottom:4px">' +
+      '<button data-wkmode="learn" class="' + (st.mode === 'learn' ? 'on' : '') + '" style="width:auto;padding:0 14px">Learn</button>' +
+      '<button data-wkmode="recall" class="' + (st.mode === 'recall' ? 'on' : '') + '" style="width:auto;padding:0 14px">Practice</button>' +
+      '<span class="mono" style="margin-left:auto;align-self:center">' + (st.chant ? 'THE CHANT' : 'STOP ' + (st.i + 1) + ' / ' + stops.length) + '</span></div>';
+    const dots = tabs + '<div class="wkrow">' + stops.map((x, k) =>
+      '<button data-wkgo="' + k + '" class="' + (k === st.i && !st.chant ? 'on' : '') + (st.marks[k] != null ? ' got' : '') + '">' +
+      (st.marks[k] != null ? (st.marks[k] ? '✓' : '·') : k + 1) + '</button>').join('') +
+      (chant.length ? '<button data-wkchant class="' + (st.chant ? 'on' : '') + '" style="width:auto;padding:0 12px">chant</button>' : '') + '</div>';
+    if (st.chant) {
+      return dots + '<div class="wkchant">' + chant.map(c =>
+        '<div>' + (c.seg ? segLine(c.seg) : esc(c.s)) + ' ' + sayBtn(c.s || segText(c.seg)) +
+        (c.en ? '<span class="en">' + esc(c.en) + '</span>' : '') + '</div>').join('') + '</div>' +
+        '<div class="wknav"><button class="wkbtn" data-wkmode="recall">Walk it back from memory →</button></div>';
+    }
+    const head = '<p class="wkplace" style="--nc:' + nc + '">' + esc(s0.place) + '</p>';
+    if (st.mode === 'learn') {
+      if (!st.shown) {
+        return dots + head + '<p class="wkscene">' + esc(s0.scene) + '</p><p class="wkask">' + esc(s0.ask) + '</p>' +
+          '<div class="wknav"><button class="wkbtn" data-wknext>Reveal →</button></div>';
+      }
+      return dots + head +
+        '<div class="wkword"><span class="hz">' + esc(s0.zh) + '</span><span class="py">' + esc(s0.py || '') + '</span>' +
+        sayBtn(s0.zh) + '<span class="gl">' + esc(s0.en) + '</span></div>' +
+        (s0.bridge ? '<p class="wkbridge">' + esc(s0.bridge) + '</p>' : '') +
+        '<div class="wkline">' + (s0.seg ? segLine(s0.seg) : esc(s0.line)) + ' ' + sayBtn(s0.line || segText(s0.seg)) +
+        (s0.lineEn ? '<span class="en">' + esc(s0.lineEn) + '</span>' : '') + '</div>' +
+        '<div class="wknav"><button class="wkbtn" data-wknext>' +
+        (st.i < stops.length - 1 ? 'Next stop →' : (chant.length ? 'Finish — the chant →' : 'Walk it back →')) + '</button></div>';
+    }
+    const done = st.marks[st.i] != null, seen = st.marks.filter(m => m != null).length;
+    return dots + head + '<p class="wkscene">' + esc(s0.scene) + '</p>' +
+      '<div class="wkline"><span class="hz" style="font-size:28px;font-weight:800"' +
+      (st.shown || done ? '' : ' class="wkblur" data-wkshow') + (st.shown || done ? '' : ' data-wkshow') + '>' +
+      (st.shown || done ? esc(s0.zh) : '<span class="wkblur">' + esc(s0.zh) + '</span>') + '</span>' +
+      (st.shown || done ? ' <span class="py" style="font-family:var(--mono);color:var(--blue);font-size:12px">' + esc(s0.py || '') + '</span> ' + sayBtn(s0.zh)
+                        : '<span class="en">say it out loud, then reveal</span>') + '</div>' +
+      (!st.shown && !done ? '<div class="wknav"><button class="wkbtn" data-wkshow>Reveal</button></div>'
+        : (!done ? '<div class="wknav"><button class="wkbtn good" data-wkmark="1">Got it ✓</button><button class="wkbtn bad" data-wkmark="0">Missed</button></div>'
+                 : '<div class="wknav">' + (st.i < stops.length - 1 ? '<button class="wkbtn" data-wknext>Next stop →</button>' : '<button class="wkbtn ghost" data-wkmode="learn">Start over</button>') +
+                   '<span class="mono">' + st.marks.filter(Boolean).length + '/' + seen + '</span></div>')) +
+      '<div class="aitip">Recall results reach your AI through <b>update_word_strength</b> when you sync the lesson.</div>';
+  }
+
+  function speakHtml(pt) {
+    return '<div>' + (pt.cues || []).map((c, i) =>
+      '<div class="cuerow"><span class="n">' + (i + 1) + '</span><div><span class="q">' + esc(c.ask) + '</span>' +
+      (c.want ? '<span class="want">wants: ' + esc(c.want) + '</span>' : '') +
+      (c.en ? '<span class="cen">' + esc(c.en) + '</span>' : '') +
+      (c.model ? '<span class="cen">you: ' + esc(c.model) + '</span>' : '') + '</div>' +
+      sayBtn(c.ask) + '</div>').join('') + '</div>' +
+      '<div class="aitip">Voice mode shows no cards — this is the plan your AI follows out loud. It keeps nudging until every piece has come out of your mouth.</div>';
+  }
+
+  function readingHtml(pt) {
+    const st = RD(pt);
+    return '<div class="rdtog">' +
+      '<button data-rdt="py" class="' + (st.py ? 'on' : '') + '" data-part="' + esc(pt.name) + '"><i></i>Pinyin</button>' +
+      '<button data-rdt="en" class="' + (st.en ? 'on' : '') + '" data-part="' + esc(pt.name) + '"><i></i>Translation</button></div>' +
+      (pt.paras || []).map(pa =>
+        '<p class="rdpara">' + segLine(pa.seg, st.py) + '</p>' +
+        (st.en && pa.en ? '<p class="rden">' + esc(pa.en) + '</p>' : '<div style="height:12px"></div>')).join('');
+  }
+
   function partBodyHtml(pt) {
+    if (pt.kind === 'walk') return walkHtml(pt);
+    if (pt.kind === 'speak') return speakHtml(pt);
+    if (pt.kind === 'story' && Array.isArray(pt.paras) && pt.paras.length) return readingHtml(pt);
     if (pt.kind === 'script') {
       return '<ul class="scriptrows">' + pt.lines.map(x =>
         '<li><span class="spk ' + x.s + '">' + x.s + '</span><span>' + x.t + '</span></li>').join('') + '</ul>' +
@@ -1926,6 +2059,42 @@
     return '<p class="desc" style="margin-top:10px">' + (pt.d || '') + '</p>' +
       '<div class="aitip">Material without stored content — the full text regenerates on demand via <b>get_next_lesson</b>.</div>';
   }
+
+  /* the walk and the reading are interactive inside the sidebar */
+  function curPart() {
+    if (!plDetail || typeof plSel !== 'number' || !plWeek) return null;
+    const p = state.plans.find(x => x.id === plWeek);
+    const l = p && p.lessons[plSel];
+    if (!l) return null;
+    const parts = partsOf(l);
+    if (plDetail.part != null) return parts[plDetail.part];
+    if (plDetail.step != null) { const i = stepMatIdx(parts, l.steps[plDetail.step]); return i != null ? parts[i] : null; }
+    return null;
+  }
+  document.addEventListener('click', e => {
+    const pt = curPart();
+    if (!pt) return;
+    const go = e.target.closest('[data-wkgo]');
+    if (go) { const st = WK(pt); st.i = +go.dataset.wkgo; st.shown = false; st.chant = false; renderPlanSide(); return; }
+    if (e.target.closest('[data-wkchant]')) { const st = WK(pt); st.chant = !st.chant; renderPlanSide(); return; }
+    const md = e.target.closest('[data-wkmode]');
+    if (md) { const st = WK(pt); st.mode = md.dataset.wkmode; st.i = 0; st.shown = false; st.chant = false; if (st.mode === 'recall') st.marks = []; renderPlanSide(); return; }
+    if (e.target.closest('[data-wkshow]')) { WK(pt).shown = true; renderPlanSide(); return; }
+    if (e.target.closest('[data-wknext]')) {
+      const st = WK(pt), stops = pt.stops || [];
+      if (st.mode === 'learn') {
+        if (!st.shown) st.shown = true;
+        else if (st.i < stops.length - 1) { st.i++; st.shown = false; }
+        else if ((pt.chant || []).length) st.chant = true;
+        else { st.mode = 'recall'; st.i = 0; st.shown = false; st.marks = []; }
+      } else { st.i = Math.min(stops.length - 1, st.i + 1); st.shown = false; }
+      renderPlanSide(); return;
+    }
+    const mk = e.target.closest('[data-wkmark]');
+    if (mk) { const st = WK(pt); st.marks[st.i] = +mk.dataset.wkmark === 1; st.shown = false; renderPlanSide(); return; }
+    const rd = e.target.closest('[data-rdt]');
+    if (rd) { const st = RD(pt); st[rd.dataset.rdt] = !st[rd.dataset.rdt]; renderPlanSide(); return; }
+  });
 
   function plDetailHtml(l, parts, stepMats) {
     if (plDetail.step != null) {
