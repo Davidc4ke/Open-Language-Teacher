@@ -821,8 +821,30 @@ function buildMcp(user) {
     if (!l) return text({ ok: false, message: p ? 'Week complete — review results and call create_plan for the next week.' : 'No plan yet — run onboarding (update_profile, add_words) and call create_plan.' });
     const ck = checklistOf(l);
     const started = ck.steps.some(s => s.done) || ck.words.some(w => w.done);
-    const protocol = (l.mode || 'voice') === 'voice'
-      ? 'VOICE LESSON PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; present the agenda here first. (2) Tell the learner to switch to voice mode for the lesson itself, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (3) During voice, hold the lesson from the script — attempt NO tool calls. (4) At the end of the lesson, proactively remind them again: leave voice mode and type "sync lesson". (5) When they type it: first add_words for every word/phrase the learner asked about or picked up incidentally during the session (they don\'t fully know those — queue them for practice and say so), then tick everything actually covered with save_lesson_progress, record strengths, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
+    const dp0 = dayParts(l);
+    const hasSpeak = dp0.some(x => x.kind === 'speak');
+    const threePart = dp0.length >= 2
+      ? 'THREE-PART DAY — run the parts in order and open each one as a card:\n' +
+        dp0.map((x, k) => '  ' + (k + 1) + '. ' + x.kind + ' (' + x.min + ' min) "' + x.name + '" — call ' +
+          ({ walk: 'open_walk', speak: 'open_speak', story: 'open_story' }[x.kind] || 'open_story') +
+          '. ' + { walk: 'Text. This is where every new piece is taught.',
+                   speak: 'Voice. Practice only — never introduce a new piece here.',
+                   story: 'Text. The same pieces again as prose; no microphone.' }[x.kind]).join('\n') +
+        '\n  Do not paste the content into the chat — the card shows it, and it writes progress back by itself.'
+      : '';
+    const speakRules = hasSpeak
+      ? 'SPEAKING PART — it is a CONVERSATION, not a drill. Ask the cue questions as if you were curious about ' +
+        'their day, and react like a person. Keep a private tally of which target pieces have actually come out ' +
+        'of the learner\'s mouth. When an answer uses none of the remaining pieces, PUSH — escalating:\n' +
+        '  (a) softest: slip the missing piece into your own next question so they can hand it straight back;\n' +
+        '  (b) firmer: name it — "say that again using X";\n' +
+        '  (c) last one left: say so plainly and give them a topic for it.\n' +
+        'Say the running count out loud ("that is four of six"). The part is done only when EVERY piece has been ' +
+        'said by the learner. Nothing new is taught here — if they ask about a new word, answer briefly and ' +
+        'queue it with add_words during the sync.'
+      : '';
+    const protocol = (l.mode || 'voice') === 'voice' || hasSpeak
+      ? 'VOICE PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; open the lesson card here first. (2) Teach the text parts here. (3) Only for the speaking part, tell the learner to switch to voice mode, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (4) While in voice, attempt NO tool calls — hold the conversation from the cues. (5) At the end, remind them again: leave voice mode and type "sync lesson". (6) When they type it: first add_words for every word the learner asked about or picked up incidentally, then tick what was covered with save_lesson_progress, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
       : 'Run this ' + l.mode + ' lesson right here in text chat. Queue incidental words the learner asks about with add_words as they come up, tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
     const discipline = 'LESSON DISCIPLINE: teach exactly THIS lesson — do not invent a different one or swap target words for related words. Side explanations are fine (max ~1 extra concept) but always return to the checklist. Never say "last one" or end because the learner says "ok/好" — before closing, list which checklist items are done and which are missing, and keep going (or save partial progress with save_lesson_progress and leave the lesson incomplete) until every step and target word is truly covered, the story/drill ran, and the recall check happened.';
     const dp = dayParts(l);
@@ -833,7 +855,8 @@ function buildMcp(user) {
     return view({
       ok: true, plan: p.title, focus: p.focus, lesson: l,
       checklist: ck,
-      ...(dp.length ? { threeParts: dp.map((x, k) => (k + 1) + '. ' + x.kind + ' — ' + x.name), openWith: 'open_walk / open_speak / open_story render each part as a card the learner can actually use. Call them instead of retyping the content.' } : {}),
+      ...(threePart ? { threeParts: threePart } : {}),
+      ...(speakRules ? { speaking: speakRules } : {}),
       ...(started ? { resuming: true, note: 'This lesson was started earlier — pick up at the unticked items below.' + (l.progNote ? ' Last progress note: ' + l.progNote : '') } : {}),
       protocol, discipline
     }, {
