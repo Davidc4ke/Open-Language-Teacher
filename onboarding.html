@@ -492,9 +492,28 @@
     oPaint();
   });
 
+  /* if they have answered before, start from what they already said */
+  async function prefill() {
+    try {
+      const r = await fetch('/api/state', { cache: 'no-store' });
+      if (!r.ok) return;
+      const pf = (await r.json()).profile || {};
+      const [lang, can, words, goal, top] = OQ;
+      if (pf.languageLabel) lang.pick = [pf.languageLabel];
+      if (Array.isArray(pf.can)) can.pick = pf.can.slice();
+      if (Array.isArray(pf.goals)) goal.pick = pf.goals.slice();
+      if (Array.isArray(pf.topics)) top.pick = pf.topics.slice();
+      if (pf.knownWords > 0) {
+        let best = 0;
+        WSTEPS.forEach((n, i) => { if (Math.abs(n - pf.knownWords) < Math.abs(WSTEPS[best] - pf.knownWords)) best = i; });
+        words.f.i = best; words.text = wWord(best);
+      }
+    } catch (e) {}
+  }
+
   addEventListener('resize', oPaintMap);
   document.body.dataset.onb = '1';
-  paint();
+  prefill().then(paint);
 })();
 </script>
 </body>
