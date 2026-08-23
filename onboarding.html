@@ -189,6 +189,7 @@
 
     { key:'can', label:'What you can do', nc:'var(--violet)', mode:'cando',
       q:'What of the below things are you able to do in {lang}?',
+      free:'Anything else you can do \u2014 type it and press enter\u2026',
       opts:['Order at a restaurant', 'Ask for directions', 'Have a simple chat', 'Hold a real conversation',
         'Follow a show made for kids', 'Follow a TV show for adults', 'Read a news article', 'Take a phone call',
         'Work in the language', 'Understand fast native speech', 'Write an email', 'Argue a point'],
@@ -221,6 +222,15 @@
   const wVibe = i => { const n = WSTEPS[i];
     return n < 150 ? 'Just starting out' : n < 800 ? 'Finding your feet' : n < 2500 ? 'Everyday basics'
       : n < 5000 ? 'Comfortable' : n < 10000 ? 'Strong' : 'Very strong'; };
+  /* anything typed in a free box becomes its own pill */
+  function oCommit(q) {
+    if (!q || !q.free) return false;
+    const parts = String(q.text || '').split(/[,\n;]+/).map(v => v.trim()).filter(Boolean);
+    let added = false;
+    parts.forEach(v => { if (q.pick.indexOf(v) < 0) { q.pick.push(v); added = true; } });
+    q.text = '';
+    return added || parts.length > 0;
+  }
   const oEsc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
   const oDone = i => {
     const q = OQ[i];
@@ -370,7 +380,7 @@
         '<div class="wticks"><span>none</span><span>500</span><span>2,000</span><span>10,000</span><span>20,000+</span></div>' +
         '</div>';
     }
-    if (q.mode === 'free') h += '<input class="ofree" data-ofree value="' + oEsc(q.text) + '" placeholder="' + q.free + '">' +
+    if (q.free) h += '<input class="ofree" data-ofree value="' + oEsc(q.text) + '" placeholder="' + q.free + '">' +
       '<p class="osub">Or pick from these</p>';
     if (q.mode !== 'slider') h += '<div class="ochips" id="ochips">' + oChipRow() + '</div>';
     h += '</div></div>';
@@ -448,7 +458,7 @@
       if (q.single && q.pick.length) setTimeout(() => { if (ostep < OQ.length) { ostep++; osearch = ''; oPaint(); } }, 420);
       return;
     }
-    if (e.target.closest('[data-onext]')) { e.preventDefault(); if (oDone(ostep)) { ostep++; osearch = ''; oPaint(); } return; }
+    if (e.target.closest('[data-onext]')) { e.preventDefault(); oCommit(OQ[ostep]); if (oDone(ostep)) { ostep++; osearch = ''; oPaint(); } return; }
     if (e.target.closest('[data-oback]')) { e.preventDefault(); ostep = Math.max(0, ostep - 1); osearch = ''; oPaint(); return; }
     const oc = e.target.closest('[data-ocopy]');
     if (oc) {
@@ -477,11 +487,31 @@
       oPaintMap(); oSyncNext(); return;
     }
     const fr = e.target.closest('[data-ofree]');
-    if (fr) { q.text = fr.value; oPaintMap(); oSyncNext(); }
+    if (fr) {
+      q.text = fr.value;
+      if (/[,\n;]/.test(q.text)) {
+        oCommit(q);
+        fr.value = '';
+        if ($('ochips')) $('ochips').innerHTML = oChipRow();
+      }
+      oPaintMap(); oSyncNext();
+    }
   });
 
   document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
+    const fr = e.target.closest('[data-ofree]');
+    if (fr) {
+      e.preventDefault();
+      const q = OQ[ostep];
+      q.text = fr.value;
+      if (oCommit(q)) {
+        fr.value = '';
+        if ($('ochips')) $('ochips').innerHTML = oChipRow();
+        oPaintMap(); oSyncNext();
+      }
+      return;
+    }
     const se = e.target.closest('[data-osearch]');
     if (!se) return;
     e.preventDefault();
