@@ -1065,6 +1065,10 @@ app.get('/onboarding', (req, res) => {
   res.sendFile(path.join(__dirname, 'onboarding.html'));
 });
 app.get('/login', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
+app.get('/signup', (req, res) => {
+  if (currentUser(req)) return res.redirect('/');
+  res.sendFile(path.join(__dirname, 'signup.html'));
+});
 app.get('/admin', (req, res) => {
   const u = currentUser(req);
   if (!u) return res.redirect('/login');
@@ -1085,6 +1089,29 @@ app.post('/api/login', (req, res) => {
   res.setHeader('Set-Cookie', 'olt=' + token + '; HttpOnly; Path=/; SameSite=Lax; Max-Age=2592000');
   res.json({ ok: true, role: u.role });
 });
+/* anyone can make their own account — the app is the learner's, not an admin's */
+app.post('/api/signup', (req, res) => {
+  const email = String((req.body || {}).email || '').trim().toLowerCase();
+  const password = String((req.body || {}).password || '');
+  const name = String((req.body || {}).name || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return res.status(400).json({ error: 'That email address does not look right.' });
+  if (password.length < 8) return res.status(400).json({ error: 'Use at least 8 characters for the password.' });
+  if (db.prepare('SELECT id FROM users WHERE username = ?').get(email)) {
+    return res.status(409).json({ error: 'There is already an account with that email. Sign in instead.' });
+  }
+  const local = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
+  const display = (name || local.charAt(0).toUpperCase() + local.slice(1)).slice(0, 60);
+  const info = db.prepare('INSERT INTO users (username, password, role, name, pair_code, synced) VALUES (?, ?, ?, ?, ?, 0)')
+    .run(email, hashPassword(password), 'learner', display, genCode());
+  const uid = info.lastInsertRowid;
+  const st = blankState(display); st.v = 1;
+  db.prepare('INSERT INTO states (user_id, json, v) VALUES (?, ?, 1)').run(uid, JSON.stringify(st));
+  const token = crypto.randomUUID();
+  db.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)').run(token, uid);
+  res.setHeader('Set-Cookie', 'olt=' + token + '; HttpOnly; Path=/; SameSite=Lax; Max-Age=2592000');
+  res.json({ ok: true, next: '/onboarding' });
+});
+
 app.post('/api/logout', (req, res) => {
   const t = cookieToken(req);
   if (t) db.prepare('DELETE FROM sessions WHERE token = ?').run(t);
@@ -1134,7 +1161,10 @@ app.post('/api/onboarding', requireApi('learner'), (req, res) => {
     const kw = Math.max(0, Math.min(200000, Math.round(Number(b.knownWords) || 0)));
     p.knownWords = kw;
     s.knownExtra = Math.max(0, kw - s.known.length);
-    if (!p.level) p.level = p.can.length ? p.can.slice(0, 2).join(' · ') : 'Getting started';
+    const band = kw < 300 ? 'Just starting' : kw < 800 ? 'Beginner' : kw < 2500 ? 'Intermediate'
+      : kw < 5000 ? 'Upper-intermediate' : kw < 10000 ? 'Advanced' : 'Very advanced';
+    p.level = band + ' · ' + kw.toLocaleString('en-US') + ' words';
+    if (p.can.length) p.levelNote = 'Says they can already: ' + p.can.join(', ') + '.';
   });
   res.json({ ok: true, profile: s.profile });
 });
