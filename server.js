@@ -151,6 +151,11 @@ const ICON_SET = ['book', 'branch', 'mic', 'ear', 'read', 'pen', 'news', 'chat',
 const COLOR_SET = ['blue', 'teal', 'violet', 'coral', 'amber', 'green', 'rose'];
 const MODE_SET = ['voice', 'chat', 'reading'];
 
+/* the icon set drawn into the app — a lesson may only name icons from this list */
+const STOP_ICONS = ['mat','whistle','fast','towel','locker','ear','pot','sticks','talk','swap','taxi','route',
+  'stairs','lamp','book','mic','clock','star','check','up','flame','bell','note','dumbbell','door','cup',
+  'money','phone','tree','sun','moon','bag','key','bike','train','desk','bed','water','shop','music'];
+
 const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan)
 1. Plans are SHORT — 3 to 7 days, never more. Iterate weekly: review what stuck, then write the next plan.
 2. A lesson is 10–20 min and flows: warm-up recall → new vocab (≤5 pieces) → the pieces in context
@@ -203,8 +208,10 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
 17. WALK (part kind "walk") — step-by-step vocabulary, the app plays it as an interactive map:
    • 4–6 stops, ONE new piece each. Every stop is a REAL place from the learner's week (get_life_notes).
    • Order the stops as their evening/day actually runs, so the route is a memory the learner already has.
-   • Each stop: scene (2 sentences at that place) → ask (a guess BEFORE the reveal) → the piece →
+   • Each stop: where ("You are on the mat" — second person, speak to the learner) + time ("19:00") →
+     scene (2 sentences at that place) → ask (a guess BEFORE the reveal) → the piece →
      bridge (a sound-alike or image hook) → line. The line MUST physically contain that place.
+   • Give every stop "ic": two or three icon names for that place, from the set in rule 20.
    • Provide "seg" for the line: one entry per word with its romanization, so the app prints it under each word.
    • Finish with "chant": one short line per piece, and the lines MUST RHYME with each other.
 18. SPEAK (part kind "speak") — the 2-minute voice part is a CONVERSATION, never an interrogation.
@@ -215,9 +222,18 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    • Track which pieces they actually said. The part is done when every piece has come out of their mouth.
    • Say the piece count out loud as you go ("that's four of six") so they can feel the finish line.
 19. STORY (part kind "story") — build it from "paras", not html, and repeat hard:
+   • Give every paragraph "ens": ONE translation per sentence, in order — the app prints each under its
+     own sentence, so a 4-sentence paragraph needs exactly 4 entries. "en" alone is only a fallback.
    • 3 paragraphs, and EVERY target piece appears at least 3 times across them, in different sentences.
    • Word-by-word "seg" with romanization; mark target pieces with hit: true. The app can then hide the
-     romanization and the translation once the learner no longer needs them.`;
+     romanization and the translation once the learner no longer needs them.
+20. ICONS — the app draws these and nothing else. Pick the two or three that fit the place:
+   ` + STOP_ICONS.join(', ') + `.
+   A gym mat is mat + whistle + fast; a locker room is locker + towel + ear; a taxi is taxi + route + ear.
+21. THE APP RUNS THE LESSON, NOT YOU. The learner opens it on their phone and swipes the stops, chants,
+   walks it back, reads the story and talks to the coach — all inside the app, which saves the results
+   itself. Your job is to WRITE the week well and to be there for the speaking part. So: fill every
+   field (where, time, ic, seg, ens, chant, cues) — a missing field is a screen the learner cannot use.`;
 
 const TAXONOMY = {
   note: 'Suggested standard scaffold. Your AI creates every node and may go beyond this set (add_subtopics).',
@@ -261,7 +277,10 @@ const WordZ = z.object({
 });
 /* one stop on a memory walk — a real place from the learner's life carrying one new piece */
 const StopZ = z.object({
-  place: z.string().describe('A REAL place and time from the learner\'s week, e.g. "The gym mat · 19:00" (use get_life_notes)'),
+  place: z.string().optional().describe('Legacy form of where + time, e.g. "The gym mat · 19:00"'),
+  where: z.string().optional().describe('Where the learner IS, spoken to them directly: "You are on the mat", "You are at the hotpot table". ALWAYS write this — "place" is only the old form.'),
+  time: z.string().optional().describe('Clock time of this stop, e.g. "19:00" — shown small in the card corner'),
+  ic: z.array(z.string()).min(1).max(3).optional().describe('Two or three icon names for this place, from the app icon set (rule 20 of the authoring guide)'),
   zh: z.string().describe('The piece taught at this stop'),
   py: z.string().optional().describe('Romanization of the piece'),
   en: z.string().describe('Meaning in the learner\'s language'),
@@ -286,7 +305,8 @@ const CueZ = z.object({
 });
 const ParaZ = z.object({
   seg: z.array(WordZ).describe('The paragraph word-by-word with romanization'),
-  en: z.string().optional().describe('Translation of this paragraph')
+  en: z.string().optional().describe('Translation of the whole paragraph (fallback — prefer ens)'),
+  ens: z.array(z.string()).optional().describe('One translation per SENTENCE of this paragraph, in order. The app prints each one directly under its own sentence, so the count must match the number of sentences.')
 });
 const PartZ = z.object({
   kind: z.enum(['walk', 'speak', 'script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat']),
@@ -337,6 +357,17 @@ function normMat(m) {
 function normPart(p) {
   if (typeof p === 'string') return { kind: 'mat', name: p, d: '' };
   const out = { ...p };
+  /* older lessons carry "The gym mat · 19:00" in one field — split it so the app can lay it out */
+  if (Array.isArray(out.stops)) out.stops = out.stops.map((st, k) => {
+    if (!st || typeof st !== 'object') return st;
+    if (st.where && st.time) return st;
+    const bits = String(st.place || '').split('·').map(x => x.trim()).filter(Boolean);
+    return {
+      ...st,
+      where: st.where || bits[0] || ('Stop ' + (k + 1)),
+      time: st.time || (bits.length > 1 ? bits[bits.length - 1] : '')
+    };
+  });
   if (!PART_NEED[out.kind] && out.kind !== 'story' && out.kind !== 'mat') out.kind = 'mat';
   if (PART_NEED[out.kind] && !Array.isArray(out[PART_NEED[out.kind]])) out.kind = 'mat';
   if (out.kind === 'story' && typeof out.html !== 'string' && !Array.isArray(out.paras)) {
@@ -824,7 +855,9 @@ function buildMcp(user) {
     const dp0 = dayParts(l);
     const hasSpeak = dp0.some(x => x.kind === 'speak');
     const threePart = dp0.length >= 2
-      ? 'THREE-PART DAY — run the parts in order and open each one as a card:\n' +
+      ? 'THREE-PART DAY — THE LEARNER RUNS THE TEXT PARTS IN THE APP. Tell them to press "Start the lesson"\n' +
+        'in Open Language Teacher; the app plays the walk, the chant, the recall and the reading, and saves\n' +
+        'the results itself. Your job is the SPEAKING part. Open a card only if they ask to do it here:\n' +
         dp0.map((x, k) => '  ' + (k + 1) + '. ' + x.kind + ' (' + x.min + ' min) "' + x.name + '" — call ' +
           ({ walk: 'open_walk', speak: 'open_speak', story: 'open_story' }[x.kind] || 'open_story') +
           '. ' + { walk: 'Text. This is where every new piece is taught.',
@@ -844,8 +877,8 @@ function buildMcp(user) {
         'queue it with add_words during the sync.'
       : '';
     const protocol = (l.mode || 'voice') === 'voice' || hasSpeak
-      ? 'VOICE PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; open the lesson card here first. (2) Teach the text parts here. (3) Only for the speaking part, tell the learner to switch to voice mode, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (4) While in voice, attempt NO tool calls — hold the conversation from the cues. (5) At the end, remind them again: leave voice mode and type "sync lesson". (6) When they type it: first add_words for every word the learner asked about or picked up incidentally, then tick what was covered with save_lesson_progress, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
-      : 'Run this ' + l.mode + ' lesson right here in text chat. Queue incidental words the learner asks about with add_words as they come up, tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
+      ? 'VOICE PROTOCOL — voice models cannot make tool calls, so: (1) You are in text mode now; the learner does the text parts in the app. (2) Wait for them to reach the speaking part. (3) Only for the speaking part, tell the learner to switch to voice mode, and tell them UP FRONT that at the end they must exit voice mode and TYPE "sync lesson". (4) While in voice, attempt NO tool calls — hold the conversation from the cues. (5) At the end, remind them again: leave voice mode and type "sync lesson". (6) When they type it: first add_words for every word the learner asked about or picked up incidentally, then tick what was covered with save_lesson_progress, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is REJECTED while checklist items are open.'
+      : 'The learner runs the walk and the reading in the app — point them at "Start the lesson" there and take the speaking part yourself. Queue incidental words the learner asks about with add_words as they come up, tick items with save_lesson_progress as you go, then call complete_lesson {lesson: ' + l.n + ', note, log, skills} — it is rejected while checklist items are open.';
     const discipline = 'LESSON DISCIPLINE: teach exactly THIS lesson — do not invent a different one or swap target words for related words. Side explanations are fine (max ~1 extra concept) but always return to the checklist. Never say "last one" or end because the learner says "ok/好" — before closing, list which checklist items are done and which are missing, and keep going (or save partial progress with save_lesson_progress and leave the lesson incomplete) until every step and target word is truly covered, the story/drill ran, and the recall check happened.';
     const dp = dayParts(l);
     const doneParts = dp.map((x, k) => {
@@ -1169,6 +1202,49 @@ app.post('/api/onboarding', requireApi('learner'), (req, res) => {
   res.json({ ok: true, profile: s.profile });
 });
 
+/* the lesson now runs in the app, so the app records its own results */
+app.post('/api/lesson-result', requireApi('learner'), (req, res) => {
+  const b = req.body || {};
+  const n = Number.isFinite(b.lesson) ? b.lesson : null;
+  const strengths = (b.strengths && typeof b.strengths === 'object') ? b.strengths : {};
+  const steps = Array.isArray(b.steps) ? b.steps : [];
+  const words = Array.isArray(b.words) ? b.words : [];
+  let out = null;
+  const s = mutate(req.user.id, s => {
+    const p = s.plans.find(x => x.status === 'current');
+    if (!p) { out = { error: 'No current plan.' }; return; }
+    const l = n != null ? p.lessons.find(x => x.n === n) : p.lessons.find(x => !x.done);
+    if (!l) { out = { error: 'Lesson not found.' }; return; }
+    l.ck = l.ck || { steps: {}, words: {} };
+    for (const st of steps) {
+      if (typeof st === 'number') { if (l.steps && l.steps[st - 1]) l.ck.steps[st - 1] = true; }
+      else { const i = (l.steps || []).findIndex(x => x.name.toLowerCase() === String(st).toLowerCase()); if (i >= 0) l.ck.steps[i] = true; }
+    }
+    for (const w of words) if ((l.words || []).includes(w)) l.ck.words[w] = true;
+    for (const [word, pr] of Object.entries(strengths)) {
+      const v = Math.round(Number(pr));
+      if (!Number.isFinite(v) || v < 0 || v > 3) continue;
+      const w = s.learning.find(x => x.es === word);
+      if (!w) continue;
+      w.p = v;
+      if (w.p >= 3) { s.learning = s.learning.filter(x => x.es !== word); s.known.unshift(w); }
+    }
+    if (typeof b.note === 'string' && b.note.trim()) l.progNote = b.note.trim().slice(0, 400);
+    if (b.done) {
+      l.done = true;
+      l.ck = {
+        steps: Object.fromEntries((l.steps || []).map((_, i) => [i, true])),
+        words: Object.fromEntries((l.words || []).map(w => [w, true]))
+      };
+      delete l.progNote;
+      if (Array.isArray(b.log)) l.log = b.log.map(x => String(x).slice(0, 200)).slice(0, 8);
+      s.streak = (s.streak || 0) + 1;
+    }
+    out = { ok: true, lesson: l.n, done: !!l.done, remaining: missingOf(l), streak: s.streak || 0 };
+  });
+  if (out && out.error) return res.status(400).json(out);
+  res.json({ ...out, v: s.v, mastered: s.known.length + (s.knownExtra || 0), learning: s.learning.length });
+});
 app.post('/api/reset', requireApi('learner'), (req, res) => {
   const s = req.user.username === 'demo' ? fullSeedState(req.user.name) : blankState(req.user.name);
   s.v = (getState(req.user.id).v || 1) + 1;

@@ -678,6 +678,202 @@
     .sk-side { top: 10px; right: 10px; bottom: 10px; }
     .ai { top: 10px; right: 10px; bottom: 10px; }
   }
+  /* ================= the lesson runner: the whole lesson, in the app ================= */
+  #run {
+    position: fixed; inset: 0; z-index: 90; background: var(--bg); display: none;
+    flex-direction: column; align-items: center; padding: 0;
+  }
+  #run.open { display: flex; }
+  body.running { overflow: hidden; }
+  .lrbox {
+    width: 100%; max-width: 480px; height: 100%; display: flex; flex-direction: column;
+    background: var(--card); box-shadow: var(--shadow);
+  }
+  @media (min-width: 560px) {
+    #run { padding: 22px 16px; }
+    .lrbox { height: 100%; max-height: 860px; border-radius: 28px; border: 1px solid var(--line); overflow: hidden; }
+  }
+
+  .lrtop { flex: none; display: flex; align-items: center; gap: 11px; padding: 14px 18px 10px; }
+  .lrtop .lrback, .lrtop .lrx {
+    width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--chip); color: var(--muted);
+    cursor: pointer; font-family: var(--sans); font-size: 16px; line-height: 1; flex: none; padding: 0;
+  }
+  .lrtop .lrx { margin-left: auto; font-size: 15px; }
+  .lrtop .lrttl { font-size: 13.5px; font-weight: 800; letter-spacing: -.01em; display: block; }
+  .lrtop .lrsub { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); display: block; margin-top: 1px; }
+
+  .lrbar { flex: none; display: flex; gap: 3px; padding: 0 18px 2px; }
+  .lrbar span { flex: 1; height: 3.5px; border-radius: 99px; background: var(--line); transition: background-color .3s; }
+  .lrbar span.on { background: var(--nc, var(--blue)); }
+
+  /* the route: every piece keeps its place */
+  .lrmap { position: relative; height: 84px; margin: 2px 16px; flex: none; }
+  .lrmap svg.lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .lrseg { fill: none; stroke: var(--line); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 6;
+           vector-effect: non-scaling-stroke; transition: stroke .4s; }
+  .lrseg.on { stroke: color-mix(in srgb, var(--nc) 55%, transparent); stroke-dasharray: none; }
+  .lrnode {
+    position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; border-radius: 50%;
+    border: 0; padding: 0; cursor: pointer; display: grid; place-items: center; background: var(--card);
+    color: var(--faint); box-shadow: inset 0 0 0 2px var(--line);
+    transition: width .3s, height .3s, background-color .3s, box-shadow .3s, color .3s;
+  }
+  .lrnode svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .lrnode.did { color: var(--nc); background: color-mix(in srgb, var(--nc) 12%, var(--card));
+                box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--nc) 45%, transparent); }
+  .lrnode.now { width: 38px; height: 38px; background: var(--nc); color: var(--card);
+                box-shadow: 0 0 0 6px color-mix(in srgb, var(--nc) 13%, transparent); }
+  .lrnode.now svg { width: 19px; height: 19px; }
+
+  .lrscreen { flex: 1; min-height: 0; display: flex; }
+  .lrpane { flex: 1; min-width: 0; overflow-y: auto; padding: 14px 20px 16px; scrollbar-width: none; }
+  .lrpane::-webkit-scrollbar { width: 0; height: 0; }
+  .lrpane.home { padding: 18px 20px; display: flex; flex-direction: column; justify-content: center; }
+
+  /* the swipe reel */
+  .lrpane.reel { display: flex; overflow-x: auto; overflow-y: hidden; padding: 0;
+                 scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+  .lrcardw { flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; padding: 6px 13px 12px; overflow: hidden; }
+  .lrcard {
+    height: 100%; overflow-y: auto; border-radius: 24px; padding: 16px 18px 20px; scrollbar-width: none;
+    background: color-mix(in srgb, var(--nc) 6%, var(--chip));
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--nc) 14%, transparent);
+  }
+  .lrcard::-webkit-scrollbar { width: 0; }
+
+  @keyframes lrSink { to { opacity: 0; transform: translateY(-18px) scale(.985); } }
+  @keyframes lrRise { from { opacity: 0; transform: translateY(30px) scale(.95); } to { opacity: 1; transform: none; } }
+  @keyframes lrPop { from { opacity: 0; transform: scale(.4) rotate(-14deg); } to { opacity: 1; transform: none; } }
+  @keyframes lrUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes lrFocus { from { opacity: 0; filter: blur(16px); transform: scale(.8); } to { opacity: 1; filter: blur(0); transform: none; } }
+  @keyframes lrWiden { from { opacity: 0; transform: scaleX(.2); } to { opacity: 1; transform: none; } }
+  .lrpane.out { animation: lrSink .26s ease-in forwards; }
+  .lrcardw.in .lrcard { animation: lrRise .46s cubic-bezier(.2,.85,.25,1) both; }
+  .lrcardw.in .lric { animation: lrPop .4s cubic-bezier(.2,1.4,.35,1) both; animation-delay: calc(.16s + var(--d) * .08s); }
+  .lrcardw.in .lrwhere, .lrcardw.in .lrscene, .lrcardw.in .lrask {
+    animation: lrUp .44s cubic-bezier(.2,.85,.25,1) both; animation-delay: calc(.2s + var(--d) * .07s); }
+  .lrcardw.rev .lrwordrow { animation: lrFocus .55s cubic-bezier(.2,.8,.25,1) both; transform-origin: left center; }
+  .lrcardw.rev .lrmeta { animation: lrUp .4s ease-out both; animation-delay: .26s; }
+  .lrcardw.rev .lrhook { animation: lrUp .4s ease-out both; animation-delay: .36s; }
+  .lrcardw.rev .lrverdict { animation: lrUp .4s ease-out both; animation-delay: .36s; }
+  .lrcardw.rev .lrrule2 { animation: lrWiden .4s ease-out both; animation-delay: .44s; transform-origin: left center; }
+  .lrcardw.rev .lrsent { animation: lrUp .42s ease-out both; animation-delay: .5s; }
+  .lrcardw.rev .lrenrow { animation: lrUp .42s ease-out both; animation-delay: .6s; }
+
+  /* the icons the AI picked for this place */
+  .lricons { display: flex; align-items: center; gap: 7px; margin-bottom: 11px; }
+  .lric { width: 30px; height: 30px; border-radius: 10px; flex: none; display: grid; place-items: center;
+          background: color-mix(in srgb, var(--nc) 11%, transparent); color: var(--nc); }
+  .lric.big { width: 44px; height: 44px; border-radius: 15px; background: var(--nc); color: var(--card); }
+  .lric svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .lric.big svg { width: 23px; height: 23px; stroke-width: 1.6; }
+  .lric.sm { width: 30px; height: 30px; border-radius: 10px; }
+  .lrclock { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--faint); }
+  .lrrule { height: 1px; background: color-mix(in srgb, var(--nc) 15%, transparent); margin: 13px 0; }
+
+  .lrwhere { font-size: 13px; font-weight: 800; color: var(--nc); }
+  .lrscene { font-size: 14px; line-height: 1.6; margin-top: 5px; font-weight: 500; color: var(--muted); }
+  .lrask { font-size: 21px; font-weight: 900; line-height: 1.35; letter-spacing: -.015em; }
+  .lrhz { font-size: 38px; font-weight: 900; line-height: 1.1; letter-spacing: -.02em; }
+  .lrhz.long { font-size: 29px; }
+  .lrhz.xlong { font-size: 24px; }
+  .lrhz.blur { filter: blur(11px); }
+  .lrwordrow { display: flex; align-items: center; gap: 12px; }
+  .lrmeta { margin-top: 7px; font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  .lrpy { font-family: var(--mono); font-size: 13px; color: var(--nc); margin-right: 7px; }
+  .lrhook { margin-top: 16px; padding-left: 12px; font-size: 13.5px; line-height: 1.55; font-weight: 600;
+            border-left: 2.5px solid color-mix(in srgb, var(--nc) 45%, transparent); }
+  .lrverdict { margin-top: 16px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+               text-transform: uppercase; color: var(--faint); }
+  .lrline { display: inline-flex; flex-wrap: wrap; align-items: flex-end; row-gap: 12px; }
+  .lrw { display: inline-flex; flex-direction: column; align-items: center; padding: 0 1.5px; border-radius: 5px; cursor: pointer; }
+  .lrline.lat .lrw { padding: 0 3px; }
+  .lrw.pn { padding: 0; margin-left: -4px; }
+  .lrw:hover { background: color-mix(in srgb, var(--nc) 10%, transparent); }
+  .lrw .z { font-size: 19px; line-height: 1.3; }
+  .lrw.t .z { color: var(--nc); font-weight: 800; white-space: nowrap; }
+  .lrw .p { font-family: var(--mono); font-size: 9px; color: var(--faint); min-height: 12px; white-space: nowrap; letter-spacing: .02em; }
+  .lren { display: block; font-size: 12.5px; color: var(--muted); font-weight: 600; line-height: 1.55;
+          background: color-mix(in srgb, var(--nc) 8%, transparent); border-radius: 11px; padding: 9px 11px; }
+  .lrenrow { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+  .lrenrow .lren { flex: 1; }
+
+  /* the bottom action, always in reach */
+  .lract { flex: none; padding: 11px 18px 18px; border-top: 1px solid var(--line); display: flex; gap: 9px; align-items: center; }
+  .lrgo { flex: 1; border: 0; border-radius: 16px; cursor: pointer; background: var(--navy); color: var(--navy-ink);
+          font-family: var(--sans); font-size: 15.5px; font-weight: 800; padding: 15px 18px; letter-spacing: -.01em; }
+  .lrgo.good { background: var(--green); color: #fff; }
+  .lrgo.bad { background: var(--chip); color: var(--coral); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--coral) 35%, transparent); }
+  .lrgo.quiet { background: var(--chip); color: var(--ink); }
+  .lrgo:active { transform: translateY(1px); }
+  .lrgo .mi { display: inline-grid; place-items: center; vertical-align: -4px; margin-right: 8px; }
+  .lrgo .mi svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .lrtally { font-family: var(--mono); font-size: 11px; color: var(--muted); flex: none; }
+
+  /* today / chant / read / coach / done */
+  .lrbig { font-size: 25px; font-weight: 900; letter-spacing: -.02em; line-height: 1.15; }
+  .lrlead { font-size: 14px; color: var(--muted); line-height: 1.55; margin-top: 7px; }
+  .lrparts { display: flex; flex-direction: column; gap: 9px; margin-top: 18px; }
+  .lrpart { display: flex; gap: 12px; align-items: flex-start; padding: 12px 13px; border-radius: 16px; background: var(--chip); }
+  .lrpart b { display: block; font-size: 14px; font-weight: 800; }
+  .lrpart small { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+  .lrpart .m { margin-left: auto; font-family: var(--mono); font-size: 9.5px; color: var(--faint); flex: none; padding-top: 4px; }
+  .lrcline { display: flex; gap: 12px; align-items: flex-start; padding: 13px 0; }
+  .lrcline + .lrcline { border-top: 1px solid color-mix(in srgb, var(--nc) 11%, transparent); }
+  .lrcno { flex: none; width: 16px; font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--faint); padding-top: 7px; }
+  .lrctext { flex: 1; min-width: 0; }
+  .lrcz { font-size: 21px; line-height: 1.45; }
+  .lrcz b { color: var(--nc); font-weight: 800; }
+  .lrcpy { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin-top: 3px; letter-spacing: .02em; }
+  .lrctext .lren { margin-top: 6px; }
+  .lrtog { display: flex; gap: 7px; margin: 0 0 14px; }
+  .lrtg { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--line); background: var(--chip);
+          color: var(--muted); border-radius: 99px; padding: 6px 13px 6px 8px; font-family: var(--sans);
+          font-size: 12px; font-weight: 800; cursor: pointer; }
+  .lrtg i { flex: none; width: 24px; height: 14px; border-radius: 99px; background: var(--line); position: relative; transition: background-color .2s; }
+  .lrtg i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--card); transition: transform .2s; }
+  .lrtg.on { border-color: var(--nc); color: var(--nc); }
+  .lrtg.on i { background: var(--nc); }
+  .lrtg.on i::after { transform: translateX(10px); }
+  .lrpara { margin-bottom: 22px; }
+  .lrsrow { font-size: 18px; line-height: 2; }
+  .lrsen { font-size: 12.5px; color: var(--muted); font-weight: 600; line-height: 1.55; margin: 5px 0 13px;
+           background: color-mix(in srgb, var(--nc) 8%, transparent); border-radius: 10px; padding: 7px 10px; }
+  .lrcoach { border-radius: 20px; padding: 15px; background: color-mix(in srgb, var(--c-violet) 9%, var(--card));
+             box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c-violet) 24%, transparent); }
+  .lrwho { display: flex; align-items: center; gap: 10px; }
+  .lrorb { width: 30px; height: 30px; border-radius: 50%; flex: none;
+           background: radial-gradient(circle at 33% 30%, color-mix(in srgb, var(--c-violet) 45%, #fff), var(--c-violet)); }
+  .lrwho b { font-size: 14px; font-weight: 800; }
+  .lrwho span { display: block; font-family: var(--mono); font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--c-violet); }
+  .lrturns { display: flex; flex-direction: column; gap: 8px; margin-top: 13px; }
+  .lrcb { max-width: 92%; padding: 9px 12px; border-radius: 15px; font-size: 14.5px; line-height: 1.5;
+          background: var(--card); border-bottom-left-radius: 5px; align-self: flex-start; }
+  .lrcb em { display: block; font-style: normal; font-size: 11.5px; margin-top: 3px; opacity: .62; font-weight: 600; }
+  .lrcb .want { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+                color: var(--c-violet); margin-top: 6px; }
+  .lrpills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .lrpills span { font-size: 13px; font-weight: 800; border-radius: 99px; padding: 5px 11px; background: var(--card);
+                  color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--line); }
+  .lrpills span.hit { background: var(--c-violet); color: #fff; box-shadow: none; }
+  .lraside { font-size: 12.5px; color: var(--faint); line-height: 1.55; margin-top: 14px; }
+  .lrsaved { display: flex; flex-direction: column; gap: 9px; margin-top: 16px; }
+  .lrsaved div { display: flex; gap: 10px; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+  .lrsaved .lric { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
+  .lrstreak { display: flex; gap: 22px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .lrstreak div b { display: block; font-size: 23px; font-weight: 900; letter-spacing: -.02em; }
+  .lrstreak div span { font-family: var(--mono); font-size: 9px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); }
+  #run .say { width: 31px; height: 31px; background: var(--card); }
+  #run .say svg { width: 14px; height: 14px; }
+  .runbtn {
+    display: block; width: 100%; margin: 12px 0 4px; border: 0; border-radius: 14px; cursor: pointer;
+    background: var(--navy); color: var(--navy-ink); font-family: var(--sans); font-size: 14.5px;
+    font-weight: 800; padding: 13px 16px; letter-spacing: -.01em;
+  }
+  .runbtn:disabled { background: var(--chip); color: var(--faint); cursor: default; }
+  @media (prefers-reduced-motion: reduce) { #run *, .lrpane.reel { animation: none !important; scroll-behavior: auto !important; } }
+
 </style>
 
 <script>try { const t = localStorage.getItem('olt-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}</script>
@@ -816,6 +1012,17 @@
   </div>
   <div class="ai-foot"><i></i><span id="aiFootUrl">MCP · personal endpoint</span></div>
 </aside>
+
+<!-- the lesson itself: opened from a lesson, runs start to finish in here -->
+<div id="run" aria-hidden="true">
+  <div class="lrbox">
+    <div class="lrtop" id="runTop"></div>
+    <div class="lrbar" id="runBar"></div>
+    <div class="lrmap" id="runMap"></div>
+    <div class="lrscreen"><div class="lrpane" id="runPane"></div></div>
+    <div class="lract" id="runAct"></div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -1443,7 +1650,7 @@
       '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span>';
   }
   document.addEventListener('click', e => {
-    const s = e.target.closest('.say');
+    const s = e.target.closest('.say, .lrw[data-say]');
     if (!s) return;
     e.stopPropagation();
     if (!voiceList.length) voiceList = speechSynthesis.getVoices();
@@ -2151,9 +2358,9 @@
           '</span><span class="min">' + s.min + ' min</span></button></li>').join('') + '</ul>' +
           (orphan.length ? '<span class="mono">Also prepared</span><ul class="siderows">' + orphan.map(i =>
             '<li data-part="' + i + '"' + (plDetail && plDetail.part === i ? ' class="onrow"' : '') + '><button class="siderow"><span class="dotc" style="background:var(--c-' + (parts[i].color || 'blue') + ')"></span><span class="t">' + parts[i].name + '<small>' + parts[i].kind + '</small></span></button></li>').join('') + '</ul>' : '') +
-          (!l.done && !l.log && !plDetail ? '<div class="aitip">' + (md === 'voice'
-            ? 'Type <b>&ldquo;start my lesson&rdquo;</b> in the text chat — your AI preps the script, then you switch to <b>voice mode</b> for the lesson. Finish by typing <b>&ldquo;sync lesson&rdquo;</b> so your results are saved.'
-            : 'Type <b>&ldquo;start my lesson&rdquo;</b> — this one runs in <b>' + md + ' mode</b>, with the materials rendered as MCP apps right in the chat. Your AI pulls the exact script via <b>get_next_lesson</b>.') + '</div>' : '');
+          (!l.done && !l.log && !plDetail ? '<div class="aitip">' +
+            'Press <b>Start the lesson</b> — the walk, the chant, the recall and the reading all run here, and the app saves your results itself. Only the <b>speaking part</b> goes to your AI: say <b>&ldquo;start my lesson&rdquo;</b> in your chat when you get there.' +
+            '</div>' : '');
         body = plDetail != null
           ? '<div class="cols"><div class="lcol">' + list + '</div><div class="rcol">' + plDetailHtml(l, parts, stepMats) + '</div></div>'
           : list;
@@ -2175,9 +2382,17 @@
           (l.progNote ? '<div class="aitip"><b>Progress:</b> ' + l.progNote + '</div>' : '') +
           (l.note ? '<div class="aitip"><b>AI note:</b> ' + l.note + '</div>' : '');
       }
+      const runnable = parts.some(pt =>
+        (pt.kind === 'walk' && (pt.stops || []).length) ||
+        (pt.kind === 'story' && (pt.paras || []).length) ||
+        (pt.kind === 'speak' && (pt.cues || []).length));
       box.innerHTML =
         '<div class="modepill" style="margin-top:8px">' + iconSvg(MODES[md].icon) + md + ' lesson</div>' +
         '<p class="desc" style="padding-right:24px">' + l.obj + '</p>' +
+        (runnable
+          ? '<button class="runbtn" data-runopen="' + plSel + '" data-runplan="' + plWeek + '">' +
+            (l.done ? 'Run it again' : 'Start the lesson') + '</button>'
+          : '<button class="runbtn" disabled>Nothing prepared yet — ask your AI to write this one</button>') +
         '<div class="ptabs">' +
           ['agenda', 'skills', 'log'].map(t =>
             '<button data-ptab="' + t + '" class="' + (t === plTab ? 'on' : '') + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>').join('') +
@@ -2377,6 +2592,460 @@
     $('gate').hidden = !!s.synced || gateDismissed;
     $('aiFootUrl').textContent = 'MCP · ' + (s.mcpUrl || 'personal endpoint').replace(/^https?:\/\//, '');
   }
+
+
+  /* ================= the lesson runner =================
+     The whole lesson happens here: swipe the stops, chant them, walk them back
+     from memory, read the story, then talk it out. The app saves the results
+     itself through /api/lesson-result — the AI only writes the week. */
+  const RUN_ICONS = {
+    mat:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 12h18M9 6v12M15 6v12"/>',
+    whistle:'<path d="M12 8h7a2.5 2.5 0 0 1 0 5h-2.5l-1.5 4a4 4 0 1 1-3-9z"/><circle cx="9.5" cy="12.5" r="1"/>',
+    fast:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
+    towel:'<path d="M5 4h14v13a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z"/><path d="M9.5 4v16"/>',
+    locker:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h2M9 11h2"/>',
+    ear:'<path d="M7 9.5a5 5 0 0 1 10 0c0 3-2 4-3 5.5S13 18 13 19a2 2 0 0 1-4 0"/><path d="M10 9.5a2 2 0 0 1 4 0"/>',
+    pot:'<path d="M4 10h16v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M2 10h20"/><path d="M9.5 6.5c0-1 1-1.5 1-2.5M13.5 6.5c0-1.5 1-2 1-3"/>',
+    sticks:'<path d="M4.5 20 16 4M8.5 20 20 5.5"/>',
+    talk:'<path d="M3 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H8l-3 3v-3a2 2 0 0 1-2-2z"/><path d="M19 10v6a2 2 0 0 1-2 2h-1"/>',
+    swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+    taxi:'<path d="M4 17v-4l2-5h12l2 5v4"/><path d="M4 17h16"/><circle cx="8" cy="18.5" r="1.5"/><circle cx="16" cy="18.5" r="1.5"/><path d="M9.5 8V5.5h5V8"/>',
+    route:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M6 8.5V14a4 4 0 0 0 4 4h5.5"/>',
+    stairs:'<path d="M3 20h5v-4h5v-4h5V8h3"/>',
+    lamp:'<path d="M8 3h8l3.5 8h-15z"/><path d="M12 11v7M9 21h6"/>',
+    book:'<path d="M4 4.5h6.5a2 2 0 0 1 2 2V20a2 2 0 0 0-2-2H4z"/><path d="M20 4.5h-6.5a2 2 0 0 0-2 2V20a2 2 0 0 1 2-2H20z"/>',
+    mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    star:'<path d="m12 3 2.7 5.6 6.3.9-4.5 4.3 1 6.2-5.5-3-5.5 3 1-6.2L3 9.5l6.3-.9z"/>',
+    check:'<path d="m4.5 12.5 5 5L20 6.5"/>',
+    up:'<path d="M12 20V5M6 11l6-6 6 6"/>',
+    flame:'<path d="M12 3c4 4 6 6 6 10a6 6 0 0 1-12 0c0-2.2 1-3.6 2-4.6.5 1.6 1.5 2.1 2.5 2.1C11 8.5 10 6 12 3z"/>',
+    bell:'<path d="M6 16.5V10a6 6 0 1 1 12 0v6.5l2 2H4z"/><path d="M10 21h4"/>',
+    note:'<path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/>',
+    dumbbell:'<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>',
+    door:'<path d="M6 3h12v18H6z"/><circle cx="14.5" cy="12" r="1"/>',
+    cup:'<path d="M5 8h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10h2a2 2 0 0 1 0 4h-2"/><path d="M4 21h13"/>',
+    money:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+    phone:'<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/>',
+    tree:'<path d="M12 3 6 12h4l-3 5h10l-3-5h4z"/><path d="M12 17v4"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M18.4 5.6l1.4-1.4M4.2 19.8l1.4-1.4"/>',
+    moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+    bag:'<path d="M4 8h16l-1.2 12H5.2z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    key:'<circle cx="7.5" cy="15" r="3.5"/><path d="m10 12.5 8-8 2.5 2.5M16.5 6.5 18.5 8.5"/>',
+    bike:'<circle cx="6" cy="17" r="3.5"/><circle cx="18" cy="17" r="3.5"/><path d="M6 17l4-8h5l3 8M9 9h4"/>',
+    train:'<rect x="5" y="3.5" width="14" height="13" rx="3"/><path d="M5 11h14M8 20l-2 2M16 20l2 2"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/>',
+    desk:'<path d="M3 9h18M4 9v11M20 9v11M8 9v5h8V9"/><path d="M3 5.5h18"/>',
+    bed:'<path d="M3 18v-8M3 13h18v5M21 18v-5a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="11.5" r="1.8"/>',
+    water:'<path d="M12 3c3.5 4.5 5.5 7 5.5 10a5.5 5.5 0 0 1-11 0c0-3 2-5.5 5.5-10z"/>',
+    shop:'<path d="M4 9h16v11H4z"/><path d="M3 9l1.5-4h15L21 9"/><path d="M9 20v-6h6v6"/>',
+    music:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>'
+  };
+  const RUN_COLORS = ['teal', 'blue', 'coral', 'violet', 'amber', 'green'];
+  const RUN_FALLBACK_ICONS = ['route', 'talk', 'star', 'clock', 'book', 'flame'];
+  const runIcon = (n, cls, d) => '<span class="lric ' + (cls || '') + '" style="--d:' + (d || 0) + '">' +
+    '<svg viewBox="0 0 24 24">' + (RUN_ICONS[n] || RUN_ICONS.star) + '</svg></span>';
+  const RUN_PUNCT = /^[，。！？、：；,.!?;:·…“”‘’"'()（）「」—–-]+$/;
+  const RUN_END = /^[。！？.!?]+$/;
+  const RUN_CLOSER = /^[”’"')）」]$/;
+
+  let R = null;   /* the run in progress */
+
+  /* --- reading the lesson, whatever shape the AI wrote it in --- */
+  function runStop(st, k) {
+    const place = String(st.place || '');
+    const bits = place.split('·').map(x => x.trim());
+    return {
+      where: st.where || bits[0] || ('Stop ' + (k + 1)),
+      time: st.time || (bits.length > 1 ? bits[bits.length - 1] : ''),
+      ic: (Array.isArray(st.ic) && st.ic.length ? st.ic : [st.icon || RUN_FALLBACK_ICONS[k % 6]])
+        .filter(x => typeof x === 'string').slice(0, 3),
+      nc: 'var(--c-' + (st.color || RUN_COLORS[k % 6]) + ')',
+      zh: st.zh || '', py: st.py || '', en: st.en || '',
+      scene: st.scene || '', ask: st.ask || 'Say it before you look.',
+      hook: st.bridge || st.hook || '',
+      seg: Array.isArray(st.seg) && st.seg.length ? st.seg : null,
+      line: st.line || '', lineEn: st.lineEn || ''
+    };
+  }
+  function runIsLatin(txt) { return !/[㐀-鿿぀-ヿ가-힯؀-ۿЀ-ӿ]/.test(String(txt || '')); }
+  function runSentences(seg) {
+    const out = []; let cur = [];
+    for (let i = 0; i < seg.length; i++) {
+      cur.push(seg[i]);
+      if (RUN_END.test(seg[i].t)) {
+        while (i + 1 < seg.length && RUN_CLOSER.test(seg[i + 1].t)) cur.push(seg[++i]);
+        out.push(cur); cur = [];
+      }
+    }
+    if (cur.length) out.push(cur);
+    return out;
+  }
+  function runSeg(seg, showPy) {
+    const lat = runIsLatin((seg || []).map(g => g.t).join(''));
+    return '<span class="lrline' + (lat ? ' lat' : '') + '">' + (seg || []).map(g =>
+      '<span class="lrw' + (g.hit ? ' t' : '') + (RUN_PUNCT.test(g.t) ? ' pn' : '') + '" data-say="' + esc(g.t) + '">' +
+      '<span class="z">' + esc(g.t) + '</span>' +
+      (showPy === false ? '' : '<span class="p">' + esc(g.p || '') + '</span>') + '</span>').join('') + '</span>';
+  }
+  const runSegText = seg => (seg || []).map(g => g.t).join(runIsLatin((seg || []).map(g => g.t).join('')) ? ' ' : '');
+  const runHzSize = w => String(w).length > 17 ? ' xlong' : String(w).length > 11 ? ' long' : '';
+
+  /* --- which screens this lesson actually has --- */
+  function runBuild(lesson, parts) {
+    const walk = parts.find(p => p.kind === 'walk' && (p.stops || []).length);
+    const story = parts.find(p => p.kind === 'story' && (p.paras || []).length);
+    const speak = parts.find(p => p.kind === 'speak' && (p.cues || []).length);
+    const sc = [{ id: 'today', rank: 0 }];
+    let rank = 0;
+    if (walk) {
+      rank++;
+      sc.push({ id: 'walk', pt: walk, rank: rank });
+      if ((walk.chant || []).length) sc.push({ id: 'chant', pt: walk, rank: rank });
+      sc.push({ id: 'practice', pt: walk, rank: rank });
+    }
+    if (story) sc.push({ id: 'read', pt: story, rank: ++rank });
+    if (speak) sc.push({ id: 'coach', pt: speak, rank: ++rank });
+    sc.push({ id: 'done', rank: rank + 1 });
+    return { screens: sc, parts: rank, walk: walk, story: story, speak: speak };
+  }
+
+  function runOpen(lessonIdx, planId) {
+    const p = state.plans.find(x => x.id === (planId || plWeek)) || state.plans.find(x => x.status === 'current');
+    const l = p && p.lessons[lessonIdx];
+    if (!l) return;
+    const parts = partsOf(l);
+    const built = runBuild(l, parts);
+    if (built.parts === 0) { alert('This lesson has no prepared parts yet — ask your AI to write them.'); return; }
+    R = {
+      l: l, plan: p, i: 0, fresh: false, shown: false,
+      built: built,
+      stops: (built.walk ? built.walk.stops : []).map(runStop),
+      chant: built.walk ? (built.walk.chant || []) : [],
+      paras: built.story ? (built.story.paras || []) : [],
+      cues: built.speak ? (built.speak.cues || []) : [],
+      w: 0, seen: [], marks: [], py: true, en: true, saved: false, saveMsg: ''
+    };
+    $('run').classList.add('open');
+    document.body.classList.add('running');
+    runPaint();
+  }
+  function runClose() {
+    $('run').classList.remove('open');
+    document.body.classList.remove('running');
+    R = null;
+    syncState();
+  }
+
+  const runScr = () => R.built.screens[R.i];
+  const runIsReel = () => { const s = runScr(); return s.id === 'walk' || s.id === 'practice'; };
+  const runStopNow = () => R.stops[R.w] || {};
+  function runNc() {
+    const s = runScr();
+    if (runIsReel()) return runStopNow().nc || 'var(--blue)';
+    if (s.id === 'chant') return 'var(--c-coral)';
+    if (s.id === 'read') return 'var(--c-amber)';
+    if (s.id === 'coach') return 'var(--c-violet)';
+    return 'var(--blue)';
+  }
+  function runOpened(k) {
+    return runScr().id === 'walk' ? !!R.seen[k] : (R.seen[k] === 2 || R.marks[k] != null);
+  }
+
+  function runHead() {
+    const s = runScr(), n = R.stops.length;
+    const stop = 'part ' + s.rank + ' · stop ' + (R.w + 1) + ' of ' + n;
+    if (s.id === 'walk') return [R.built.walk.name || 'The walk', stop];
+    if (s.id === 'chant') return ['The chant', 'part ' + s.rank + ' · all ' + n + ' at once'];
+    if (s.id === 'practice') return ['Walk it back', stop];
+    if (s.id === 'read') return [R.built.story.name || 'The read', 'part ' + s.rank + ' · read'];
+    if (s.id === 'coach') return [R.built.speak.name || 'Out loud', 'part ' + s.rank + ' · speaking'];
+    if (s.id === 'done') return ['Lesson ' + R.l.n + ' done', R.saved ? 'saved' : 'saving…'];
+    return [R.l.title, 'day ' + R.l.n];
+  }
+
+  /* --- the route across the top of the walk --- */
+  function runMapHtml() {
+    /* a zig-zag that fills the width whatever the stop count */
+    const n = R.stops.length;
+    const P = R.stops.map((_, k) => n === 1 ? [50, 45] : [9 + k * (82 / (n - 1)), k % 2 ? 26 : 64]);
+    let segs = '';
+    for (let i = 0; i < n - 1; i++) {
+      const a = P[Math.max(i - 1, 0)], b = P[i], c = P[i + 1], d = P[Math.min(i + 2, n - 1)];
+      const c1 = [b[0] + (c[0] - a[0]) / 6, b[1] + (c[1] - a[1]) / 6];
+      const c2 = [c[0] - (d[0] - b[0]) / 6, c[1] - (d[1] - b[1]) / 6];
+      segs += '<path class="lrseg' + (runOpened(i) && (runOpened(i + 1) || i + 1 <= R.w) ? ' on' : '') +
+        '" style="--nc:' + R.stops[i].nc + '" d="M' + b + 'C' + c1 + ',' + c2 + ',' + c + '"/>';
+    }
+    return '<svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none">' + segs + '</svg>' +
+      P.map((p, k) => '<button class="lrnode' + (k === R.w ? ' now' : '') + (runOpened(k) ? ' did' : '') +
+        '" data-runjump="' + k + '" style="--nc:' + R.stops[k].nc + ';left:' + p[0] + '%;top:' + p[1] + '%"' +
+        ' aria-label="' + esc(R.stops[k].where) + '"><svg viewBox="0 0 24 24">' +
+        (RUN_ICONS[R.stops[k].ic[0]] || RUN_ICONS.star) + '</svg></button>').join('');
+  }
+
+  /* --- one card of the reel: where you are, the piece, the piece at work --- */
+  function runCardHtml(k) {
+    const s = R.stops[k], learn = runScr().id === 'walk', open = runOpened(k), done = R.marks[k] != null;
+    let h = '<div class="lrcardw' + (R.fresh && k === R.w ? ' in' : '') + (R.shown && k === R.w ? ' rev' : '') +
+      '" style="--nc:' + s.nc + '"><div class="lrcard">' +
+      '<div class="lricons">' + runIcon(s.ic[0], 'big', 0) +
+      (s.ic[1] ? runIcon(s.ic[1], '', 1) : '') + (s.ic[2] ? runIcon(s.ic[2], '', 2) : '') +
+      (s.time ? '<span class="lrclock">' + esc(s.time) + '</span>' : '') + '</div>' +
+      '<p class="lrwhere" style="--d:3">' + esc(s.where) + '</p>' +
+      (s.scene ? '<p class="lrscene" style="--d:4">' + esc(s.scene) + '</p>' : '') +
+      '<div class="lrrule"></div>';
+
+    if (!open) {
+      h += learn ? '<p class="lrask" style="--d:5">' + esc(s.ask) + '</p>'
+                 : '<div class="lrwordrow"><span class="lrhz blur' + runHzSize(s.zh) + '">' + esc(s.zh) + '</span></div>';
+    } else {
+      h += '<div class="lrwordrow"><span class="lrhz' + runHzSize(s.zh) + '">' + esc(s.zh) + '</span>' + sayBtn(s.zh) + '</div>' +
+        '<p class="lrmeta">' + (s.py ? '<span class="lrpy">' + esc(s.py) + '</span>' : '') + esc(s.en) + '</p>' +
+        (s.hook ? '<p class="lrhook">' + esc(s.hook) + '</p>' : '') +
+        (done ? '<p class="lrverdict">' + (R.marks[k] ? 'Got it · back in a few days' : 'Missed · back tomorrow') + '</p>' : '');
+      if (s.seg || s.line) {
+        h += '<div class="lrrule lrrule2"></div>' +
+          '<div class="lrsent">' + (s.seg ? runSeg(s.seg) : '<span class="lrline"><span class="lrw"><span class="z">' + esc(s.line) + '</span></span></span>') + '</div>' +
+          (s.lineEn ? '<div class="lrenrow"><span class="lren">' + esc(s.lineEn) + '</span>' + sayBtn(s.line || runSegText(s.seg)) + '</div>'
+                    : '<div class="lrenrow">' + sayBtn(s.line || runSegText(s.seg)) + '</div>');
+      }
+    }
+    return h + '</div></div>';
+  }
+
+  function runPaneHtml() {
+    const s = runScr();
+    if (runIsReel()) { const h = R.stops.map((x, k) => runCardHtml(k)).join(''); R.fresh = R.shown = false; return h; }
+
+    if (s.id === 'today') {
+      const rows = [];
+      if (R.built.walk) rows.push(['route', R.built.walk.name || 'The walk',
+        'Swipe ' + R.stops.length + ' places. Guess, reveal, chant, then walk it back.', 'var(--c-teal)']);
+      if (R.built.story) rows.push(['book', R.built.story.name || 'The read',
+        'The same evening written out, every piece again.', 'var(--c-amber)']);
+      if (R.built.speak) rows.push(['mic', R.built.speak.name || 'Out loud',
+        'A short conversation with your AI. Nothing new gets taught.', 'var(--c-violet)']);
+      return '<h2 class="lrbig">' + esc(R.l.title) + '</h2>' +
+        (R.l.obj ? '<p class="lrlead">' + esc(R.l.obj) + '</p>' : '') +
+        '<div class="lrparts">' + rows.map((r, i) =>
+          '<div class="lrpart" style="--nc:' + r[3] + '">' + runIcon(r[0], 'sm') +
+          '<div><b>' + esc(r[1]) + '</b><small>' + esc(r[2]) + '</small></div>' +
+          '<span class="m">' + ((R.l.steps && R.l.steps[i] && R.l.steps[i].min) || '') + (R.l.steps && R.l.steps[i] ? ' MIN' : '') + '</span></div>').join('') +
+        '</div>';
+    }
+
+    if (s.id === 'chant') {
+      return '<div class="lricons">' + runIcon('note', 'big', 0) + runIcon('flame', '', 1) + runIcon('star', '', 2) +
+          '<button class="say" style="margin-left:auto" data-say="' + esc(R.chant.map(c => c.s || runSegText(c.seg)).join(' ')) + '" aria-label="Play all">' +
+          '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></button></div>' +
+        '<p class="lrwhere">All ' + R.chant.length + ', one breath</p>' +
+        '<p class="lrscene">The lines rhyme. The order sticks because the rhyme does.</p>' +
+        '<div class="lrrule"></div>' +
+        R.chant.map((c, i) => {
+          const txt = c.s || runSegText(c.seg);
+          const lat = runIsLatin(txt);
+          const body = c.seg
+            ? '<p class="lrcz">' + c.seg.map(g => g.hit ? '<b>' + esc(g.t) + '</b>' : esc(g.t)).join(lat ? ' ' : '') + '</p>' +
+              '<p class="lrcpy">' + esc(c.seg.map(g => g.p).filter(Boolean).join(' ')) + '</p>'
+            : '<p class="lrcz">' + esc(txt) + '</p>';
+          return '<div class="lrcline"><span class="lrcno">' + (i + 1) + '</span><div class="lrctext">' + body +
+            (c.en ? '<span class="lren">' + esc(c.en) + '</span>' : '') + '</div>' + sayBtn(txt) + '</div>';
+        }).join('');
+    }
+
+    if (s.id === 'read') {
+      return '<div class="lrtog">' +
+        '<button class="lrtg' + (R.py ? ' on' : '') + '" data-runtog="py"><i></i>Sounds</button>' +
+        '<button class="lrtg' + (R.en ? ' on' : '') + '" data-runtog="en"><i></i>Translation</button></div>' +
+        R.paras.map(pa => {
+          const ens = Array.isArray(pa.ens) && pa.ens.length ? pa.ens : null;
+          if (!ens) {
+            return '<div class="lrpara"><p class="lrsrow">' + runSeg(pa.seg, R.py) + '</p>' +
+              (R.en && pa.en ? '<p class="lrsen">' + esc(pa.en) + '</p>' : '') + '</div>';
+          }
+          return '<div class="lrpara">' + runSentences(pa.seg).map((sn, i) =>
+            '<p class="lrsrow">' + runSeg(sn, R.py) + '</p>' +
+            (R.en && ens[i] ? '<p class="lrsen">' + esc(ens[i]) + '</p>' : '')).join('') + '</div>';
+        }).join('') +
+        '<p class="lraside">Tap any word to hear it.</p>';
+    }
+
+    if (s.id === 'coach') {
+      return '<div class="lrcoach">' +
+        '<div class="lrwho"><span class="lrorb"></span><div><b>Your AI</b><span>speaking · ' + R.cues.length + ' turns</span></div></div>' +
+        '<div class="lrturns">' + R.cues.map(c =>
+          '<div class="lrcb">' + esc(c.ask) + (c.en ? '<em>' + esc(c.en) + '</em>' : '') +
+          (c.want ? '<span class="want">wants: ' + esc(c.want) + '</span>' : '') + '</div>').join('') + '</div>' +
+        '<div class="lrpills">' + R.stops.map(x => '<span>' + esc(x.zh) + '</span>').join('') + '</div>' +
+        '</div>' +
+        '<p class="lraside">This is the one part your AI runs. Say <b>“start my lesson”</b> in your chat and it opens with these questions — it keeps nudging until every piece has come out of your mouth.</p>' +
+        '<p class="lraside">On a train? Skip it. The day still counts and the app marks this part as owed.</p>';
+    }
+
+    /* done */
+    const got = R.marks.filter(m => m === true).length, seen = R.marks.filter(m => m != null).length;
+    const lines = [];
+    if (seen) lines.push(got + ' of ' + seen + ' recalled from memory. Strengths saved to your words.');
+    if (R.built.story) lines.push('The read is ticked off.');
+    if (R.built.speak) lines.push('Speaking is the one part left for your AI.');
+    lines.push(R.saveMsg || 'Lesson ' + R.l.n + ' saved.');
+    return '<h2 class="lrbig">' + (seen && got === seen ? 'All ' + seen + ' of them' : 'Lesson done') + '</h2>' +
+      '<p class="lrlead">You ran the whole thing in the app. Nothing to sync.</p>' +
+      '<div class="lrsaved">' + lines.map(x =>
+        '<div>' + runIcon('check', 'sm') + '<span>' + esc(x) + '</span></div>').join('') + '</div>' +
+      '<div class="lrstreak"><div><b>' + (R.streak != null ? R.streak : (state.streak || 0)) + '</b><span>day streak</span></div>' +
+      '<div><b>' + got + '/' + (seen || R.stops.length) + '</b><span>recalled</span></div>' +
+      '<div><b>' + (R.inPractice != null ? R.inPractice : (state.learning || []).length) + '</b><span>in practice</span></div></div>';
+  }
+
+  function runActHtml() {
+    const s = runScr(), k = R.w, last = R.stops.length - 1;
+    if (s.id === 'today') return '<button class="lrgo" data-runnext>Start</button>';
+    if (s.id === 'walk') {
+      if (!runOpened(k)) return '<button class="lrgo" data-runshow>Said it out loud — show me</button>';
+      return '<button class="lrgo" data-runnext>' + (k < last ? 'Next stop' : (R.chant.length ? 'All ' + R.stops.length + ' — the chant' : 'Walk it back')) + '</button>';
+    }
+    if (s.id === 'chant') return '<button class="lrgo" data-runnext>Walk it back from memory</button>';
+    if (s.id === 'practice') {
+      if (!runOpened(k)) return '<button class="lrgo" data-runshow>Said it out loud — show me</button>';
+      if (R.marks[k] == null) return '<button class="lrgo good" data-runmark="1">Got it</button><button class="lrgo bad" data-runmark="0">Missed</button>';
+      const seen = R.marks.filter(m => m != null).length;
+      return '<button class="lrgo" data-runnext>' + (k < last ? 'Next stop' : 'Part done') + '</button>' +
+        '<span class="lrtally">' + R.marks.filter(Boolean).length + '/' + seen + '</span>';
+    }
+    if (s.id === 'read') return '<button class="lrgo" data-runnext>Done reading</button>';
+    if (s.id === 'coach') return '<button class="lrgo" data-runnext><span class="mi"><svg viewBox="0 0 24 24">' + RUN_ICONS.mic + '</svg></span>Done — finish the lesson</button>';
+    return '<button class="lrgo quiet" data-runclose>Close</button>';
+  }
+
+  function runChrome() {
+    const s = runScr(), h = runHead(), home = s.id === 'today';
+    $('runTop').innerHTML =
+      (home ? '' : '<button class="lrback" data-runback aria-label="Back">‹</button>') +
+      '<div><span class="lrttl">' + esc(h[0]) + '</span><span class="lrsub">' + esc(h[1]) + '</span></div>' +
+      '<button class="lrx" data-runclose aria-label="Close">✕</button>';
+    const bar = $('runBar');
+    bar.style.display = home ? 'none' : 'flex';
+    bar.style.setProperty('--nc', runNc());
+    if (!home) {
+      let cells = '';
+      for (let i = 1; i <= R.built.parts; i++) cells += '<span class="' + (s.rank >= i ? 'on' : '') + '"></span>';
+      bar.innerHTML = cells;
+    }
+    const map = $('runMap');
+    map.style.display = runIsReel() ? 'block' : 'none';
+    map.style.setProperty('--nc', runNc());
+    map.innerHTML = runIsReel() ? runMapHtml() : '';
+    $('runAct').innerHTML = runActHtml();
+  }
+
+  function runPaint() {
+    if (!R) return;
+    const p = $('runPane');
+    p.className = 'lrpane' + (runIsReel() ? ' reel' : '') + (runScr().id === 'today' ? ' home' : '');
+    p.style.setProperty('--nc', runNc());
+    p.innerHTML = runPaneHtml();
+    if (runIsReel()) { p.style.scrollBehavior = 'auto'; p.scrollLeft = R.w * p.clientWidth; p.style.scrollBehavior = ''; }
+    else p.scrollTop = 0;
+    runChrome();
+  }
+
+  let runLockT = 0;
+  function runJump(k) {
+    if (!R || k < 0 || k >= R.stops.length) return;
+    R.w = k; R.lock = true;
+    clearTimeout(runLockT);
+    runLockT = setTimeout(() => { if (R) R.lock = false; }, 550);
+    const p = $('runPane');
+    p.scrollTo({ left: k * p.clientWidth, behavior: 'smooth' });
+    runChrome();
+  }
+  function runGo(i) {
+    const was = runIsReel();
+    R.i = Math.max(0, Math.min(R.built.screens.length - 1, i));
+    if (runIsReel()) { R.fresh = !was; R.w = 0; }
+    if (runScr().id === 'practice' && !R.marks.length) R.seen = [];
+    if (runScr().id === 'done') runSave();
+    runPaint();
+  }
+  function runNext() {
+    const s = runScr();
+    if ((s.id === 'walk' || s.id === 'practice') && R.w < R.stops.length - 1) return runJump(R.w + 1);
+    if (s.id === 'today') { const p = $('runPane'); p.classList.add('out'); return setTimeout(() => runGo(1), 250); }
+    runGo(R.i + 1);
+  }
+
+  /* --- the app saves its own results --- */
+  async function runSave() {
+    if (!R || R.saved) return;
+    const strengths = {}, words = [];
+    R.stops.forEach((s, k) => {
+      if (R.marks[k] == null || !s.zh) return;
+      words.push(s.zh);
+      const cur = (state.learning || []).find(x => x.es === s.zh);
+      strengths[s.zh] = R.marks[k] ? Math.min(3, ((cur && cur.p) || 0) + 1) : 0;
+    });
+    const steps = [];
+    (R.l.steps || []).forEach((st, i) => {
+      const kind = st.k || '';
+      if (['warm', 'vocab', 'cards'].indexOf(kind) >= 0 && R.built.walk) steps.push(i + 1);
+      if (kind === 'story' && R.built.story) steps.push(i + 1);
+    });
+    const everything = !R.built.speak;
+    try {
+      const r = await fetch('/api/lesson-result', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lesson: R.l.n, strengths: strengths, words: words, steps: steps, done: everything,
+          note: everything ? '' : 'Ran the walk and the read in the app — the speaking part is still open.',
+          log: everything ? ['Ran the whole lesson in the app.'] : null
+        })
+      });
+      const j = await r.json();
+      if (!r.ok) { R.saveMsg = j.error || 'Could not save — your AI can still tick this off.'; }
+      else {
+        R.saved = true;
+        if (typeof j.streak === 'number') R.streak = j.streak;
+        if (typeof j.learning === 'number') R.inPractice = j.learning;
+        R.saveMsg = j.done ? 'Lesson ' + j.lesson + ' ticked off. Streak ' + j.streak + '.'
+                           : 'Progress saved. ' + (j.remaining || []).length + ' item(s) still open.';
+      }
+    } catch (e) { R.saveMsg = 'Offline — nothing saved yet.'; }
+    if (R && runScr().id === 'done') { $('runPane').innerHTML = runPaneHtml(); runChrome(); }
+    syncState();
+  }
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-runopen]')) {
+      const b = e.target.closest('[data-runopen]');
+      runOpen(+b.dataset.runopen, b.dataset.runplan);
+      return;
+    }
+    if (!R) return;
+    if (e.target.closest('[data-runclose]')) { runClose(); return; }
+    const j = e.target.closest('[data-runjump]');
+    if (j) { runJump(+j.dataset.runjump); return; }
+    if (e.target.closest('[data-runback]')) { runGo(R.i - 1); return; }
+    if (e.target.closest('[data-runshow]')) { R.seen[R.w] = runScr().id === 'walk' ? 1 : 2; R.shown = true; runPaint(); return; }
+    const m = e.target.closest('[data-runmark]');
+    if (m) { R.marks[R.w] = +m.dataset.runmark === 1; runPaint(); return; }
+    const t = e.target.closest('[data-runtog]');
+    if (t) { R[t.dataset.runtog] = !R[t.dataset.runtog]; const sc = $('runPane').scrollTop; runPaint(); $('runPane').scrollTop = sc; return; }
+    if (e.target.closest('[data-runnext]')) runNext();
+  });
+  document.addEventListener('keydown', e => {
+    if (!R) return;
+    if (e.key === 'Escape') runClose();
+    else if (e.key === 'ArrowRight' && runIsReel()) runJump(R.w + 1);
+    else if (e.key === 'ArrowLeft' && runIsReel()) runJump(R.w - 1);
+  });
+  /* swiping the reel moves the route with it */
+  $('runPane').addEventListener('scroll', () => {
+    if (!R || !runIsReel() || R.lock) return;
+    const p = $('runPane'), k = Math.round(p.scrollLeft / Math.max(1, p.clientWidth));
+    if (k !== R.w && k >= 0 && k < R.stops.length) { R.w = k; runChrome(); }
+  }, { passive: true });
+  window.addEventListener('resize', () => { if (R && runIsReel()) $('runPane').scrollLeft = R.w * $('runPane').clientWidth; });
 
   /* ================= init ================= */
   renderAll();
