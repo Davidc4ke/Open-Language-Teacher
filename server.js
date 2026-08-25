@@ -223,7 +223,7 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    • Say the piece count out loud as you go ("that's four of six") so they can feel the finish line.
 19. STORY (part kind "story") — build it from "paras", not html, and repeat hard:
    • Give every paragraph "ens": ONE translation per sentence, in order — the app prints each under its
-     own sentence, so a 4-sentence paragraph needs exactly 4 entries. "en" alone is only a fallback.
+     own sentence, so a 4-sentence paragraph needs exactly 4 entries.
    • 3 paragraphs, and EVERY target piece appears at least 3 times across them, in different sentences.
    • Word-by-word "seg" with romanization; mark target pieces with hit: true. The app can then hide the
      romanization and the translation once the learner no longer needs them.
@@ -277,36 +277,35 @@ const WordZ = z.object({
 });
 /* one stop on a memory walk — a real place from the learner's life carrying one new piece */
 const StopZ = z.object({
-  place: z.string().optional().describe('Legacy form of where + time, e.g. "The gym mat · 19:00"'),
-  where: z.string().optional().describe('Where the learner IS, spoken to them directly: "You are on the mat", "You are at the hotpot table". ALWAYS write this — "place" is only the old form.'),
-  time: z.string().optional().describe('Clock time of this stop, e.g. "19:00" — shown small in the card corner'),
-  ic: z.array(z.string()).min(1).max(3).optional().describe('Two or three icon names for this place, from the app icon set (rule 20 of the authoring guide)'),
+  where: z.string().describe('Where the learner IS, spoken to them directly: "You are on the mat", "You are at the hotpot table"'),
+  time: z.string().describe('Clock time of this stop, e.g. "19:00" — shown small in the card corner'),
+  ic: z.array(z.string()).min(2).max(3).describe('Two or three icon names for this place, from the app icon set (rule 20 of the authoring guide)'),
   zh: z.string().describe('The piece taught at this stop'),
   py: z.string().optional().describe('Romanization of the piece'),
   en: z.string().describe('Meaning in the learner\'s language'),
   scene: z.string().describe('Two short sentences putting the learner back in that place'),
   ask: z.string().describe('A guess-first question, asked BEFORE the piece is revealed'),
-  bridge: z.string().optional().describe('A memory hook: sound-alike, image or story link'),
+  bridge: z.string().describe('A memory hook: sound-alike, image or story link. The card draws it — never leave it out.'),
   line: z.string().describe('One example sentence that PHYSICALLY CONTAINS this place'),
-  lineEn: z.string().optional().describe('Translation of the example sentence'),
-  seg: z.array(WordZ).optional().describe('The example sentence word-by-word with romanization'),
+  lineEn: z.string().describe('Translation of the example sentence'),
+  seg: z.array(WordZ).describe('The example sentence word-by-word with romanization — the app prints the romanization under each word'),
   icon: z.string().optional(), color: z.string().optional()
 });
 const ChantZ = z.object({
   s: z.string().describe('One chant line — all lines must RHYME with each other'),
-  en: z.string().optional(), seg: z.array(WordZ).optional()
+  en: z.string().describe('Translation of this line'),
+  seg: z.array(WordZ).describe('This line word-by-word with romanization')
 });
 /* one turn of a spoken conversation — a real question, not a drill prompt */
 const CueZ = z.object({
   ask: z.string().describe('What the AI says out loud: a natural question about the learner\'s day'),
-  want: z.string().optional().describe('The target piece this turn should draw out of the learner'),
+  want: z.string().describe('The target piece this turn should draw out of the learner — the app shows it as a chip'),
   model: z.string().optional().describe('A model answer using that piece, for the AI to steer toward'),
   en: z.string().optional().describe('Translation of the question')
 });
 const ParaZ = z.object({
   seg: z.array(WordZ).describe('The paragraph word-by-word with romanization'),
-  en: z.string().optional().describe('Translation of the whole paragraph (fallback — prefer ens)'),
-  ens: z.array(z.string()).optional().describe('One translation per SENTENCE of this paragraph, in order. The app prints each one directly under its own sentence, so the count must match the number of sentences.')
+  ens: z.array(z.string()).min(1).describe('One translation per SENTENCE of this paragraph, in order. The app prints each one directly under its own sentence, so the count MUST match the number of sentences in seg.')
 });
 const PartZ = z.object({
   kind: z.enum(['walk', 'speak', 'script', 'story', 'news', 'deck', 'drill', 'rubric', 'mat']),
@@ -357,17 +356,6 @@ function normMat(m) {
 function normPart(p) {
   if (typeof p === 'string') return { kind: 'mat', name: p, d: '' };
   const out = { ...p };
-  /* older lessons carry "The gym mat · 19:00" in one field — split it so the app can lay it out */
-  if (Array.isArray(out.stops)) out.stops = out.stops.map((st, k) => {
-    if (!st || typeof st !== 'object') return st;
-    if (st.where && st.time) return st;
-    const bits = String(st.place || '').split('·').map(x => x.trim()).filter(Boolean);
-    return {
-      ...st,
-      where: st.where || bits[0] || ('Stop ' + (k + 1)),
-      time: st.time || (bits.length > 1 ? bits[bits.length - 1] : '')
-    };
-  });
   if (!PART_NEED[out.kind] && out.kind !== 'story' && out.kind !== 'mat') out.kind = 'mat';
   if (PART_NEED[out.kind] && !Array.isArray(out[PART_NEED[out.kind]])) out.kind = 'mat';
   if (out.kind === 'story' && typeof out.html !== 'string' && !Array.isArray(out.paras)) {

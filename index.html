@@ -789,7 +789,7 @@
   .lrline { display: inline-flex; flex-wrap: wrap; align-items: flex-end; row-gap: 12px; }
   .lrw { display: inline-flex; flex-direction: column; align-items: center; padding: 0 1.5px; border-radius: 5px; cursor: pointer; }
   .lrline.lat .lrw { padding: 0 3px; }
-  .lrw.pn { padding: 0; margin-left: -4px; }
+  .lrw .lrpn { font-style: normal; color: var(--ink); font-weight: 400; }
   .lrw:hover { background: color-mix(in srgb, var(--nc) 10%, transparent); }
   .lrw .z { font-size: 19px; line-height: 1.3; }
   .lrw.t .z { color: var(--nc); font-weight: 800; white-space: nowrap; }
@@ -2641,7 +2641,6 @@
     music:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>'
   };
   const RUN_COLORS = ['teal', 'blue', 'coral', 'violet', 'amber', 'green'];
-  const RUN_FALLBACK_ICONS = ['route', 'talk', 'star', 'clock', 'book', 'flame'];
   const runIcon = (n, cls, d) => '<span class="lric ' + (cls || '') + '" style="--d:' + (d || 0) + '">' +
     '<svg viewBox="0 0 24 24">' + (RUN_ICONS[n] || RUN_ICONS.star) + '</svg></span>';
   const RUN_PUNCT = /^[，。！？、：；,.!?;:·…“”‘’"'()（）「」—–-]+$/;
@@ -2652,17 +2651,13 @@
 
   /* --- reading the lesson, whatever shape the AI wrote it in --- */
   function runStop(st, k) {
-    const place = String(st.place || '');
-    const bits = place.split('·').map(x => x.trim());
     return {
-      where: st.where || bits[0] || ('Stop ' + (k + 1)),
-      time: st.time || (bits.length > 1 ? bits[bits.length - 1] : ''),
-      ic: (Array.isArray(st.ic) && st.ic.length ? st.ic : [st.icon || RUN_FALLBACK_ICONS[k % 6]])
-        .filter(x => typeof x === 'string').slice(0, 3),
+      where: st.where || '', time: st.time || '',
+      ic: (Array.isArray(st.ic) ? st.ic : []).filter(x => RUN_ICONS[x]).slice(0, 3),
       nc: 'var(--c-' + (st.color || RUN_COLORS[k % 6]) + ')',
       zh: st.zh || '', py: st.py || '', en: st.en || '',
-      scene: st.scene || '', ask: st.ask || 'Say it before you look.',
-      hook: st.bridge || st.hook || '',
+      scene: st.scene || '', ask: st.ask || '',
+      hook: st.bridge || '',
       seg: Array.isArray(st.seg) && st.seg.length ? st.seg : null,
       line: st.line || '', lineEn: st.lineEn || ''
     };
@@ -2680,11 +2675,28 @@
     if (cur.length) out.push(cur);
     return out;
   }
+  /* punctuation rides along with the word it follows, so a comma never wraps alone */
+  function runFold(seg) {
+    const out = [];
+    let pre = '';
+    for (const g of (seg || [])) {
+      const t = String(g.t || '');
+      if (RUN_PUNCT.test(t)) {
+        if (/^[“‘"'(（「]+$/.test(t)) { pre += t; continue; }
+        if (out.length) { out[out.length - 1].post += t; continue; }
+        pre += t; continue;
+      }
+      out.push({ t: pre + t, p: g.p || '', hit: !!g.hit, post: '' });
+      pre = '';
+    }
+    if (pre) { if (out.length) out[out.length - 1].post += pre; else out.push({ t: pre, p: '', hit: false, post: '' }); }
+    return out;
+  }
   function runSeg(seg, showPy) {
     const lat = runIsLatin((seg || []).map(g => g.t).join(''));
-    return '<span class="lrline' + (lat ? ' lat' : '') + '">' + (seg || []).map(g =>
-      '<span class="lrw' + (g.hit ? ' t' : '') + (RUN_PUNCT.test(g.t) ? ' pn' : '') + '" data-say="' + esc(g.t) + '">' +
-      '<span class="z">' + esc(g.t) + '</span>' +
+    return '<span class="lrline' + (lat ? ' lat' : '') + '">' + runFold(seg).map(g =>
+      '<span class="lrw' + (g.hit ? ' t' : '') + '" data-say="' + esc(g.t) + '">' +
+      '<span class="z">' + esc(g.t) + (g.post ? '<i class="lrpn">' + esc(g.post) + '</i>' : '') + '</span>' +
       (showPy === false ? '' : '<span class="p">' + esc(g.p || '') + '</span>') + '</span>').join('') + '</span>';
   }
   const runSegText = seg => (seg || []).map(g => g.t).join(runIsLatin((seg || []).map(g => g.t).join('')) ? ' ' : '');
@@ -2780,7 +2792,7 @@
       P.map((p, k) => '<button class="lrnode' + (k === R.w ? ' now' : '') + (runOpened(k) ? ' did' : '') +
         '" data-runjump="' + k + '" style="--nc:' + R.stops[k].nc + ';left:' + p[0] + '%;top:' + p[1] + '%"' +
         ' aria-label="' + esc(R.stops[k].where) + '"><svg viewBox="0 0 24 24">' +
-        (RUN_ICONS[R.stops[k].ic[0]] || RUN_ICONS.star) + '</svg></button>').join('');
+        (RUN_ICONS[R.stops[k].ic[0]] || RUN_ICONS.route) + '</svg></button>').join('');
   }
 
   /* --- one card of the reel: where you are, the piece, the piece at work --- */
@@ -2788,7 +2800,7 @@
     const s = R.stops[k], learn = runScr().id === 'walk', open = runOpened(k), done = R.marks[k] != null;
     let h = '<div class="lrcardw' + (R.fresh && k === R.w ? ' in' : '') + (R.shown && k === R.w ? ' rev' : '') +
       '" style="--nc:' + s.nc + '"><div class="lrcard">' +
-      '<div class="lricons">' + runIcon(s.ic[0], 'big', 0) +
+      '<div class="lricons">' + runIcon(s.ic[0] || 'route', 'big', 0) +
       (s.ic[1] ? runIcon(s.ic[1], '', 1) : '') + (s.ic[2] ? runIcon(s.ic[2], '', 2) : '') +
       (s.time ? '<span class="lrclock">' + esc(s.time) + '</span>' : '') + '</div>' +
       '<p class="lrwhere" style="--d:3">' + esc(s.where) + '</p>' +
@@ -2858,11 +2870,7 @@
         '<button class="lrtg' + (R.py ? ' on' : '') + '" data-runtog="py"><i></i>Sounds</button>' +
         '<button class="lrtg' + (R.en ? ' on' : '') + '" data-runtog="en"><i></i>Translation</button></div>' +
         R.paras.map(pa => {
-          const ens = Array.isArray(pa.ens) && pa.ens.length ? pa.ens : null;
-          if (!ens) {
-            return '<div class="lrpara"><p class="lrsrow">' + runSeg(pa.seg, R.py) + '</p>' +
-              (R.en && pa.en ? '<p class="lrsen">' + esc(pa.en) + '</p>' : '') + '</div>';
-          }
+          const ens = Array.isArray(pa.ens) ? pa.ens : [];
           return '<div class="lrpara">' + runSentences(pa.seg).map((sn, i) =>
             '<p class="lrsrow">' + runSeg(sn, R.py) + '</p>' +
             (R.en && ens[i] ? '<p class="lrsen">' + esc(ens[i]) + '</p>' : '')).join('') + '</div>';
