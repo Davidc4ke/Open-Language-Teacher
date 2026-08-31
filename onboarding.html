@@ -166,6 +166,58 @@
 
 
   .obrand { position:fixed; top:20px; left:24px; z-index:2; display:flex; align-items:center; gap:9px; font-weight:900; font-size:15px; color:var(--ink); }
+
+  /* ---------- phone: the map becomes a strip of stops, the button never leaves the screen ---------- */
+  @media (max-width: 720px) {
+    .obrand { display:none; }
+    .stage { padding:0 0 92px; }
+    .stage.on, body[data-onb="1"] .stage.on { display:block; place-items:stretch; }
+    .scenewrap { display:flex; flex-direction:column; min-height:100%; padding:0 16px; gap:0; }
+    .kicker { padding:0 16px; }
+
+    .omap { position:sticky; top:0; inset:auto; width:100%; height:auto; z-index:3; overflow:visible;
+            pointer-events:auto; background:var(--bg); padding:10px 4px 12px; }
+    .oworld { position:static; transform:none !important; transition:none; }
+    .olines, #osats { display:none; }
+    #onodes { position:relative; display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:19px; }
+    #onodes::before { content:""; position:absolute; left:20px; right:20px; top:20px; height:2px;
+                      background:var(--line); border-radius:2px; }
+    .onode { position:static; transform:none; width:auto; flex:0 0 auto; gap:6px; z-index:1; }
+    .oring { width:40px; height:40px; font-size:13px; }
+    .olabel { display:none; }
+    /* one label for the stop you are on, centred so a long name can never run off the edge */
+    .onode.now .olabel { display:block; position:absolute; left:0; right:0; top:47px; text-align:center; font-size:11px; }
+    .oans { display:none; }
+
+    .ocards { width:100%; gap:0; flex:1; }
+    .onb { flex:1; border-radius:20px 20px 0 0; box-shadow:none; }
+    .oask { padding:20px 18px 20px; }
+    .oq { font-size:19px; margin:5px 0 14px; }
+    .ofields { gap:12px; }
+    .ofld { min-width:0; flex:1 1 100%; }
+    .oadd input { width:120px; }
+    .wval b { font-size:34px; }
+    .wval em { font-size:11px; padding:4px 10px; }
+    .opsheet { padding:14px 15px; }
+
+    /* the action row rides at the bottom of the screen */
+    .orow, .orow.bare { position:fixed; left:0; right:0; bottom:0; z-index:5; margin:0; gap:8px;
+      background:var(--card); border-top:1px solid var(--line);
+      padding:10px 14px; padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .ohint { display:none; }
+    .obtn { flex:1; padding:14px 16px; font-size:14.5px; white-space:nowrap; }
+    .oback, .ocopy { flex:none; }
+    /* the labels are obvious on a phone — keep the bar to one line */
+    .oback { font-size:0; padding:10px 12px; }
+    .oback::before { content:"\2190"; font-size:19px; font-weight:800; }
+    .ocopy { font-size:0; padding:11px 14px; }
+    .ocopy::before { content:"Copy"; font-size:13px; font-weight:800; }
+  }
+  @media (max-width: 380px) {
+    .oring { width:34px; height:34px; font-size:12px; }
+    #onodes::before { left:17px; right:17px; top:17px; }
+    .ochip { font-size:13px; padding:8px 14px; }
+  }
   .osaving { opacity:.5; pointer-events:none; }
   .oerr { color:var(--coral); font-size:13px; font-weight:700; }
 </style>
@@ -236,6 +288,8 @@
     const q = OQ[i];
     return q.pick.length > 0 || !!(q.text || '').trim() || Object.keys(q.f).some(k => (q.f[k] || '').trim());
   };
+  /* the map only ticks a stop you have actually left behind */
+  const oPassed = i => i < ostep && oDone(i);
   const oBits = q => {
     const bits = q.pick.slice();
     if ((q.text || '').trim()) bits.push(q.text.trim());
@@ -283,7 +337,7 @@
     for (let i = 0; i < OPOS.length - 1; i++) {
       const x1 = OPOS[i][0] / 100 * W, y1 = OPOS[i][1] / 100 * H;
       const x2 = OPOS[i + 1][0] / 100 * W, y2 = OPOS[i + 1][1] / 100 * H;
-      d += '<path' + (oDone(i) && oDone(i + 1) ? ' class="on"' : '') +
+      d += '<path' + (oPassed(i) && oPassed(i + 1) ? ' class="on"' : '') +
         ' d="M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y2 + '"></path>';
     }
     /* every ticked can-do sprouts its own little node off question 2 */
@@ -297,7 +351,7 @@
     $('olines').innerHTML = d;
     paintSats(sPos, sx, sy - R * 1.34, extra);
     $('onodes').innerHTML = OQ.map((q, i) => {
-      const done = oDone(i), now = !fin && i === ostep;
+      const done = oPassed(i), now = !fin && i === ostep;
       return '<div class="onode' + (done ? ' done' : '') + (now ? ' now' : '') + (fin && done ? ' beam' : '') +
         '" style="--nc:' + q.nc + '; --d:' + (i * 0.45 + 0.35).toFixed(2) + 's; left:' + OPOS[i][0] + '%; top:' + OPOS[i][1] + '%">' +
         '<span class="oring">' + (done ? '\u2713' : i + 1) + '</span>' +
