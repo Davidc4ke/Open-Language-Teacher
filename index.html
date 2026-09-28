@@ -770,6 +770,10 @@
   .lric svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .lric.big svg { width: 23px; height: 23px; stroke-width: 1.6; }
   .lric.sm { width: 30px; height: 30px; border-radius: 10px; }
+  .lrknown { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+             color: var(--green); background: color-mix(in srgb, var(--green) 13%, transparent); border-radius: 99px; padding: 4px 9px; }
+  .lrknown + .lrclock { margin-left: 8px; }
+  .lricons .lrknown { margin-left: auto; }
   .lrclock { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--faint); }
   .lrrule { height: 1px; background: color-mix(in srgb, var(--nc) 15%, transparent); margin: 13px 0; }
 
@@ -857,8 +861,23 @@
   .lrpills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
   .lrpills span { font-size: 13px; font-weight: 800; border-radius: 99px; padding: 5px 11px; background: var(--card);
                   color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--line); }
+  .lrpills span.known { color: var(--green); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--green) 40%, transparent); }
   .lrpills span.hit { background: var(--c-violet); color: #fff; box-shadow: none; }
   .lraside { font-size: 12.5px; color: var(--faint); line-height: 1.55; margin-top: 14px; }
+  /* select any word in the lesson to keep it */
+  .lrpick { position: fixed; z-index: 95; transform: translateX(-50%); border: 0; cursor: pointer; white-space: nowrap;
+            border-radius: 99px; padding: 9px 15px; background: var(--navy); color: var(--navy-ink);
+            font-family: var(--sans); font-weight: 800; font-size: 13px; box-shadow: var(--shadow); }
+  .lrpick[hidden] { display: none; }
+  .lrpick.ok { background: var(--green); color: #fff; }
+  .lrcopy { width: 100%; margin-top: 14px; border: 0; border-radius: 14px; cursor: pointer; padding: 12px 14px;
+            background: var(--c-violet); color: #fff; font-family: var(--sans); font-weight: 800; font-size: 14px; }
+  .lrcopy:active { transform: translateY(1px); }
+  .lrprompt { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .lrprompt summary { cursor: pointer; font-weight: 700; }
+  .lrprompt pre { margin-top: 8px; white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 11px;
+                  line-height: 1.6; background: var(--card); border-radius: 12px; padding: 10px 12px; user-select: all;
+                  box-shadow: inset 0 0 0 1.5px var(--line); }
   .lrsaved { display: flex; flex-direction: column; gap: 9px; margin-top: 16px; }
   .lrsaved div { display: flex; gap: 10px; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
   .lrsaved .lric { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
@@ -1022,6 +1041,7 @@
     <div class="lrmap" id="runMap"></div>
     <div class="lrscreen"><div class="lrpane" id="runPane"></div></div>
     <div class="lract" id="runAct"></div>
+    <button class="lrpick" id="runPick" type="button" hidden>Add to my words</button>
   </div>
 </div>
 
@@ -2360,7 +2380,7 @@
           (orphan.length ? '<span class="mono">Also prepared</span><ul class="siderows">' + orphan.map(i =>
             '<li data-part="' + i + '"' + (plDetail && plDetail.part === i ? ' class="onrow"' : '') + '><button class="siderow"><span class="dotc" style="background:var(--c-' + (parts[i].color || 'blue') + ')"></span><span class="t">' + parts[i].name + '<small>' + parts[i].kind + '</small></span></button></li>').join('') + '</ul>' : '') +
           (!l.done && !l.log && !plDetail ? '<div class="aitip">' +
-            'Press <b>Start the lesson</b> — the walk, the chant, the recall and the reading all run here, and the app saves your results itself. Only the <b>speaking part</b> goes to your AI: say <b>&ldquo;start my lesson&rdquo;</b> in your chat when you get there.' +
+            'Press <b>Start the lesson</b> — the walk, the chant, the recall and the reading all run here, and the app saves your results itself. For the <b>speaking part</b> the app gives you a prompt to paste into ChatGPT voice mode. Press <b>Done</b> at the end and the day is ticked off.' +
             '</div>' : '');
         body = plDetail != null
           ? '<div class="cols"><div class="lcol">' + list + '</div><div class="rcol">' + plDetailHtml(l, parts, stepMats) + '</div></div>'
@@ -2371,7 +2391,7 @@
           (hasW ? '<ul class="wordlist">' + l.words.map(wz => {
               const hit = allWords().find(x => x.w.es === wz);
               const w = hit ? hit.w : { es: wz, en: '', p: 0, ex: '' };
-              return wordLi(w, !!(hit && hit.k), hit && hit.k ? 'mastered' : null);
+              return wordLi(w, !!(hit && hit.k), hit && hit.k ? 'you know this' : null);
             }).join('') + '</ul>' : '') +
           (hasG ? '<span class="mono">Grammar</span><div>' + l.grammar.map(g => '<button class="wchip" data-gogram="' + g + '">' + g + '</button>').join('') + '</div>' : '') +
           (!hasW && !hasG ? '<div class="empty">This lesson reviews everything — no new pieces.</div>' : '') +
@@ -2651,8 +2671,14 @@
   let R = null;   /* the run in progress */
 
   /* --- reading the lesson, whatever shape the AI wrote it in --- */
+  /* a piece the learner already has in their known words */
+  function runKnows(w) {
+    const t = String(w || '').trim();
+    return !!t && (state.known || []).some(x => String(x.es || '').trim() === t);
+  }
   function runStop(st, k) {
     return {
+      known: runKnows(st.zh),
       where: st.where || '', time: st.time || '',
       ic: (Array.isArray(st.ic) ? st.ic : []).filter(x => RUN_ICONS[x]).slice(0, 3),
       nc: 'var(--c-' + (st.color || RUN_COLORS[k % 6]) + ')',
@@ -2743,6 +2769,7 @@
     runPaint();
   }
   function runClose() {
+    runPickHide();
     $('run').classList.remove('open');
     document.body.classList.remove('running');
     R = null;
@@ -2803,6 +2830,7 @@
       '" style="--nc:' + s.nc + '"><div class="lrcard">' +
       '<div class="lricons">' + runIcon(s.ic[0] || 'route', 'big', 0) +
       (s.ic[1] ? runIcon(s.ic[1], '', 1) : '') + (s.ic[2] ? runIcon(s.ic[2], '', 2) : '') +
+      (s.known ? '<span class="lrknown">You know this one</span>' : '') +
       (s.time ? '<span class="lrclock">' + esc(s.time) + '</span>' : '') + '</div>' +
       '<p class="lrwhere" style="--d:3">' + esc(s.where) + '</p>' +
       (s.scene ? '<p class="lrscene" style="--d:4">' + esc(s.scene) + '</p>' : '') +
@@ -2838,8 +2866,11 @@
         'The same evening written out, every piece again.', 'var(--c-amber)']);
       if (R.built.speak) rows.push(['mic', R.built.speak.name || 'Out loud',
         'A short conversation with your AI. Nothing new gets taught.', 'var(--c-violet)']);
+      const kn = R.stops.filter(x => x.known);
       return '<h2 class="lrbig">' + esc(R.l.title) + '</h2>' +
         (R.l.obj ? '<p class="lrlead">' + esc(R.l.obj) + '</p>' : '') +
+        (kn.length ? '<p class="lraside">You already know ' + kn.length + ' of the ' + R.stops.length + ' pieces: ' +
+          kn.map(x => '<b>' + esc(x.zh) + '</b>').join(', ') + '. ' + (kn.length > 1 ? 'They are' : 'It is') + ' marked on ' + (kn.length > 1 ? 'their stops' : 'its stop') + '.</p>' : '') +
         '<div class="lrparts">' + rows.map((r, i) =>
           '<div class="lrpart" style="--nc:' + r[3] + '">' + runIcon(r[0], 'sm') +
           '<div><b>' + esc(r[1]) + '</b><small>' + esc(r[2]) + '</small></div>' +
@@ -2871,12 +2902,20 @@
         '<button class="lrtg' + (R.py ? ' on' : '') + '" data-runtog="py"><i></i>Sounds</button>' +
         '<button class="lrtg' + (R.en ? ' on' : '') + '" data-runtog="en"><i></i>Translation</button></div>' +
         R.paras.map(pa => {
-          const ens = Array.isArray(pa.ens) ? pa.ens : [];
-          return '<div class="lrpara">' + runSentences(pa.seg).map((sn, i) =>
+          /* one translation per sentence when the AI wrote it that way; otherwise one for the whole paragraph */
+          const raw = pa.ens != null ? pa.ens : (pa.en != null ? pa.en : pa.tr);
+          const sents = runSentences(pa.seg || []);
+          let ens = Array.isArray(raw) ? raw.map(String) : [];
+          let whole = typeof raw === 'string' ? raw : '';
+          if (ens.length && ens.length !== sents.length) { whole = ens.join(' '); ens = []; }
+          return '<div class="lrpara">' + sents.map((sn, i) =>
             '<p class="lrsrow">' + runSeg(sn, R.py) + '</p>' +
-            (R.en && ens[i] ? '<p class="lrsen">' + esc(ens[i]) + '</p>' : '')).join('') + '</div>';
+            (R.en && ens[i] ? '<p class="lrsen">' + esc(ens[i]) + '</p>' : '')).join('') +
+            (R.en && whole ? '<p class="lrsen">' + esc(whole) + '</p>' : '') + '</div>';
         }).join('') +
-        '<p class="lraside">Tap any word to hear it.</p>';
+        (R.en && !R.paras.some(pa => (Array.isArray(pa.ens) && pa.ens.length) || pa.en || pa.tr || typeof pa.ens === 'string')
+          ? '<p class="lraside">Your AI did not write a translation for this story. Ask it to add one and it shows up here.</p>' : '') +
+        '<p class="lraside">Tap any word to hear it. Select a word to add it to your words.</p>';
     }
 
     if (s.id === 'coach') {
@@ -2885,10 +2924,12 @@
         '<div class="lrturns">' + R.cues.map(c =>
           '<div class="lrcb">' + esc(c.ask) + (c.en ? '<em>' + esc(c.en) + '</em>' : '') +
           (c.want ? '<span class="want">wants: ' + esc(c.want) + '</span>' : '') + '</div>').join('') + '</div>' +
-        '<div class="lrpills">' + R.stops.map(x => '<span>' + esc(x.zh) + '</span>').join('') + '</div>' +
+        '<div class="lrpills">' + R.stops.map(x => '<span' + (x.known ? ' class="known"' : '') + '>' + esc(x.zh) + '</span>').join('') + '</div>' +
         '</div>' +
-        '<p class="lraside">This is the one part your AI runs. Say <b>“start my lesson”</b> in your chat and it opens with these questions — it keeps nudging until every piece has come out of your mouth.</p>' +
-        '<p class="lraside">On a train? Skip it. The day still counts and the app marks this part as owed.</p>';
+        '<button class="lrcopy" data-runcopy>Copy the prompt for ChatGPT</button>' +
+        '<details class="lrprompt"><summary>Show the prompt</summary><pre>' + esc(runSpeakPrompt()) + '</pre></details>' +
+        '<p class="lraside">Copy it, paste it into a new ChatGPT chat, then switch to voice mode. It asks these questions and keeps nudging until every piece has come out of your mouth. Come back here and press <b>Done</b> when you finish.</p>' +
+        '<p class="lraside">On a train? Skip it and press Done. The day still counts.</p>';
     }
 
     /* done */
@@ -2896,7 +2937,6 @@
     const lines = [];
     if (seen) lines.push(got + ' of ' + seen + ' recalled from memory. Strengths saved to your words.');
     if (R.built.story) lines.push('The read is ticked off.');
-    if (R.built.speak) lines.push('Speaking is the one part left for your AI.');
     lines.push(R.saveMsg || 'Lesson ' + R.l.n + ' saved.');
     return '<h2 class="lrbig">' + (seen && got === seen ? 'All ' + seen + ' of them' : 'Lesson done') + '</h2>' +
       '<p class="lrlead">You ran the whole thing in the app. Nothing to sync.</p>' +
@@ -2984,6 +3024,78 @@
     runGo(R.i + 1);
   }
 
+  /* --- select a word anywhere in the lesson and keep it for practice --- */
+  let runPickWord = '', runPickEx = '', runPickT = 0;
+  function runPickHide() { const b = $('runPick'); b.hidden = true; b.classList.remove('ok'); runPickWord = ''; }
+  function runPickCheck() {
+    const b = $('runPick');
+    if (!R) return runPickHide();
+    const sel = window.getSelection();
+    const txt = sel ? String(sel).replace(/\s+/g, ' ').trim().replace(/^[，。！？、：；,.!?;:…“”"'()（）]+|[，。！？、：；,.!?;:…“”"'()（）]+$/g, '') : '';
+    if (!txt || txt.length > 40 || !sel.rangeCount || !$('runPane').contains(sel.anchorNode)) return runPickHide();
+    const r = sel.getRangeAt(0).getBoundingClientRect();
+    /* the sentence it came from becomes the example */
+    const host = sel.anchorNode.parentElement && sel.anchorNode.parentElement.closest('.lrsent, .lrsrow, .lrcline, .lrscene, .lrcb, .lrwordrow');
+    runPickWord = txt;
+    runPickEx = host ? host.textContent.replace(/\s+/g, ' ').trim().slice(0, 200) : '';
+    const known = runKnows(txt), learning = (state.learning || []).some(x => String(x.es).trim() === txt);
+    b.textContent = known ? 'You know this one' : learning ? 'Already in your words' : 'Add "' + txt + '" to my words';
+    b.disabled = known || learning;
+    b.classList.remove('ok');
+    b.style.left = Math.min(window.innerWidth - 90, Math.max(90, r.left + r.width / 2)) + 'px';
+    b.style.top = Math.min(window.innerHeight - 50, r.bottom + 12) + 'px';
+    b.hidden = false;
+  }
+  document.addEventListener('selectionchange', () => { clearTimeout(runPickT); runPickT = setTimeout(runPickCheck, 180); });
+  $('runPick').addEventListener('mousedown', e => e.preventDefault());
+  $('runPick').addEventListener('click', async e => {
+    e.stopPropagation();
+    const b = $('runPick'), word = runPickWord;
+    if (!word || b.disabled) return;
+    b.disabled = true; b.textContent = 'Adding…';
+    try {
+      const r = await fetch('/api/add-word', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: word, ex: runPickEx })
+      });
+      const j = await r.json();
+      b.textContent = !r.ok ? (j.error || 'Could not add it') : j.added ? 'Added to your words' : j.known ? 'You know this one' : 'Already in your words';
+      if (r.ok) b.classList.add('ok');
+      syncState();
+    } catch (err) { b.textContent = 'Offline — not added'; }
+    setTimeout(() => { if (runPickWord === word) { const s = window.getSelection(); if (s) s.removeAllRanges(); runPickHide(); } }, 1500);
+  });
+
+  /* --- the speaking part as one prompt that works in any chat, no connector needed --- */
+  function runSpeakPrompt() {
+    const pr = state.profile || {};
+    const lang = pr.languageLabel || pr.language || 'my target language';
+    const pieces = R.stops.length
+      ? R.stops.map(x => '- ' + x.zh + (x.py ? ' (' + x.py + ')' : '') + (x.en ? ' = ' + x.en : ''))
+      : Array.from(new Set(R.cues.map(c => c.want).filter(Boolean))).map(w => '- ' + w);
+    const qs = R.cues.map((c, i) => (i + 1) + '. ' + (c.ask || '') + (c.en ? ' (' + c.en + ')' : '') + (c.want ? ' -> try to get me to say: ' + c.want : ''));
+    return [
+      'Be my speaking partner for a short practice in ' + lang + '. We talk out loud in voice mode.' + (pr.level ? ' My level: ' + pr.level + '.' : ''),
+      '',
+      'I just learned these pieces. Get every one of them out of my mouth:',
+      pieces.join('\n'),
+      '',
+      'Start with these questions, one at a time, in this order:',
+      qs.join('\n'),
+      '',
+      'How to run it:',
+      '- It is a conversation, not a quiz. Ask about my day and react like a real person.',
+      '- Speak ' + lang + ' at my level. Keep your turns short so I talk more than you.',
+      '- Keep count of which pieces I have said. Say the count now and then, like "that is 1 of ' + (pieces.length || 5) + '".',
+      '- If my answer uses none of the missing pieces: first slip one into your next question so I can hand it back; then ask me to say it again using it; when only one is left, tell me and give me a topic for it.',
+      '- If I make a mistake, say the right version once and move on.',
+      '- Do not teach new words. If I ask about one, answer in one line.',
+      '- When I have said every piece, tell me we are done, then list what I said well and one thing to fix.',
+      '',
+      'Begin now with question 1.'
+    ].join('\n');
+  }
+
   /* --- the app saves its own results --- */
   async function runSave() {
     if (!R || R.saved) return;
@@ -3000,14 +3112,14 @@
       if (['warm', 'vocab', 'cards'].indexOf(kind) >= 0 && R.built.walk) steps.push(i + 1);
       if (kind === 'story' && R.built.story) steps.push(i + 1);
     });
-    const everything = !R.built.speak;
+    const everything = true;
     try {
       const r = await fetch('/api/lesson-result', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lesson: R.l.n, strengths: strengths, words: words, steps: steps, done: everything,
-          note: everything ? '' : 'Ran the walk and the read in the app — the speaking part is still open.',
-          log: everything ? ['Ran the whole lesson in the app.'] : null
+          note: '',
+          log: ['Ran the whole lesson in the app.'].concat(R.built.speak ? ['Did the speaking part with a copied prompt.'] : [])
         })
       });
       const j = await r.json();
@@ -3032,6 +3144,14 @@
     }
     if (!R) return;
     if (e.target.closest('[data-runclose]')) { runClose(); return; }
+    const cp = e.target.closest('[data-runcopy]');
+    if (cp) {
+      const txt = runSpeakPrompt();
+      const ok = () => { cp.textContent = 'Copied'; setTimeout(() => { cp.textContent = 'Copy the prompt for ChatGPT'; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, () => { cp.textContent = 'Could not copy — open "Show the prompt"'; });
+      else cp.textContent = 'Could not copy — open "Show the prompt"';
+      return;
+    }
     const j = e.target.closest('[data-runjump]');
     if (j) { runJump(+j.dataset.runjump); return; }
     if (e.target.closest('[data-runback]')) { runGo(R.i - 1); return; }
