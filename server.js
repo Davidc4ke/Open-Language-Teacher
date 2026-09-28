@@ -207,6 +207,10 @@ const PLAN_GUIDE = `# olt://guide/lesson-authoring (read this before create_plan
    Never introduce a new piece in part 2 or 3 — voice models are weak and reading is for consolidation.
 17. WALK (part kind "walk") — step-by-step vocabulary, the app plays it as an interactive map:
    • 4–6 stops, ONE new piece each. Every stop is a REAL place from the learner's week (get_life_notes).
+   • A new piece must be NEW: check get_vocab first and never pick a word already in the learner's known
+     list. The app flags any stop whose piece the learner already knows.
+   • Words under the topic "Picked in lessons" were selected by the learner in the app and may have no
+     gloss yet: give each a meaning and move it to a real topic, and use them in coming lessons.
    • Order the stops as their evening/day actually runs, so the route is a memory the learner already has.
    • Each stop: where ("You are on the mat" — second person, speak to the learner) + time ("19:00") →
      scene (2 sentences at that place) → ask (a guess BEFORE the reveal) → the piece →
@@ -628,6 +632,8 @@ function buildMcp(user) {
     const added = [], skipped = [];
     const s = mutate(uid, s => {
       for (const w of words) {
+        const pk = s.learning.find(x => x.es === w.word && x.picked);
+        if (pk) { pk.en = w.gloss; pk.topic = w.topic || pk.topic; pk.ex = w.ex || pk.ex; delete pk.picked; added.push(w.word); continue; }
         if (s.learning.some(x => x.es === w.word) || s.known.some(x => x.es === w.word)) { skipped.push(w.word); continue; }
         s.learning.push({ es: w.word, en: w.gloss, topic: w.topic || 'General', p: 0, ex: w.ex || '' });
         added.push(w.word);
@@ -1232,6 +1238,20 @@ app.post('/api/lesson-result', requireApi('learner'), (req, res) => {
   });
   if (out && out.error) return res.status(400).json(out);
   res.json({ ...out, v: s.v, mastered: s.known.length + (s.knownExtra || 0), learning: s.learning.length });
+});
+/* the learner selects a word in the lesson and keeps it; the AI fills in the meaning later */
+app.post('/api/add-word', requireApi('learner'), (req, res) => {
+  const b = req.body || {};
+  const word = String(b.word || '').trim().slice(0, 40);
+  if (!word) return res.status(400).json({ error: 'No word selected.' });
+  let out = null;
+  const s = mutate(req.user.id, s => {
+    if (s.known.some(x => x.es === word)) { out = { ok: true, added: false, known: true }; return; }
+    if (s.learning.some(x => x.es === word)) { out = { ok: true, added: false }; return; }
+    s.learning.push({ es: word, en: String(b.gloss || '').slice(0, 120), topic: 'Picked in lessons', p: 0, ex: String(b.ex || '').slice(0, 200), picked: true });
+    out = { ok: true, added: true };
+  });
+  res.json({ ...out, v: s.v, learning: s.learning.length });
 });
 app.post('/api/reset', requireApi('learner'), (req, res) => {
   const s = req.user.username === 'demo' ? fullSeedState(req.user.name) : blankState(req.user.name);
